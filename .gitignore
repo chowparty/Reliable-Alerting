@@ -1,0 +1,39 @@
+# Secrets, local env, and private notes
+.env
+.env.*
+secrets/
+credentials/
+private-notes/
+my-notes.md
+*.pem
+*.key
+
+# Virtual environments
+.venv/
+venv/
+env/
+.conda/
+
+# Python caches, build output, packaging metadata
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Root artifact directories; data manifests and tests fixtures stay trackable
+/data/raw/
+/data/processed/
+/datasets/
+/results/
+/checkpoints/
+
+# Common model checkpoint files
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# macOS
+.DS_Store
