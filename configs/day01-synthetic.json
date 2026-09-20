@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "input": {
+    "kind": "synthetic_periodic_v1",
+    "length": 96,
+    "pattern": [9, 10, 11, 10, 10, 11, 12, 11, 8, 9, 10, 9, 10, 10, 10, 10],
+    "offsets": [
+      {"start": 72, "stop": 80, "offset": 2},
+      {"start": 88, "stop": 96, "offset": -3}
+    ]
+  },
+  "segments": {
+    "source_fit": [0, 32],
+    "calibration": [32, 64],
+    "replay": [64, 96]
+  },
+  "window": {
+    "length": 4,
+    "stride": 4,
+    "anchor": "segment_start",
+    "edge_policy": "drop_incomplete",
+    "end_index": "inclusive"
+  },
+  "scoring": {
+    "kind": "mean_distance",
+    "epsilon": 1e-06,
+    "fit_scope": "source_fit",
+    "standard_deviation": "population"
+  },
+  "calibration": {
+    "kind": "fixed_quantile",
+    "quantile": 0.95,
+    "method": "nearest_rank",
+    "min_samples": 2,
+    "score_segment": "calibration"
+  },
+  "policy": {
+    "kind": "fixed_threshold",
+    "comparison": "strict_greater"
+  },
+  "missing_policy": "reject",
+  "source_label_use": "none",
+  "time_basis": "sample_index",
+  "held_out": "not_reserved_or_evaluated"
+}
