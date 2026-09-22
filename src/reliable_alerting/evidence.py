@@ -193,8 +193,18 @@ def _load_calibration_csv(path):
 def _load_json(path):
     def _const(x):
         raise ValueError(f"non-finite constant: {x}")
+
+    def _nodup(pairs):
+        out = {}
+        for k, v in pairs:
+            if k in out:
+                raise ValueError(f"duplicate object key: {k!r}")
+            out[k] = v
+        return out
+
     with open(path) as fh:
-        return json.load(fh, parse_constant=_const)
+        return json.load(fh, parse_constant=_const,
+                         object_pairs_hook=_nodup)
 
 
 def _read_run(run_dir):
@@ -279,6 +289,29 @@ def _verify_recompute(label, run, diffs):
         ok = False
     if run["metadata"].get("input_hash") != expected.get("input_hash"):
         diffs.append(f"run {label}: metadata input_hash != recomputed input_hash")
+        ok = False
+    pred_cid = run["predictions"][0]["config_id"]
+    pred_rid = run["predictions"][0]["run_id"]
+    meta_cid = run["metadata"].get("config_id")
+    meta_rid = run["metadata"].get("run_id")
+    diag_cid = run["diagnostics"].get("config_id")
+    if pred_cid != run["recomputed"]:
+        diffs.append(f"run {label}: predictions config_id != recomputed config_id")
+        ok = False
+    if meta_cid != run["recomputed"]:
+        diffs.append(f"run {label}: metadata config_id != recomputed config_id")
+        ok = False
+    if diag_cid != run["recomputed"]:
+        diffs.append(f"run {label}: diagnostics config_id != recomputed config_id")
+        ok = False
+    if pred_cid != meta_cid:
+        diffs.append(f"run {label}: predictions config_id != metadata config_id")
+        ok = False
+    if pred_rid != meta_rid:
+        diffs.append(f"run {label}: predictions run_id != metadata run_id")
+        ok = False
+    if run["metadata"].get("input_hash") != run["diagnostics"].get("input_hash"):
+        diffs.append(f"run {label}: metadata input_hash != diagnostics input_hash")
         ok = False
     return ok
 
@@ -619,6 +652,430 @@ def render_figure(predictions_csv, output_svg):
     return str(output_svg)
 
 
+def _load_strict_eval_json(path):
+    def _const(x):
+        raise ValueError(f"non-finite constant: {x}")
+
+    def _nodup(pairs):
+        out = {}
+        for k, v in pairs:
+            if k in out:
+                raise ValueError(f"duplicate object key: {k!r}")
+            out[k] = v
+        return out
+
+    with open(path) as fh:
+        return json.load(fh, parse_constant=_const,
+                         object_pairs_hook=_nodup)
+
+
+def _eval_file_sha256(path):
+    import hashlib as _hl
+    h = _hl.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _read_evaluation(eval_dir):
+    from reliable_alerting import evaluation as _evaluation
+    from reliable_alerting import evaluation_io as _eio
+    base = Path(eval_dir)
+    config = _load_strict_eval_json(base / "config.json")
+    resolved = _evaluation.validate_evaluation_config(config)
+    labels = _load_strict_eval_json(base / "labels.json")
+    persisted = _load_strict_eval_json(base / "evaluation.json")
+    metadata = _load_strict_eval_json(base / "metadata.json")
+    if not isinstance(metadata, dict):
+        raise TypeError("metadata.json must be a dict")
+    rows = _eio.load_predictions_generic(str(base / "predictions.csv"))
+    return {
+        "dir": str(base),
+        "config": resolved,
+        "labels": labels,
+        "persisted": persisted,
+        "metadata": metadata,
+        "rows": rows,
+    }
+
+
+def _validate_eval_provenance(label, ev, diffs):
+    """Schema check for eval metadata; equality across evals stays separate."""
+    meta = ev["metadata"]
+    ok = True
+
+    def _need_str(key):
+        nonlocal ok
+        v = meta.get(key)
+        if not isinstance(v, str) or v.strip() == "":
+            diffs.append(f"eval {label}: metadata {key} missing or empty")
+            ok = False
+
+    for key in ("eval_id", "evaluator_id", "evaluation_config_id",
+                "source_config_id", "created_at", "created_at_scope",
+                "resource_scope"):
+        _need_str(key)
+    for key in ("input_predictions_file_sha256",
+                "persisted_predictions_file_sha256",
+                "semantic_predictions_sha256", "label_file_sha256",
+                "persisted_labels_file_sha256", "semantic_label_sha256"):
+        v = meta.get(key)
+        if (not isinstance(v, str) or len(v) != 64
+                or any(c not in "0123456789abcdef" for c in v.lower())):
+            diffs.append(f"eval {label}: metadata {key} missing or not sha256")
+            ok = False
+    src = meta.get("source_run")
+    if not isinstance(src, dict):
+        diffs.append(f"eval {label}: metadata source_run must be a dict")
+        ok = False
+    else:
+        for key in ("path", "run_id", "config_id"):
+            v = src.get(key)
+            if not isinstance(v, str) or v.strip() == "":
+                diffs.append(f"eval {label}: metadata source_run.{key} missing")
+                ok = False
+    cmd = meta.get("command")
+    if not isinstance(cmd, dict):
+        diffs.append(f"eval {label}: metadata command must be a dict")
+        ok = False
+    else:
+        for key in ("shell", "argv", "orig_argv", "cwd",
+                    "rerun_shell", "rerun_executable"):
+            if key not in cmd:
+                diffs.append(f"eval {label}: metadata command.{key} missing")
+                ok = False
+        for key in ("shell", "cwd", "rerun_shell", "rerun_executable"):
+            v = cmd.get(key)
+            if not isinstance(v, str) or v.strip() == "":
+                diffs.append(f"eval {label}: metadata command.{key} empty")
+                ok = False
+    env = meta.get("environment")
+    if not isinstance(env, dict) or not env:
+        diffs.append(f"eval {label}: metadata environment missing or empty")
+        ok = False
+    git = meta.get("git")
+    if not isinstance(git, dict):
+        diffs.append(f"eval {label}: metadata git must be a dict")
+        ok = False
+    else:
+        head = git.get("head")
+        if not isinstance(head, str) or head.strip() == "":
+            diffs.append(f"eval {label}: metadata git.head missing or empty")
+            ok = False
+        for key in ("branch", "status_porcelain"):
+            if key not in git or not isinstance(git.get(key), str):
+                diffs.append(f"eval {label}: metadata git.{key} missing")
+                ok = False
+    fh = meta.get("file_hashes")
+    if not isinstance(fh, dict) or not fh:
+        diffs.append(f"eval {label}: metadata file_hashes missing or empty")
+        ok = False
+    scope = meta.get("resource_scope")
+    allowed = (
+        "saved_run_validation_recompute_and_evaluation_excluding_output",
+        "saved_run_validation_recompute_and_evaluation_excluding_output_inherited_tracing",
+    )
+    if scope not in allowed:
+        diffs.append(f"eval {label}: metadata resource_scope unexpected")
+        ok = False
+    el = meta.get("elapsed_monotonic_seconds")
+    if isinstance(el, bool) or not isinstance(el, (int, float)) or not el >= 0:
+        diffs.append(f"eval {label}: metadata elapsed_monotonic_seconds invalid")
+        ok = False
+    peak = meta.get("peak_python_allocation_bytes")
+    if peak is not None and (isinstance(peak, bool) or not isinstance(peak, int)
+                             or peak < 0):
+        diffs.append(f"eval {label}: metadata peak_python_allocation_bytes invalid")
+        ok = False
+    n = meta.get("evaluated_decision_count")
+    if isinstance(n, bool) or not isinstance(n, int) or n < 1:
+        diffs.append(f"eval {label}: metadata evaluated_decision_count invalid")
+        ok = False
+    return ok
+
+
+def _verify_evaluation_recompute(label, ev, diffs):
+    from reliable_alerting import evaluation as _evaluation
+    from reliable_alerting import evaluation_io as _eio
+    try:
+        recomputed = _evaluation.evaluate(ev["rows"], ev["labels"], ev["config"])
+    except Exception as e:
+        diffs.append(f"eval {label}: recompute failed: {e}")
+        return False
+    ok = True
+    if recomputed != ev["persisted"]:
+        diffs.append(f"eval {label}: persisted evaluation != recomputed evaluation")
+        ok = False
+    meta = ev["metadata"]
+    try:
+        sem_pred = _eio.semantic_predictions_hash(ev["rows"])
+        if meta.get("semantic_predictions_sha256") != sem_pred:
+            diffs.append(f"eval {label}: predictions hash mismatch")
+            ok = False
+    except Exception as e:
+        diffs.append(f"eval {label}: predictions hash unreadable: {e}")
+        ok = False
+    try:
+        sem_label = _eio.semantic_label_hash(ev["labels"])
+        if meta.get("semantic_label_sha256") != sem_label:
+            diffs.append(f"eval {label}: labels hash mismatch")
+            ok = False
+    except Exception as e:
+        diffs.append(f"eval {label}: labels hash unreadable: {e}")
+        ok = False
+    try:
+        cfg_id = _eio.evaluation_config_id(ev["config"])
+        if meta.get("evaluation_config_id") != cfg_id:
+            diffs.append(f"eval {label}: config id mismatch")
+            ok = False
+    except Exception as e:
+        diffs.append(f"eval {label}: config id unreadable: {e}")
+        ok = False
+    if meta.get("evaluator_id") != _evaluation.METRIC_DEFINITION_ID:
+        diffs.append(f"eval {label}: evaluator id mismatch")
+        ok = False
+    try:
+        persisted_pred_sha = _eval_file_sha256(str(Path(ev["dir"]) / "predictions.csv"))
+        if meta.get("persisted_predictions_file_sha256") != persisted_pred_sha:
+            diffs.append(f"eval {label}: persisted predictions file hash mismatch")
+            ok = False
+    except Exception as e:
+        diffs.append(f"eval {label}: persisted predictions hash unreadable: {e}")
+        ok = False
+    try:
+        persisted_labels_sha = _eval_file_sha256(str(Path(ev["dir"]) / "labels.json"))
+        if meta.get("persisted_labels_file_sha256") != persisted_labels_sha:
+            diffs.append(f"eval {label}: persisted labels file hash mismatch")
+            ok = False
+    except Exception as e:
+        diffs.append(f"eval {label}: persisted labels hash unreadable: {e}")
+        ok = False
+    try:
+        src = meta.get("source_run") or {}
+        row_rid = ev["rows"][0]["run_id"] if ev["rows"] else None
+        row_cid = ev["rows"][0]["config_id"] if ev["rows"] else None
+        if src.get("run_id") != row_rid:
+            diffs.append(f"eval {label}: source_run.run_id != copied rows run_id")
+            ok = False
+        if src.get("config_id") != row_cid:
+            diffs.append(f"eval {label}: source_run.config_id != copied rows config_id")
+            ok = False
+        if meta.get("source_config_id") != row_cid:
+            diffs.append(f"eval {label}: source_config_id != copied rows config_id")
+            ok = False
+    except Exception as e:
+        diffs.append(f"eval {label}: source linkage unreadable: {e}")
+        ok = False
+    return ok
+
+
+def compare_evaluations(eval_a, eval_b):
+    """Compare two saved evaluation directories (scientific vs provenance)."""
+    a = _read_evaluation(eval_a)
+    b = _read_evaluation(eval_b)
+    diffs = []
+    config_equal = (a["config"] == b["config"])
+    if not config_equal:
+        diffs.append("evaluation config differs")
+    eval_equal = (a["persisted"] == b["persisted"])
+    if not eval_equal:
+        diffs.append("persisted evaluation differs")
+    from reliable_alerting import evaluation_io as _eio
+    sem_pred_equal = (_eio.semantic_predictions_hash(a["rows"])
+                      == _eio.semantic_predictions_hash(b["rows"]))
+    if not sem_pred_equal:
+        diffs.append("semantic predictions differ")
+    sem_label_equal = (_eio.semantic_label_hash(a["labels"])
+                       == _eio.semantic_label_hash(b["labels"]))
+    if not sem_label_equal:
+        diffs.append("semantic labels differ")
+    recompute_ok = True
+    recompute_ok = _verify_evaluation_recompute("a", a, diffs) and recompute_ok
+    recompute_ok = _verify_evaluation_recompute("b", b, diffs) and recompute_ok
+    provenance_valid = True
+    provenance_valid = _validate_eval_provenance("a", a, diffs) and provenance_valid
+    provenance_valid = _validate_eval_provenance("b", b, diffs) and provenance_valid
+    scientific_equal = bool(config_equal and eval_equal and sem_pred_equal
+                            and sem_label_equal and recompute_ok)
+    ma, mb = a["metadata"], b["metadata"]
+    fh_equal = (ma.get("file_hashes") == mb.get("file_hashes"))
+    env_equal = (ma.get("environment") == mb.get("environment"))
+    ga = (ma.get("git") or {}).get("head") if isinstance(ma.get("git"), dict) else None
+    gb = (mb.get("git") or {}).get("head") if isinstance(mb.get("git"), dict) else None
+    git_equal = (ga == gb)
+    try:
+        current_hashes = provenance.file_hashes(provenance.repo_root())
+        src_match = (ma.get("file_hashes") == current_hashes
+                     and mb.get("file_hashes") == current_hashes)
+    except Exception as e:
+        src_match = False
+        diffs.append(f"source hashes unreadable: {e}")
+    if not src_match:
+        diffs.append("source_hashes_match_current is false")
+    # Pure status requires scientific equality, input integrity (recompute
+    # including raw/linkage checks) and provenance schema validity. Same git
+    # head / current file hashes are reported separately, not required.
+    status = bool(scientific_equal and recompute_ok and provenance_valid)
+    report = {
+        "eval_a": str(eval_a),
+        "eval_b": str(eval_b),
+        "status": status,
+        "scientific_equal": bool(scientific_equal),
+        "provenance_valid": bool(provenance_valid),
+        "config_equal": bool(config_equal),
+        "evaluation_equal": bool(eval_equal),
+        "semantic_predictions_equal": bool(sem_pred_equal),
+        "semantic_labels_equal": bool(sem_label_equal),
+        "recompute_match": bool(recompute_ok),
+        "file_hashes_equal": bool(fh_equal),
+        "environment_equal": bool(env_equal),
+        "git_head_equal": bool(git_equal),
+        "git_heads": {"a": ga, "b": gb},
+        "source_hashes_match_current": bool(src_match),
+        "eval_ids": {"a": ma.get("eval_id"), "b": mb.get("eval_id")},
+        "evaluator_ids": {"a": ma.get("evaluator_id"), "b": mb.get("evaluator_id")},
+        "differences": diffs,
+        "varying_metadata": {
+            "eval_id": {"a": ma.get("eval_id"), "b": mb.get("eval_id")},
+            "created_at": {"a": ma.get("created_at"), "b": mb.get("created_at")},
+            "elapsed_monotonic_seconds": {
+                "a": ma.get("elapsed_monotonic_seconds"),
+                "b": mb.get("elapsed_monotonic_seconds"),
+            },
+            "peak_python_allocation_bytes": {
+                "a": ma.get("peak_python_allocation_bytes"),
+                "b": mb.get("peak_python_allocation_bytes"),
+            },
+            "resource_scope": {
+                "a": ma.get("resource_scope"), "b": mb.get("resource_scope"),
+            },
+            "source_run_path": {
+                "a": (ma.get("source_run") or {}).get("path")
+                if isinstance(ma.get("source_run"), dict) else None,
+                "b": (mb.get("source_run") or {}).get("path")
+                if isinstance(mb.get("source_run"), dict) else None,
+            },
+            "source_run_id": {
+                "a": (ma.get("source_run") or {}).get("run_id")
+                if isinstance(ma.get("source_run"), dict) else None,
+                "b": (mb.get("source_run") or {}).get("run_id")
+                if isinstance(mb.get("source_run"), dict) else None,
+            },
+            "source_config_id": {
+                "a": ma.get("source_config_id"), "b": mb.get("source_config_id"),
+            },
+        },
+    }
+    return report
+
+
+def write_comparison_evaluations(eval_a, eval_b, output):
+    """Serialize evaluation comparison to a new file only (mode 'x')."""
+    report = compare_evaluations(eval_a, eval_b)
+    text = json.dumps(report, sort_keys=True, indent=2, allow_nan=False) + "\n"
+    with open(output, "x") as fh:
+        fh.write(text)
+    return report
+
+
+def render_evaluation_figure(eval_dir, output_svg):
+    """Plot saved evaluation: half-open events vs forward episodes + horizon."""
+    ev = _read_evaluation(eval_dir)
+    diffs = []
+    if not _verify_evaluation_recompute("eval", ev, diffs):
+        raise ValueError(f"persisted evaluation failed validation: {diffs}")
+    if not _validate_eval_provenance("eval", ev, diffs):
+        raise ValueError(f"persisted evaluation provenance invalid: {diffs}")
+    cfg = ev["config"]
+    persisted = ev["persisted"]
+    h0, h1 = list(cfg["horizon"])
+    first = cfg["first_decision"]
+    episodes = list(persisted.get("episodes", []))
+    clipped = list((persisted.get("events") or {}).get("clipped", []))
+    width, height = 640, 420
+    left, right, top, bottom = 60, 20, 60, 70
+    plot_w = width - left - right
+    plot_h = height - top - bottom
+
+    def _cx(x):
+        if h1 == h0:
+            return left + plot_w / 2
+        return left + (x - h0) / (h1 - h0) * plot_w
+
+    y_event = top + plot_h * 0.3
+    y_ep = top + plot_h * 0.65
+    parts = []
+    parts.append(
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" role="img">'
+    )
+    title = "Synthetic labels \u2014 no quality claim: half-open events vs forward episodes"
+    parts.append(f"<title>{escape(title)}</title>")
+    parts.append(f'<rect x="0" y="0" width="{width}" height="{height}" fill="white"/>')
+    parts.append(
+        f'<text x="{width // 2}" y="24" text-anchor="middle" font-size="14">{escape(title)}</text>'
+    )
+    parts.append(
+        f'<text x="{width // 2}" y="42" text-anchor="middle" font-size="11">sample_index units; horizon [{h0}, {h1}); warmup [{h0}, {first})</text>'
+    )
+    parts.append(
+        f'<line x1="{left}" y1="{top + plot_h}" x2="{left + plot_w}" y2="{top + plot_h}" stroke="black"/>'
+    )
+    parts.append(
+        f'<text x="{left + plot_w // 2}" y="{height - 12}" text-anchor="middle" font-size="11">sample_index</text>'
+    )
+    # horizon + warmup background
+    parts.append(
+        f'<rect x="{_cx(h0):.2f}" y="{top}" width="{_cx(h1) - _cx(h0):.2f}" height="{plot_h}" fill="none" stroke="black"/>'
+    )
+    if first > h0:
+        parts.append(
+            f'<rect x="{_cx(h0):.2f}" y="{top}" width="{_cx(first) - _cx(h0):.2f}" height="{plot_h}" fill="#eeeeee"/>'
+        )
+        parts.append(
+            f'<text x="{(_cx(h0) + _cx(first)) / 2:.2f}" y="{top + plot_h + 34:.2f}" text-anchor="middle" font-size="10">warmup</text>'
+        )
+    # x ticks
+    for xt in (h0, first, h1):
+        cx = _cx(xt)
+        parts.append(
+            f'<line x1="{cx:.2f}" y1="{top + plot_h}" x2="{cx:.2f}" y2="{top + plot_h + 5}" stroke="black"/>'
+        )
+        parts.append(
+            f'<text x="{cx:.2f}" y="{top + plot_h + 18}" text-anchor="middle" font-size="10">{escape(str(xt))}</text>'
+        )
+    # events (half-open) blue
+    parts.append(f'<text x="{left}" y="{y_event - 10:.2f}" font-size="11">events (half-open)</text>')
+    for e in clipped:
+        x1, x2 = _cx(e["start"]), _cx(e["stop"])
+        parts.append(
+            f'<rect x="{x1:.2f}" y="{y_event:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="blue">'
+            f"<title>{escape(str(e.get('event_id', '')) + ' [' + str(e['start']) + ', ' + str(e['stop']) + ')')}</title>"
+            "</rect>"
+        )
+    # episodes (forward) red
+    parts.append(f'<text x="{left}" y="{y_ep - 10:.2f}" font-size="11">episodes (forward)</text>')
+    for ep in episodes:
+        x1, x2 = _cx(ep["start"]), _cx(ep["stop"])
+        parts.append(
+            f'<rect x="{x1:.2f}" y="{y_ep:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="red">'
+            f"<title>{escape(str(ep.get('episode_id', '')) + ' [' + str(ep['start']) + ', ' + str(ep['stop']) + ')')}</title>"
+            "</rect>"
+        )
+    eval_id = (ev["metadata"] or {}).get("eval_id", "")
+    parts.append(
+        f'<text x="{left}" y="{height - 44}" font-size="10">{escape(f"eval_id={eval_id}")}</text>'
+    )
+    parts.append(
+        f'<text x="{left}" y="{height - 30}" font-size="10">{escape(f"source={str(eval_dir)}")}</text>'
+    )
+    parts.append("</svg>")
+    text = "\n".join(parts) + "\n"
+    with open(output_svg, "x") as fh:
+        fh.write(text)
+    return str(output_svg)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="reliable_alerting.evidence")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -629,6 +1086,13 @@ def main(argv=None):
     f = sub.add_parser("figure", help="plot saved predictions.csv to SVG")
     f.add_argument("predictions_csv")
     f.add_argument("--output", required=True)
+    ce = sub.add_parser("compare-evaluations", help="compare two evaluation directories")
+    ce.add_argument("eval_a")
+    ce.add_argument("eval_b")
+    ce.add_argument("--output", required=True)
+    ef = sub.add_parser("evaluation-figure", help="plot saved evaluation to SVG")
+    ef.add_argument("eval_dir")
+    ef.add_argument("--output", required=True)
     args = ap.parse_args(argv)
     if args.cmd == "compare":
         report = write_comparison(args.run_a, args.run_b, args.output)
@@ -636,6 +1100,14 @@ def main(argv=None):
         return 0 if report["status"] else 1
     if args.cmd == "figure":
         render_figure(args.predictions_csv, args.output)
+        print(args.output)
+        return 0
+    if args.cmd == "compare-evaluations":
+        report = write_comparison_evaluations(args.eval_a, args.eval_b, args.output)
+        print(json.dumps({"status": report["status"], "output": args.output}))
+        return 0 if report["status"] else 1
+    if args.cmd == "evaluation-figure":
+        render_evaluation_figure(args.eval_dir, args.output)
         print(args.output)
         return 0
     return 2

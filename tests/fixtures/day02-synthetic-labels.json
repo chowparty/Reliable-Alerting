@@ -1,0 +1,20 @@
+{
+  "coverage": [
+    64,
+    96
+  ],
+  "events": [
+    {
+      "event_id": "offset-up",
+      "start": 72,
+      "stop": 80
+    },
+    {
+      "event_id": "offset-down",
+      "start": 88,
+      "stop": 96
+    }
+  ],
+  "schema_version": 1,
+  "time_basis": "sample_index"
+}

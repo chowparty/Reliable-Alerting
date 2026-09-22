@@ -21,11 +21,21 @@ def command_record():
         shell = shlex.join(orig)
     except (TypeError, ValueError, AttributeError):
         shell = " ".join(orig)
+    # Verified rerun launcher: same args but interpreter is the current
+    # sys.executable WITHOUT resolving symlinks, so a .venv launch stays
+    # on .venv/bin/python. Original shell/orig_argv preserved for origin.
+    try:
+        rerun_argv = [sys.executable] + list(orig[1:])
+        rerun_shell = shlex.join(rerun_argv)
+    except (TypeError, ValueError, AttributeError):
+        rerun_shell = str(sys.executable)
     return {
         "shell": shell,
         "argv": list(sys.argv),
         "orig_argv": orig,
         "cwd": os.getcwd(),
+        "rerun_shell": rerun_shell,
+        "rerun_executable": str(sys.executable),
     }
 
 
@@ -81,11 +91,18 @@ WHITELIST = (
     "src/reliable_alerting/pipeline.py",
     "src/reliable_alerting/provenance.py",
     "src/reliable_alerting/evidence.py",
+    "src/reliable_alerting/evaluation.py",
+    "src/reliable_alerting/evaluation_io.py",
     "configs/day01-synthetic.json",
+    "configs/day02-evaluation.json",
     "tests/test_pipeline.py",
     "tests/test_source.py",
     "tests/test_decisions.py",
     "tests/test_evidence.py",
+    "tests/test_evaluation.py",
+    "tests/test_evaluation_io.py",
+    "tests/fixtures/day02-synthetic-labels.json",
+    "report/outline.md",
     "README.md",
     "pyproject.toml",
 )

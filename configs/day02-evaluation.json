@@ -1,0 +1,11 @@
+{
+  "decision_stride": 4,
+  "first_decision": 67,
+  "horizon": [
+    64,
+    96
+  ],
+  "schema_version": 1,
+  "time_basis": "sample_index",
+  "window_length": 4
+}
