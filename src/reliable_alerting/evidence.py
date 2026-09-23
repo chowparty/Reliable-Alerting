@@ -7,6 +7,7 @@ import argparse
 import csv
 import json
 import math
+import textwrap
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -1076,6 +1077,870 @@ def render_evaluation_figure(eval_dir, output_svg):
     return str(output_svg)
 
 
+FAMILY_POLICIES = ("fixed", "hysteresis")
+
+FAMILY_STATE_COLUMNS = (
+    "window_id",
+    "start_index",
+    "end_index",
+    "score",
+    "availability_end",
+    "before_state",
+    "after_state",
+    "high",
+    "low",
+    "judging_threshold",
+    "comparator",
+    "policy_kind",
+    "config_id",
+    "run_id",
+    "replay_version",
+)
+
+FAMILY_SOURCE_SCORES_COLUMNS = ("window_id", "start_index", "end_index", "score")
+FAMILY_DURATION_UNIT = "sample_index"
+FAMILY_FIGURE_WRAP_WIDTH = 78
+
+
+def _read_family_scores(path):
+    base = Path(path)
+    with open(base / "source_scores.csv", newline="") as fh:
+        reader = csv.reader(fh)
+        try:
+            header = next(reader)
+        except StopIteration as e:
+            raise ValueError("source_scores.csv must not be empty") from e
+        if tuple(header) != tuple(FAMILY_SOURCE_SCORES_COLUMNS):
+            raise ValueError("source_scores header mismatch")
+        rows = []
+        seen = set()
+        prev_end = None
+        for lineno, parts in enumerate(reader, start=2):
+            if len(parts) != len(FAMILY_SOURCE_SCORES_COLUMNS):
+                raise ValueError(f"source_scores row {lineno} width mismatch")
+            d = dict(zip(FAMILY_SOURCE_SCORES_COLUMNS, parts))
+            window_id = _require_id(d["window_id"], "window_id")
+            start = _parse_int(d["start_index"], "start_index")
+            end = _parse_int(d["end_index"], "end_index")
+            if start > end:
+                raise ValueError("start_index must be <= end_index")
+            score = _parse_finite(d["score"], "score")
+            if window_id in seen:
+                raise ValueError("duplicate source window_id")
+            seen.add(window_id)
+            if prev_end is not None and end <= prev_end:
+                raise ValueError("source end_index must increase")
+            prev_end = end
+            rows.append({"window_id": window_id, "start_index": start,
+                         "end_index": end, "score": score})
+    if not rows:
+        raise ValueError("source_scores.csv must not be empty")
+    return rows
+
+
+def _read_family_state(path):
+    doc = _load_json(path)
+    if not isinstance(doc, list) or not doc:
+        raise ValueError("state.json must be a non-empty list")
+    for entry in doc:
+        if not isinstance(entry, dict):
+            raise TypeError("each state entry must be a dict")
+        if set(entry.keys()) != set(FAMILY_STATE_COLUMNS):
+            raise ValueError("state entry keys mismatch")
+    return doc
+
+
+def _strip_family_predictions(rows):
+    return [{k: r[k] for k in rows[0] if k != "run_id"} for r in rows] if rows else []
+
+
+def _strip_family_state(state):
+    return [{k: e[k] for k in FAMILY_STATE_COLUMNS
+             if k not in ("config_id", "run_id")} for e in state]
+
+
+def _read_family_validated(path):
+    """Validate a family dir and return its scientific artifacts.
+
+    Why: table/figure/compare must only render validated saved evidence;
+    any tamper raises instead of plotting.
+    """
+    from reliable_alerting import evaluation as _evaluation
+    from reliable_alerting import evaluation_io as _eio
+    from reliable_alerting import replay as _replay
+    base = Path(path)
+    report = _replay.load_family(path)
+    if not report.get("status"):
+        raise ValueError(
+            f"family failed validation: {report.get('differences')}")
+    metadata = _load_json(base / "family_metadata.json")
+    protocol = _replay.validate_protocol(
+        _eio.load_strict_json(str(base / "protocol.json")))
+    eval_resolved = _evaluation.validate_evaluation_config(
+        _eio.load_strict_json(str(base / "evaluation_config.json")))
+    labels = _eio.load_strict_json(str(base / "labels.json"))
+    source_resolved = pipeline.validate_config(
+        _eio.load_strict_json(str(base / "source_config.json")))
+    scores = _read_family_scores(base)
+    policies = {}
+    for name in FAMILY_POLICIES:
+        policy_cfg = _replay.validate_policy_config(
+            _eio.load_strict_json(str(base / name / "policy_config.json")))
+        rows = _eio.load_predictions_generic(
+            str(base / name / "predictions.csv"))
+        state = _read_family_state(base / name / "state.json")
+        persisted_eval = _eio.load_strict_json(
+            str(base / name / "evaluation.json"))
+        policies[name] = {
+            "policy_config": policy_cfg,
+            "rows": rows,
+            "state": state,
+            "evaluation": persisted_eval,
+        }
+    return {
+        "path": str(base),
+        "report": report,
+        "metadata": metadata,
+        "protocol": protocol,
+        "evaluation_config": eval_resolved,
+        "labels": labels,
+        "source_config": source_resolved,
+        "scores": scores,
+        "policies": policies,
+    }
+
+
+def _ep_overlaps(a_start, a_stop, b_start, b_stop):
+    return a_start < b_stop and b_start < a_stop
+
+
+def _merge_intervals(intervals):
+    ordered = sorted(intervals)
+    merged = []
+    for s, e in ordered:
+        if merged and s <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], e)
+        else:
+            merged.append([s, e])
+    return merged
+
+
+def _overlap_len(a_start, a_stop, merged):
+    total = 0
+    for s, e in merged:
+        lo = max(a_start, s)
+        hi = min(a_stop, e)
+        if hi > lo:
+            total += hi - lo
+    return total
+
+
+def compare_families(family_a, family_b):
+    """Compare two validated families on deterministic scientific equality.
+
+    Excludes run/family IDs, timestamps, paths, timing/allocation, and
+    provenance hashes/git (reported separately). Never claims byte identity.
+    """
+    from reliable_alerting import replay as _replay
+    try:
+        ra = _replay.load_family(family_a)
+    except Exception as e:
+        ra = {"status": False, "differences": [f"load failed: {e}"]}
+    try:
+        rb = _replay.load_family(family_b)
+    except Exception as e:
+        rb = {"status": False, "differences": [f"load failed: {e}"]}
+    diffs = []
+    prov_diffs = []
+    flags = {}
+    va = bool(ra.get("status"))
+    vb = bool(rb.get("status"))
+    if not va:
+        diffs.append(f"family a invalid: {ra.get('differences')}")
+    if not vb:
+        diffs.append(f"family b invalid: {rb.get('differences')}")
+    fa = fb = None
+    if va and vb:
+        try:
+            fa = _read_family_validated(family_a)
+        except Exception as e:
+            diffs.append(f"family a artifacts unreadable: {e}")
+            va = False
+        try:
+            fb = _read_family_validated(family_b)
+        except Exception as e:
+            diffs.append(f"family b artifacts unreadable: {e}")
+            vb = False
+    scientific_equal = bool(va and vb)
+    if va and vb:
+        if fa["scores"] != fb["scores"]:
+            diffs.append("source score rows/boundaries differ")
+            flags["source_scores_equal"] = False
+        else:
+            flags["source_scores_equal"] = True
+        if fa["source_config"] != fb["source_config"]:
+            diffs.append("source config differs")
+            flags["source_config_equal"] = False
+        else:
+            flags["source_config_equal"] = True
+        try:
+            ca = _load_calibration_csv(
+                str(Path(family_a) / "source_calibration_scores.csv"))
+            cb = _load_calibration_csv(
+                str(Path(family_b) / "source_calibration_scores.csv"))
+            flags["source_calibration_equal"] = bool(ca == cb)
+            if not flags["source_calibration_equal"]:
+                diffs.append("source calibration rows differ")
+        except Exception as e:
+            flags["source_calibration_equal"] = False
+            diffs.append(f"source calibration unreadable: {e}")
+        try:
+            da = _load_json(Path(family_a) / "source_diagnostics.json")
+            db = _load_json(Path(family_b) / "source_diagnostics.json")
+            flags["source_diagnostics_equal"] = bool(da == db)
+            if not flags["source_diagnostics_equal"]:
+                diffs.append("source diagnostics differ")
+        except Exception as e:
+            flags["source_diagnostics_equal"] = False
+            diffs.append(f"source diagnostics unreadable: {e}")
+        if fa["protocol"] != fb["protocol"]:
+            diffs.append("protocol differs")
+            flags["protocol_equal"] = False
+        else:
+            flags["protocol_equal"] = True
+        if fa["evaluation_config"] != fb["evaluation_config"]:
+            diffs.append("evaluation config differs")
+            flags["evaluation_config_equal"] = False
+        else:
+            flags["evaluation_config_equal"] = True
+        if fa["labels"] != fb["labels"]:
+            diffs.append("labels differ")
+            flags["labels_equal"] = False
+        else:
+            flags["labels_equal"] = True
+        policy_flags = {}
+        for name in FAMILY_POLICIES:
+            pf = {}
+            pa, pb = fa["policies"][name], fb["policies"][name]
+            pf["config_equal"] = bool(pa["policy_config"] == pb["policy_config"])
+            if not pf["config_equal"]:
+                diffs.append(f"policy {name}: config differs")
+            sa = _strip_family_predictions(pa["rows"])
+            sb = _strip_family_predictions(pb["rows"])
+            pf["predictions_equal_excluding_run_id"] = bool(sa == sb)
+            if not pf["predictions_equal_excluding_run_id"]:
+                diffs.append(
+                    f"policy {name}: score rows/boundaries/judging "
+                    "thresholds differ excluding run_id")
+            ta = _strip_family_state(pa["state"])
+            tb = _strip_family_state(pb["state"])
+            pf["state_equal_excluding_ids"] = bool(ta == tb)
+            if not pf["state_equal_excluding_ids"]:
+                diffs.append(
+                    f"policy {name}: state before/after/comparators differ "
+                    "excluding run/config ids")
+            pf["evaluation_equal"] = bool(
+                pa["evaluation"] == pb["evaluation"])
+            if not pf["evaluation_equal"]:
+                diffs.append(
+                    f"policy {name}: episodes/events/matches/metrics differ")
+            for key in ("episodes", "events", "matches", "metrics"):
+                eq = (pa["evaluation"].get(key) == pb["evaluation"].get(key))
+                pf[f"{key}_equal"] = bool(eq)
+                if not eq and pf["evaluation_equal"] is False:
+                    pass
+            policy_flags[name] = pf
+            if not all((pf["config_equal"],
+                        pf["predictions_equal_excluding_run_id"],
+                        pf["state_equal_excluding_ids"],
+                        pf["evaluation_equal"])):
+                scientific_equal = False
+        flags["policies"] = policy_flags
+        if not all(flags.get(k, True) for k in (
+                "source_scores_equal", "source_config_equal",
+                "source_calibration_equal", "source_diagnostics_equal",
+                "protocol_equal", "evaluation_config_equal", "labels_equal")):
+            scientific_equal = False
+    else:
+        scientific_equal = False
+    # provenance reported separately, excluded from status
+    prov = {}
+    try:
+        ma = _load_json(Path(family_a) / "family_metadata.json")
+        mb = _load_json(Path(family_b) / "family_metadata.json")
+    except Exception as e:
+        ma = mb = None
+        prov_diffs.append(f"family metadata unreadable: {e}")
+    if ma is not None and mb is not None:
+        prov["file_hashes_equal"] = bool(
+            ma.get("file_hashes") == mb.get("file_hashes"))
+        if not prov["file_hashes_equal"]:
+            prov_diffs.append("provenance file_hashes differ")
+        prov["environment_equal"] = bool(
+            ma.get("environment") == mb.get("environment"))
+        if not prov["environment_equal"]:
+            prov_diffs.append("provenance environment differ")
+        ga = (ma.get("git") or {}).get("head") if isinstance(
+            ma.get("git"), dict) else None
+        gb = (mb.get("git") or {}).get("head") if isinstance(
+            mb.get("git"), dict) else None
+        prov["git_head_equal"] = bool(ga == gb)
+        prov["git_heads"] = {"a": ga, "b": gb}
+        if not prov["git_head_equal"]:
+            prov_diffs.append("provenance git head differ")
+        try:
+            current = provenance.file_hashes(provenance.repo_root())
+            prov["source_hashes_match_current"] = bool(
+                ma.get("file_hashes") == current
+                and mb.get("file_hashes") == current)
+        except Exception as e:
+            prov["source_hashes_match_current"] = False
+            prov_diffs.append(f"source hashes unreadable: {e}")
+        if not prov.get("source_hashes_match_current", False):
+            prov_diffs.append("source_hashes_match_current is false")
+    else:
+        prov = {"file_hashes_equal": False, "environment_equal": False,
+                "git_head_equal": False, "source_hashes_match_current": False}
+    status = bool(va and vb and scientific_equal)
+    report = {
+        "family_a": str(family_a),
+        "family_b": str(family_b),
+        "status": status,
+        "scientific_equal": bool(scientific_equal),
+        "families_valid": {"a": bool(va), "b": bool(vb)},
+        "source_scores_equal": bool(flags.get("source_scores_equal", False)),
+        "source_config_equal": bool(flags.get("source_config_equal", False)),
+        "source_calibration_equal": bool(
+            flags.get("source_calibration_equal", False)),
+        "source_diagnostics_equal": bool(
+            flags.get("source_diagnostics_equal", False)),
+        "protocol_equal": bool(flags.get("protocol_equal", False)),
+        "evaluation_config_equal": bool(
+            flags.get("evaluation_config_equal", False)),
+        "labels_equal": bool(flags.get("labels_equal", False)),
+        "policies": flags.get("policies", {}),
+        "family_ids": {
+            "a": (ra.get("family_id") if isinstance(ra, dict) else None),
+            "b": (rb.get("family_id") if isinstance(rb, dict) else None),
+        },
+        "source_scores_ids": {
+            "a": (ra.get("source_scores_id") if isinstance(ra, dict) else None),
+            "b": (rb.get("source_scores_id") if isinstance(rb, dict) else None),
+        },
+        "differences": diffs,
+        "provenance_differences": prov_diffs,
+        "provenance": prov,
+        "varying_metadata": {
+            "family_id": {
+                "a": (ra.get("family_id") if isinstance(ra, dict) else None),
+                "b": (rb.get("family_id") if isinstance(rb, dict) else None),
+            },
+            "created_at": {
+                "a": (ma.get("created_at") if isinstance(ma, dict) else None),
+                "b": (mb.get("created_at") if isinstance(mb, dict) else None),
+            },
+            "elapsed_monotonic_seconds": {
+                "a": (ma.get("elapsed_monotonic_seconds")
+                      if isinstance(ma, dict) else None),
+                "b": (mb.get("elapsed_monotonic_seconds")
+                      if isinstance(mb, dict) else None),
+            },
+            "peak_python_allocation_bytes": {
+                "a": (ma.get("peak_python_allocation_bytes")
+                      if isinstance(ma, dict) else None),
+                "b": (mb.get("peak_python_allocation_bytes")
+                      if isinstance(mb, dict) else None),
+            },
+            "source_run_path": {
+                "a": ((ma.get("source_run") or {}).get("path")
+                      if isinstance(ma, dict)
+                      and isinstance(ma.get("source_run"), dict) else None),
+                "b": ((mb.get("source_run") or {}).get("path")
+                      if isinstance(mb, dict)
+                      and isinstance(mb.get("source_run"), dict) else None),
+            },
+            "source_run_id": {
+                "a": ((ma.get("source_run") or {}).get("run_id")
+                      if isinstance(ma, dict)
+                      and isinstance(ma.get("source_run"), dict) else None),
+                "b": ((mb.get("source_run") or {}).get("run_id")
+                      if isinstance(mb, dict)
+                      and isinstance(mb.get("source_run"), dict) else None),
+            },
+            "policy_run_ids": {
+                "a": ({k: (v or {}).get("run_id")
+                       for k, v in (ma.get("policies") or {}).items()}
+                      if isinstance(ma, dict) else None),
+                "b": ({k: (v or {}).get("run_id")
+                       for k, v in (mb.get("policies") or {}).items()}
+                      if isinstance(mb, dict) else None),
+            },
+        },
+    }
+    return report
+
+
+def write_family_comparison(family_a, family_b, output):
+    """Serialize a family comparison to a new file only (mode 'x')."""
+    report = compare_families(family_a, family_b)
+    text = json.dumps(report, sort_keys=True, indent=2, allow_nan=False) + "\n"
+    with open(output, "x") as fh:
+        fh.write(text)
+    return report
+
+
+def _held_forward_intervals(held_window_ids, rows, horizon_stop):
+    """Forward availability intervals for held windows from saved rows.
+
+    Each decision takes effect at its availability end (end_index) until
+    the next decision's end, or the horizon stop for the last window.
+    """
+    by_id = {}
+    for i, r in enumerate(rows):
+        by_id[r["window_id"]] = i
+    out = []
+    for wid in held_window_ids:
+        if wid not in by_id:
+            raise ValueError(f"held window {wid!r} not in prediction rows")
+        i = by_id[wid]
+        start = rows[i]["end_index"]
+        if i + 1 < len(rows):
+            stop = rows[i + 1]["end_index"]
+        else:
+            stop = horizon_stop
+        out.append({"window_id": wid, "start": start, "stop": stop})
+    return out
+
+
+def _annotate_policy(policy_name, persisted_eval, rows, state, high,
+                     horizon_stop):
+    matches = list(persisted_eval.get("matches", []))
+    episodes = list(persisted_eval.get("episodes", []))
+    clipped = list((persisted_eval.get("events") or {}).get("clipped", []))
+    # forward availability interval per saved row, in row order
+    fwd = []
+    for i, r in enumerate(rows):
+        start = r["end_index"]
+        stop = rows[i + 1]["end_index"] if i + 1 < len(rows) else horizon_stop
+        fwd.append({"window_id": r["window_id"], "start": start, "stop": stop,
+                    "output_state": r["output_state"]})
+    alert_ids = {f["window_id"] for f in fwd if f["output_state"] == "alert"}
+
+    def _episode_alert_windows(ep):
+        return sorted(f["window_id"] for f in fwd
+                      if f["output_state"] == "alert"
+                      and f["start"] >= ep["start"] and f["stop"] <= ep["stop"])
+
+    recalled = [m for m in matches if m.get("recalled")]
+    largest = None
+    if recalled:
+        top = max(m["delay"] for m in recalled)
+        cands = sorted((m["event_id"] for m in recalled if m["delay"] == top))
+        pick = next(m for m in recalled if m["event_id"] == cands[0])
+        windows = sorted({w for eid in pick.get("matching_episode_ids", [])
+                          for ep in episodes if ep["episode_id"] == eid
+                          for w in _episode_alert_windows(ep)})
+        largest = {"event_id": pick["event_id"], "delay": pick["delay"],
+                   "matching_episode_ids": list(
+                       pick.get("matching_episode_ids", [])),
+                   "matching_alert_window_ids": windows,
+                   "original_start": pick.get("original_start"),
+                   "original_stop": pick.get("original_stop"),
+                   "clipped_start": pick.get("clipped_start"),
+                   "clipped_stop": pick.get("clipped_stop")}
+    missed_ids = sorted(m["event_id"] for m in matches if not m.get("recalled"))
+    if missed_ids:
+        pick = next(m for m in matches if m["event_id"] == missed_ids[0])
+        cs, ce = pick.get("clipped_start"), pick.get("clipped_stop")
+        normal = sorted(f["window_id"] for f in fwd
+                        if f["output_state"] == "normal"
+                        and _ep_overlaps(f["start"], f["stop"], cs, ce))
+        first_missed = {"event_id": pick["event_id"],
+                        "normal_window_ids": normal,
+                        "normal_ends": [
+                            next(f["stop"] for f in fwd
+                                 if f["window_id"] == w) for w in normal],
+                        "original_start": pick.get("original_start"),
+                        "original_stop": pick.get("original_stop"),
+                        "clipped_start": cs,
+                        "clipped_stop": ce}
+    else:
+        first_missed = None
+    merged = _merge_intervals([(c["start"], c["stop"]) for c in clipped])
+    ep_stats = []
+    for ep in episodes:
+        overlap = _overlap_len(ep["start"], ep["stop"], merged)
+        non_event = (ep["stop"] - ep["start"]) - overlap
+        ep_stats.append({"episode_id": ep["episode_id"],
+                         "start": ep["start"], "stop": ep["stop"],
+                         "overlap_duration": overlap,
+                         "non_event_duration": non_event,
+                         "false": overlap == 0})
+    false_eps = sorted(e["episode_id"] for e in ep_stats if e["false"])
+    if false_eps:
+        pick = next(e for e in ep_stats if e["episode_id"] == false_eps[0])
+        ep = next(e for e in episodes if e["episode_id"] == pick["episode_id"])
+        first_false = {"episode_id": pick["episode_id"],
+                       "start": pick["start"], "stop": pick["stop"],
+                       "alert_window_ids": _episode_alert_windows(ep)}
+    else:
+        first_false = None
+    if ep_stats:
+        top_len = max(e["non_event_duration"] for e in ep_stats)
+        cands = sorted(e["episode_id"] for e in ep_stats
+                       if e["non_event_duration"] == top_len)
+        pick = next(e for e in ep_stats if e["episode_id"] == cands[0])
+        ep = next(e for e in episodes if e["episode_id"] == pick["episode_id"])
+        longest_non_event = {"episode_id": pick["episode_id"],
+                             "start": pick["start"], "stop": pick["stop"],
+                             "non_event_duration": pick["non_event_duration"],
+                             "total_duration": pick["stop"] - pick["start"],
+                             "alert_window_ids": _episode_alert_windows(ep)}
+    else:
+        longest_non_event = None
+    held_ids = [e["window_id"] for e in state
+                if e.get("after_state") == "alert"
+                and float(e.get("score", float("inf"))) <= float(high)]
+    return {
+        "largest_delay_recalled_event": largest,
+        "first_missed_event": first_missed,
+        "first_false_episode": first_false,
+        "longest_non_event_alert_episode": longest_non_event,
+        "held_on_windows": held_ids,
+        "held_on_intervals": _held_forward_intervals(held_ids, rows,
+                                                     horizon_stop),
+        "note": ("episodes are forward from availability ends; ties break "
+                 "first by sorted id; zero false episodes does not imply "
+                 "zero non-event alert duration"),
+    }
+
+
+def family_table(path):
+    """Build a self-contained operational table from a validated family.
+
+    All attempted policy settings are retained with a feasible flag
+    (episode rate <= tolerance and coverage >= floor); infeasible rows are
+    reported, not rejected, and nothing here is an operating record.
+    """
+    fam = _read_family_validated(path)
+    base = Path(path)
+    metadata = fam["metadata"]
+    protocol = fam["protocol"]
+    rate_tol = protocol["episode_rate_tolerance_per_1000_decisions"]
+    floor = protocol["coverage_floor"]
+    high = metadata.get("threshold_high")
+    low = metadata.get("threshold_low")
+    policies = {}
+    for name in FAMILY_POLICIES:
+        p = fam["policies"][name]
+        rows = p["rows"]
+        persisted = p["evaluation"]
+        metrics = persisted.get("metrics", {})
+        diagnostics = persisted.get("diagnostics", {})
+        n = int(metrics.get("decision_count", len(rows)))
+        n_alert = sum(1 for r in rows if r["output_state"] == "alert")
+        rate = metrics.get("alert_episode_rate_per_1000_decisions", {})
+        coverage = metrics.get("decision_coverage", {})
+        try:
+            feasible = (float(rate.get("value")) <= float(rate_tol)
+                        and float(coverage.get("value")) >= float(floor))
+        except (TypeError, ValueError):
+            feasible = False
+        annotations = _annotate_policy(
+            name, persisted, rows, p["state"], high,
+            fam["evaluation_config"]["horizon"][1])
+        policies[name] = {
+            "policy": name,
+            "policy_config": p["policy_config"],
+            "config_id": rows[0]["config_id"] if rows else None,
+            "run_id": rows[0]["run_id"] if rows else None,
+            "source_paths": {
+                "family": str(base),
+                "predictions_csv": str(base / name / "predictions.csv"),
+                "state_json": str(base / name / "state.json"),
+                "evaluation_json": str(base / name / "evaluation.json"),
+                "source_scores_csv": str(base / "source_scores.csv"),
+            },
+            "decision_count": n,
+            "alerted_window_count": n_alert,
+            "alerted_window_fraction": metrics.get("alerted_window_fraction"),
+            "decision_coverage": coverage,
+            "deferral_rate": metrics.get("deferral_rate"),
+            "episode_count": int(diagnostics.get("episode_count",
+                                                len(persisted.get("episodes",
+                                                                  [])))),
+            "alert_episode_rate": metrics.get("alert_episode_rate"),
+            "alert_episode_rate_per_1000_decisions": rate,
+            "event_recall": metrics.get("event_recall"),
+            "episode_precision": metrics.get("episode_precision"),
+            "false_alert_episodes": metrics.get("false_alert_episodes"),
+            "delay": metrics.get("delay"),
+            "total_alert_duration": metrics.get("total_alert_duration"),
+            "non_event_alert_duration": metrics.get(
+                "non_event_alert_duration"),
+            "warmup_duration": metrics.get("warmup_duration"),
+            "deferred_duration": metrics.get("deferred_duration"),
+            "excluded_event_count": metrics.get("excluded_event_count"),
+            "clipped_event_count": metrics.get("clipped_event_count"),
+            "diagnostics": diagnostics,
+            "episodes": list(persisted.get("episodes", [])),
+            "events": persisted.get("events"),
+            "matches": list(persisted.get("matches", [])),
+            "resource_scope": metadata.get("resource_scope"),
+            "policy_replay_seconds": ((metadata.get("policies") or {}).get(
+                name) or {}).get("policy_replay_seconds"),
+            "episode_rate_tolerance_per_1000_decisions": rate_tol,
+            "coverage_floor": floor,
+            "feasible": bool(feasible),
+            "annotations": annotations,
+        }
+    return {
+        "family_path": str(base),
+        "family_id": metadata.get("family_id"),
+        "source_scores_id": metadata.get("source_scores_id"),
+        "source_config_id": metadata.get("source_config_id"),
+        "evaluation_config_id": metadata.get("evaluation_config_id"),
+        "evaluation_config": fam["evaluation_config"],
+        "threshold_high": high,
+        "threshold_low": low,
+        "horizon": list(fam["evaluation_config"]["horizon"]),
+        "first_decision": fam["evaluation_config"]["first_decision"],
+        "duration_unit": FAMILY_DURATION_UNIT,
+        "resource_scope": metadata.get("resource_scope"),
+        "policies": policies,
+    }
+
+
+def write_family_table(path, output):
+    """Serialize a family operational table to a new file only (mode 'x')."""
+    table = family_table(path)
+    text = json.dumps(table, sort_keys=True, indent=2, allow_nan=False) + "\n"
+    with open(output, "x") as fh:
+        fh.write(text)
+    return table
+
+
+def render_family_figure(path, output):
+    """Plot a validated family to plain SVG using only saved evidence.
+
+    Shared scores at availability end, high/low lines, forward episodes for
+    fixed and hysteresis, half-open events, warmup/horizon axis, held-on
+    intervals where a hysteresis alert scored at or below high, and the same
+    deterministic annotations as the table. No rolling values are plotted.
+    """
+    fam = _read_family_validated(path)
+    table = family_table(path)
+    base = Path(path)
+    metadata = fam["metadata"]
+    cfg = fam["evaluation_config"]
+    h0, h1 = list(cfg["horizon"])
+    first = cfg["first_decision"]
+    high = float(metadata["threshold_high"])
+    low = float(metadata["threshold_low"])
+    scores = fam["scores"]
+    xs = [s["end_index"] for s in scores]
+    ys = [s["score"] for s in scores]
+
+    width = 680
+    left, right, top = 60, 20, 88
+    plot_w = width - left - right
+    score_top = top
+    score_h = 180
+    lane_step = 44
+    y_event = score_top + score_h + 34
+    y_fixed = y_event + lane_step
+    y_hyst = y_fixed + lane_step
+    held_intervals = (table["policies"]["hysteresis"]["annotations"]
+                      ["held_on_intervals"])
+    if held_intervals:
+        y_held = y_hyst + lane_step
+        lanes_bottom = y_held + 16
+    else:
+        y_held = None
+        lanes_bottom = y_hyst + 16
+
+    # footer text first so the canvas height fits every wrapped line
+    footer_raw = []
+    for name in FAMILY_POLICIES:
+        ann = table["policies"][name]["annotations"]
+        largest = ann["largest_delay_recalled_event"]
+        missed = ann["first_missed_event"]
+        false_ep = ann["first_false_episode"]
+        longest = ann["longest_non_event_alert_episode"]
+        footer_raw.append(
+            f"{name} largest-delay: "
+            f"{largest['event_id'] + ' delay=' + str(largest['delay']) if largest else 'none'}; "
+            f"missed: {missed['event_id'] if missed else 'none'}")
+        footer_raw.append(
+            f"{name} false: "
+            f"{false_ep['episode_id'] if false_ep else 'none'}; "
+            f"longest non-event: "
+            f"{longest['episode_id'] + ' len=' + str(longest['non_event_duration']) if longest else 'none'}")
+    if held_intervals:
+        first_held = held_intervals[0]
+        footer_raw.append(
+            f"held-on: {first_held['window_id']} "
+            f"[{first_held['start']}, {first_held['stop']}) "
+            "hysteresis alert score<=high")
+    else:
+        footer_raw.append("held-on intervals: none")
+    footer_raw.append(f"family_id={metadata.get('family_id', '')}")
+    footer_raw.append(f"source={base / 'source_scores.csv'}")
+    footer_lines = []
+    for raw in footer_raw:
+        footer_lines.extend(
+            textwrap.wrap(raw, width=FAMILY_FIGURE_WRAP_WIDTH) or [""])
+    axis_y = lanes_bottom + 14
+    footer_top = lanes_bottom + 30
+    line_h = 14
+    height = int(footer_top + len(footer_lines) * line_h + 16)
+
+    y_lo = min(min(ys), low)
+    y_hi = max(max(ys), high)
+    if y_hi == y_lo:
+        y_lo -= 1.0
+        y_hi += 1.0
+    else:
+        pad = (y_hi - y_lo) * 0.1 or 1.0
+        y_lo -= pad
+        y_hi += pad
+
+    def _cx(x):
+        if h1 == h0:
+            return left + plot_w / 2
+        return left + (x - h0) / (h1 - h0) * plot_w
+
+    def _cy(y):
+        return score_top + score_h - (y - y_lo) / (y_hi - y_lo) * score_h
+
+    fixed_eps = list(
+        fam["policies"]["fixed"]["evaluation"].get("episodes", []))
+    hyst_eps = list(
+        fam["policies"]["hysteresis"]["evaluation"].get("episodes", []))
+    clipped = list((fam["policies"]["fixed"]["evaluation"].get("events")
+                    or {}).get("clipped", []))
+    held_on = set(table["policies"]["hysteresis"]["annotations"]
+                  ["held_on_windows"])
+
+    parts = []
+    parts.append(
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" role="img">'
+    )
+    title = ("SYNTHETIC ENGINEERING CHECK \u2014 fixed+hysteresis only; "
+             "no quality claim")
+    parts.append(f"<title>{escape(title)}</title>")
+    parts.append(f'<rect x="0" y="0" width="{width}" height="{height}" fill="white"/>')
+    parts.append(
+        f'<text x="{width // 2}" y="24" text-anchor="middle" font-size="14">{escape(title)}</text>'
+    )
+    parts.append(
+        f'<text x="{width // 2}" y="42" text-anchor="middle" font-size="11">sample_index units; horizon [{h0}, {h1}); warmup [{h0}, {first})</text>'
+    )
+    parts.append(
+        f'<text x="{width // 2}" y="58" text-anchor="middle" font-size="11">shared scores at availability end; episodes forward; events half-open</text>'
+    )
+    # warmup shading + horizon outline span the score band and all lanes
+    if first > h0:
+        parts.append(
+            f'<rect x="{_cx(h0):.2f}" y="{top}" width="{_cx(first) - _cx(h0):.2f}" height="{lanes_bottom - top}" fill="#eeeeee"/>'
+        )
+    parts.append(
+        f'<rect x="{_cx(h0):.2f}" y="{top}" width="{_cx(h1) - _cx(h0):.2f}" height="{lanes_bottom - top}" fill="none" stroke="black"/>'
+    )
+    # axes for score band
+    parts.append(
+        f'<line x1="{left}" y1="{score_top}" x2="{left}" y2="{score_top + score_h}" stroke="black"/>'
+    )
+    parts.append(
+        f'<line x1="{left}" y1="{score_top + score_h}" x2="{left + plot_w}" y2="{score_top + score_h}" stroke="black"/>'
+    )
+    parts.append(
+        f'<text x="12" y="{score_top + score_h // 2}" font-size="11" transform="rotate(-90 12,{score_top + score_h // 2})">score</text>'
+    )
+    for xt in (h0, first, h1):
+        cx = _cx(xt)
+        parts.append(
+            f'<line x1="{cx:.2f}" y1="{score_top + score_h}" x2="{cx:.2f}" y2="{score_top + score_h + 5}" stroke="black"/>'
+        )
+        parts.append(
+            f'<text x="{cx:.2f}" y="{score_top + score_h + 18}" text-anchor="middle" font-size="10">{escape(str(xt))}</text>'
+        )
+    parts.append(
+        f'<text x="{left + plot_w // 2}" y="{axis_y:.0f}" text-anchor="middle" font-size="11">sample_index</text>'
+    )
+    # high/low lines
+    for val, dash, tag in ((high, "6,4", "high"), (low, "2,3", "low")):
+        cy = _cy(val)
+        parts.append(
+            f'<line x1="{left}" y1="{cy:.2f}" x2="{left + plot_w}" y2="{cy:.2f}" '
+            f'stroke="black" stroke-dasharray="{dash}" stroke-width="1.5"/>'
+        )
+        parts.append(
+            f'<text x="{left + plot_w}" y="{cy - 6:.2f}" text-anchor="end" font-size="10">{tag} {escape(repr(float(val)))}</text>'
+        )
+    # score points; held-on hysteresis alerts get an orange ring
+    for s in scores:
+        cx = _cx(s["end_index"])
+        cy = _cy(s["score"])
+        parts.append(
+            f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="4" fill="blue">'
+            f"<title>{escape(s['window_id'] + ' end=' + str(s['end_index']) + ' score=' + repr(float(s['score'])))}</title>"
+            "</circle>"
+        )
+        if s["window_id"] in held_on:
+            parts.append(
+                f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="7" fill="none" stroke="orange" stroke-width="2">'
+                f"<title>{escape('held-on ' + s['window_id'] + ' hysteresis alert score<=high')}</title>"
+                "</circle>"
+            )
+    # lanes
+    parts.append(f'<text x="{left}" y="{y_event - 8:.2f}" font-size="11">events (half-open)</text>')
+    for e in clipped:
+        x1, x2 = _cx(e["start"]), _cx(e["stop"])
+        parts.append(
+            f'<rect x="{x1:.2f}" y="{y_event:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="blue">'
+            f"<title>{escape(str(e.get('event_id', '')) + ' [' + str(e['start']) + ', ' + str(e['stop']) + ')')}</title>"
+            "</rect>"
+        )
+    parts.append(f'<text x="{left}" y="{y_fixed - 8:.2f}" font-size="11">fixed episodes (forward)</text>')
+    for ep in fixed_eps:
+        x1, x2 = _cx(ep["start"]), _cx(ep["stop"])
+        parts.append(
+            f'<rect x="{x1:.2f}" y="{y_fixed:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="red">'
+            f"<title>{escape(str(ep.get('episode_id', '')) + ' [' + str(ep['start']) + ', ' + str(ep['stop']) + ')')}</title>"
+            "</rect>"
+        )
+    parts.append(f'<text x="{left}" y="{y_hyst - 8:.2f}" font-size="11">hysteresis episodes (forward)</text>')
+    for ep in hyst_eps:
+        x1, x2 = _cx(ep["start"]), _cx(ep["stop"])
+        parts.append(
+            f'<rect x="{x1:.2f}" y="{y_hyst:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="red">'
+            f"<title>{escape(str(ep.get('episode_id', '')) + ' [' + str(ep['start']) + ', ' + str(ep['stop']) + ')')}</title>"
+            "</rect>"
+        )
+    if y_held is not None:
+        parts.append(f'<text x="{left}" y="{y_held - 8:.2f}" font-size="11">held-on forward intervals (alert score&lt;=high)</text>')
+        for iv in held_intervals:
+            x1, x2 = _cx(iv["start"]), _cx(iv["stop"])
+            parts.append(
+                f'<rect x="{x1:.2f}" y="{y_held:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="orange">'
+                f"<title>{escape('held-on ' + iv['window_id'] + ' [' + str(iv['start']) + ', ' + str(iv['stop']) + ')')}</title>"
+                "</rect>"
+            )
+    # deterministic annotations matching the table, wrapped to the canvas
+    ay = footer_top
+    for line in footer_lines:
+        parts.append(
+            f'<text x="{left}" y="{ay:.2f}" font-size="10">{escape(line)}</text>'
+        )
+        ay += line_h
+    parts.append("</svg>")
+    text = "\n".join(parts) + "\n"
+    with open(output, "x") as fh:
+        fh.write(text)
+    return str(output)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="reliable_alerting.evidence")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1093,6 +1958,16 @@ def main(argv=None):
     ef = sub.add_parser("evaluation-figure", help="plot saved evaluation to SVG")
     ef.add_argument("eval_dir")
     ef.add_argument("--output", required=True)
+    cf = sub.add_parser("compare-families", help="compare two family directories")
+    cf.add_argument("family_a")
+    cf.add_argument("family_b")
+    cf.add_argument("--output", required=True)
+    ft = sub.add_parser("family-table", help="write a family operational table")
+    ft.add_argument("family")
+    ft.add_argument("--output", required=True)
+    ff = sub.add_parser("family-figure", help="plot a validated family to SVG")
+    ff.add_argument("family")
+    ff.add_argument("--output", required=True)
     args = ap.parse_args(argv)
     if args.cmd == "compare":
         report = write_comparison(args.run_a, args.run_b, args.output)
@@ -1108,6 +1983,19 @@ def main(argv=None):
         return 0 if report["status"] else 1
     if args.cmd == "evaluation-figure":
         render_evaluation_figure(args.eval_dir, args.output)
+        print(args.output)
+        return 0
+    if args.cmd == "compare-families":
+        report = write_family_comparison(args.family_a, args.family_b,
+                                         args.output)
+        print(json.dumps({"status": report["status"], "output": args.output}))
+        return 0 if report["status"] else 1
+    if args.cmd == "family-table":
+        write_family_table(args.family, args.output)
+        print(args.output)
+        return 0
+    if args.cmd == "family-figure":
+        render_family_figure(args.family, args.output)
         print(args.output)
         return 0
     return 2

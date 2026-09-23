@@ -84,6 +84,19 @@ exceedance-history-only control compared on identical scores
   (`quantile: 0.95`, nearest-rank over 8 calibration scores) is a
   reproducibility convention, not a split-conformal coverage guarantee.
 
+Closest-work contrast (reuse only; no new novelty claimed):
+
+| Work | What it contributes | What ours does instead |
+|---|---|---|
+| Tatbul et al. (range metrics) | Weighted existence/overlap/position/cardinality over ranges | Overlap-existence ratios only on clipped events/episodes |
+| Gibbs and Candes (adaptive conformal) | Threshold update on observed `Y_t` feedback | Label-free replay; no observed-outcome feedback in the policy |
+| Xu and Bostrom (conformalised thresholding) | Latent-feature-weighted calibration and quantile adjustment, per-observation thresholds | One fixed calibrated threshold (plus one predeclared 0.8 hysteresis band) replayed over identical scores |
+
+Hysteresis-latch literature is unverified here, so no absence claim is
+made (allowlist check hit access limits: ACM HTTP 403, Springer
+challenge); the latch above is an engineering control, not a claimed
+contribution.
+
 The Day-1 source also recorded Tibshirani, Barber, Candes, and Ramdas,
 Conformal Prediction Under Covariate Shift (NeurIPS 2019),
 https://proceedings.neurips.cc/paper_files/paper/2019/hash/8fb21ee7a2207526da55a679f0332de2-Abstract.html
@@ -110,9 +123,11 @@ and synthetic tests in `tests/` exercise those same components
 `test_evaluation`, `test_evaluation_io`). Current runtime config:
 `configs/day01-synthetic.json`; `source_label_use: none`;
 no held-out yet (`held_out: not_reserved_or_evaluated`); source modules need
-Aman review; Nakul's real-stream manifest/reservation and independent
-evaluator audit are pending, and no rolling/persistence/hysteresis policy exists. Runtime
-remains fixed-threshold synthetic; evaluation config is
+Aman review of the real loader/rolling/K/M work; Nakul's real-stream
+manifest/reservation is absent and the completed independent technical
+review is not a Nakul audit. Runtime remains fixed-threshold synthetic
+(the Day-04 hysteresis lives only in the `temporal-replay-v1` replay
+family at one predeclared setting, no sweep); evaluation config is
 `configs/day02-evaluation.json` (horizon `[64, 96)`, `first_decision` 67,
 stride 4, window length 4).
 
@@ -121,8 +136,16 @@ alongside resource use as distinct quantities. Current instrumentation records
 validation/recomputation elapsed time and peak traced Python allocation,
 not whole-run latency or peak RAM (resource scopes in code:
 `validated_compute_trace_only`;
-`saved_run_validation_recompute_and_evaluation_excluding_output`, excluding
-output creation and writes). Later evaluation can add latency percentiles
+`saved_run_validation_recompute_and_evaluation_excluding_output`; final
+family
+`saved_scores_validation_recompute_replay_label_free_persist_single_label_open_and_family_evaluation`,
+which includes label-free file creation/writes and excludes provenance
+capture plus completion writes; per-policy `policy_replay_seconds` is
+wall-clock timed policy validation plus config/run-ID allocation plus row
+allocation plus the actual policy replay under tracing, replay-ID binding
+after the timer, not pure policy latency). Family
+`peak_python_allocation_bytes` (from `family_metadata.json` only) is peak
+traced Python allocation, not whole-machine RAM and not per-policy. Later evaluation can add latency percentiles
 and model size. The fixed quantile setting is a
 reproducibility convention, not a false-alarm guarantee, and not a
 split-conformal guarantee.
@@ -157,14 +180,50 @@ Sep): replaying the fixed Day-1 recipe and joining
 episodes `[79, 83)`, `[91, 96)` against fixture events `[72, 80)`,
 `[88, 96)`; recall 2/2, precision 2/2, false-alert episodes 0; delays 7 and
 3 (mean 5); total alert duration 9, non-event 3, warmup 3, fraction 3/8,
-coverage 8/8, defer 0/8, episode rate 250 per 1000 decisions (2 per 32
-sample_index). No superseded real metrics exist (none were claimed);
+coverage 8/8, defer 0/8, episode rate 250 per 1000 decisions
+((2/8)*1000); 2/32 = 0.0625 episodes per sample-index unit. No superseded real metrics exist (none were claimed);
 linkage/checksum/scope integration bugs were fixed before the final runs.
 These fixture numbers carry no quality claim. Reproduction artifact paths are
 (`results/day02-03-20260922-run-a`, `-run-b`, `-eval-a`, `-eval-b`,
 `-runs-compare.json`, `-evaluations-compare.json`, `-scores.svg`,
 `-episodes.svg`). Commands are in `README.md`; the personal Day-2/3 guide
 records actual execution times and verification outcomes.
+
+Day-04 final family (fixed + hysteresis; scheduled namespace 20260922,
+initial inspection 22 September 2026 18:27 IST, resumed final 23 September
+2026 17:31 IST, no backdating),
+final `created_at` 2026-09-23T12:01:59/12:02:00 UTC; initial system clock
+at inspection start 22 Sep 2026 18:27 IST): `temporal-replay-v1` replays
+both policies over the same verified source scores with a validated
+`state.json` sidecar per policy (score identity, before/after latch,
+judging threshold, comparator; fixed stateless with `before_state`
+`normal` placeholder and `high == low == judging threshold` /
+`strict_greater`; hysteresis `normal`-latch `strict_greater` on `high`,
+`alert`-latch `strict_less` off `low`, equality holds, init/reset
+`normal`). High is the frozen source calibration threshold
+(`1.0690438247937764`); low is predeclared `0.8 * high`
+(`0.8552350598350211`, synthetic only). One setting per policy, no sweep;
+ties retained; no real tuning; tolerance 250/1000, coverage floor 1.0
+(reporting only). Both policies agree on this fixture: 8 windows, 3
+alerts; episodes `[79, 83)`, `[91, 96)` vs events `[72, 80)`,
+`[88, 96)`; recall 2/2, precision 2/2, false 0; delays 7 and 3 (mean 5),
+misses 0; alert duration 9, non-event 3, warmup 3, coverage 8/8, defer
+0/8; episode rate 2/32 = 0.0625 episodes per sample-index unit;
+(2/8)*1000 = 250 episodes per 1000 decisions. At window `replay:72:75` score ==
+high holds `normal`, delaying the up-crossing until `replay:76:79`
+(episode 0 start 79); episode 0 overruns its event by 3. No miss/false was
+observed on this trace. The fixed runtime writer stays schema-1 strict
+(`normal`/`alert` only); the sidecar adds no runtime defer path. Saved
+table `results/day04-20260922-final-table.json`, figure
+`results/day04-20260922-final-family.svg`, families
+`results/day04-20260922-final-family-a` / `-b` (comparison
+`results/day04-20260922-final-comparison.json`, scientifically equal).
+The preliminary Day-04 pair is retained history; the final pair supersedes
+only its resource-description error, with no evaluator defect or metric
+correction. Day-2 saved metadata keeps older hashes (expected drift, not
+rewritten). Reproduce under fresh ignored paths with the pipeline, replay,
+`compare-families`, `family-table`, and `family-figure` commands in
+`README.md`.
 
 Generated figures: end_index versus score from the saved trace, and
 half-open events versus forward episodes from the saved evaluation, using
@@ -177,6 +236,15 @@ half-open events versus forward episodes from the saved evaluation, using
 ![Fixed synthetic scores at decision availability](../results/day02-03-20260922-scores.svg)
 
 ![Synthetic labelled events and forward-time episodes](../results/day02-03-20260922-episodes.svg)
+
+![Final fixed+hysteresis family (identical scores, forward episodes)](../results/day04-20260922-final-family.svg)
+
+Final table: `results/day04-20260922-final-table.json` (both policies as
+above; per-policy `policy_replay_seconds` is wall-clock timed validation
+plus config/run-ID allocation plus row allocation plus the actual replay
+under tracing, not pure policy latency; `peak_python_allocation_bytes` is
+family-level only from `family_metadata.json`, i.e. peak traced Python
+allocation, not whole-machine RAM and not per-policy).
 
 The first synthetic episode continues three index units beyond its event,
 despite perfect overlap precision: zero false episodes does not mean zero
@@ -209,6 +277,18 @@ directory (existing output dir or file is refused).
 
 No final results yet. Null and inconclusive outcomes remain valid and will
 be reported with actual alert volume, coverage, and resources.
+Research interpretation carried forward: can a diagnostics rule beat an
+exceedance-history-only plus constant-selector control on identical scores
+at the measured alert volume, duration, coverage, delay, and resources,
+across chronological development streams and one untouched final stream?
+Phase-I is the mid-semester report plus presentation per
+`../Guidelines for Report.md` (10-15 pages, spiral-bound, supervisor
+signature, classroom submission before the 30 September 2026 10:00 AM viva;
+10-15 slides, 10-minute presentation plus Q&A). Phase-II follows
+`../tech-project-phase-ii-evaluation-criteria.md` directly: the bands
+overlap at 81-89, submission is not acceptance, the team targets at least
+80 marks with no mark promised, and the supervisor confirms the
+first-author route, timing, scope, and approval first.
 
 ## References
 

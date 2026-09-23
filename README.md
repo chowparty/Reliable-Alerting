@@ -55,6 +55,11 @@ research/
   src/reliable_alerting/scoring.py - MeanDistanceScorer (source-fit only)
   src/reliable_alerting/calibration.py - FixedQuantile (nearest-rank)
   src/reliable_alerting/policy.py - FixedThresholdPolicy (strict_greater)
+    plus HysteresisPolicy (high `strict_greater` on, low `strict_less`
+    off; equality holds; initial latch `normal`; independent reset)
+  src/reliable_alerting/replay.py - temporal-replay-v1 family replay
+    (fixed + hysteresis over one saved score trace; validated `state.json`
+    sidecar per policy; `protocol` configs/day04-synthetic-family.json)
   src/reliable_alerting/writing.py - write_run (refuses existing output dir)
   src/reliable_alerting/pipeline.py - compute_trace, write_output, CLI
   src/reliable_alerting/evidence.py - compare_runs, render_figure, CLI
@@ -143,10 +148,16 @@ The evaluator makes forward-time alert behaviour independently checkable.
 Runtime scope is unchanged: fixed-only synthetic through
 `configs/day01-synthetic.json` (`quantile: 0.95`, `method: nearest_rank`
 over 8 calibration scores, `source_label_use: none`,
-`held_out: not_reserved_or_evaluated`). No eligibility manifest, no
-real-stream reservation, no real config, and no rolling/persistence/
-hysteresis policy exists. Aman source-module review and the Nakul
-independent audit are pending.
+`held_out: not_reserved_or_evaluated`). Policies beyond fixed live only in
+the Day-04 replay family (`temporal-replay-v1`, fixed + hysteresis at one
+predeclared setting each, no sweep): the runtime writer stays schema-1
+strict (`normal`/`alert` only, `output_state` checked against
+score/threshold), so there is still no runtime defer path. No eligibility
+manifest, no real-stream reservation, no real config, and no
+rolling/persistence policy exists. Aman review of the real
+loader/rolling/K/M work is pending; the manifest/reservation (Nakul) is
+absent; an independent technical review of the current code is completed
+and is not a Nakul audit.
 
 ### What the evaluator is
 
@@ -224,7 +235,8 @@ under `configs/day02-evaluation.json`. Observed values today:
 - Total alert duration 9, non-event alert duration 3, warmup duration 3
   (`[64, 67)`), alerted-window fraction 3/8, decision coverage 8/8,
   deferral rate 0/8, deferred duration 0.
-- Episode rate per 1000 decisions 250 (2/8), per sample_index 2/32.
+- Episode rate 250 per 1000 decisions ((2/8)*1000); 2/32 = 0.0625
+  episodes per sample-index unit.
 
 These are synthetic fixture checks exercising the same reusable components.
 There are no superseded historical real metrics (none existed). Metadata
@@ -244,13 +256,22 @@ detection quality or novelty.
 - `command_record` keeps `orig_argv` (interpreter-reported original arguments) separate from
   `rerun_shell`/`rerun_executable` (verified rerun via the current
   `sys.executable`, unresolved so `.venv/bin/python` stays on the venv).
-- Resources now use the accurate long scope recorded in code
-  (`validated_compute_trace_only` for runs;
-  `saved_run_validation_recompute_and_evaluation_excluding_output` for
-  evaluations): validation/recompute plus hashing, excluding output
-  directory creation and file writes. `peak_python_allocation_bytes` is peak
-  traced Python allocation, not whole-machine RAM; there is no latency or
-  RAM claim.
+- Resources use the exact recorded scope. Runs: `validated_compute_trace_only`.
+  Evaluations (Day-2/3): `saved_run_validation_recompute_and_evaluation_excluding_output`.
+  Final family (Day-04, `temporal-replay-v1`):
+  `saved_scores_validation_recompute_replay_label_free_persist_single_label_open_and_family_evaluation`,
+  i.e. source-run validation recompute plus strict protocol/schedule checks
+  plus label-free replay of both policies plus episode formation plus
+  label-free file creation/writes plus one labels read plus generic
+  evaluation plus artifact serialization/hash; it EXCLUDES provenance
+  capture (command/environment/git/file hashes) and completion file writes
+  (labels, evaluations, metadata). Per-policy `policy_replay_seconds` is
+  wall-clock timed policy validation plus config/run-ID allocation plus row
+  allocation plus the actual policy replay under tracing (replay-ID binding
+  happens after the timer), not pure policy latency and not whole-run
+  latency. `peak_python_allocation_bytes` is family-level only (from
+  `family_metadata.json`): peak traced Python allocation, not
+  whole-machine RAM and not per-policy; there is no latency or RAM claim.
 - Figures use saved evidence only. Local `results/day01-*` files remain
   preserved history; new executions use separate output paths.
 
@@ -269,6 +290,68 @@ which executions were actually verified):
 ```
 
 All writers refuse to overwrite, so each output needs a fresh path.
+
+## Day-04 final family (fixed + hysteresis; scheduled namespace 20260922; initial inspection 22 September 2026 18:27 IST, resumed final 23 September 2026 17:31 IST; final artifacts 23 September 2026 UTC, no backdating)
+
+Why: the same saved score trace is replayed by two policies so the policy
+comparison cannot be explained by different scores.
+
+- Replay `temporal-replay-v1` over one verified source run. High is the
+  frozen source calibration threshold
+  (`threshold_high: 1.0690438247937764`); low is predeclared
+  `0.8 * high` (`threshold_low: 0.8552350598350211`, synthetic only).
+  Hysteresis starts `normal` and resets independently per replay: a
+  `normal` latch judges `high` with `strict_greater`; an `alert` latch
+  judges `low` with `strict_less`; equality holds the latch. Fixed judges
+  `high` with `strict_greater` (stateless; `before_state` is always the
+  `normal` placeholder). One setting per policy, no sweep; ties retained;
+  no real tuning. Tolerance 250 episodes per 1000 decisions, coverage floor
+  1.0 (reporting criteria, not rejection gates).
+- Both policies give the same saved scores and the same evaluation on this
+  fixture: 8 windows, 3 alerts; episodes `[79, 83)`, `[91, 96)` against
+  events `[72, 80)`, `[88, 96)`; recall 2/2, precision 2/2, false-alert
+  episodes 0; per-event delays 7 and 3, mean 5, misses 0; total alert
+  duration 9, non-event 3, warmup 3 (`[64, 67)`), coverage 8/8, defer 0/8;
+  episode rate 2/32 = 0.0625 episodes per sample-index unit;
+  (2/8)*1000 = 250 episodes per 1000 decisions. Mechanism: at window `replay:72:75` the
+  score equals high, so equality holds `normal` and delays the up-crossing
+  until window `replay:76:79` (episode start 79); no miss/false was
+  observed on this trace. Episode 0 overruns its event by 3
+  (`[79, 83)` vs `[72, 80)`).
+- The fixed runtime writer remains schema-1 strict; the new `state.json` is
+  a replay sidecar only (per-window `before_state`/`after_state`,
+  `judging_threshold`, `comparator`, `replay_version`), not a runtime defer
+  path.
+- Saved final table: `results/day04-20260922-final-table.json`; saved
+  figure: `results/day04-20260922-final-family.svg`; families
+  `results/day04-20260922-final-family-a` / `-b` verify
+  scientifically equal (`results/day04-20260922-final-comparison.json`;
+  `created_at` 2026-09-23T12:01:59 / 12:02:00 UTC; run/family IDs,
+  timing, and allocation vary by design). The preliminary Day-04 pair
+  (`results/day04-20260922-family-a` / `-b`, `-table.json`,
+  `-comparison.json`, `-family.svg`) is retained as preliminary history;
+  the final pair supersedes only its resource-description error — no
+  evaluator defect or metric correction. Day-2 historical metadata keeps
+  older hashes; the drift is expected and not rewritten.
+- Reproduce under fresh, ignored paths (local `results/*` outputs are
+  ignored and regenerable):
+
+```sh
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python -m reliable_alerting.pipeline --config configs/day01-synthetic.json --output results/day04-final-check-source-a
+.venv/bin/python -m reliable_alerting.pipeline --config configs/day01-synthetic.json --output results/day04-final-check-source-b
+.venv/bin/python -m reliable_alerting.replay --run results/day04-final-check-source-a --protocol configs/day04-synthetic-family.json --evaluation-config configs/day02-evaluation.json --labels tests/fixtures/day02-synthetic-labels.json --output results/day04-final-check-family-a
+.venv/bin/python -m reliable_alerting.replay --run results/day04-final-check-source-b --protocol configs/day04-synthetic-family.json --evaluation-config configs/day02-evaluation.json --labels tests/fixtures/day02-synthetic-labels.json --output results/day04-final-check-family-b
+.venv/bin/python -m reliable_alerting.evidence compare-families results/day04-final-check-family-a results/day04-final-check-family-b --output results/day04-final-check-comparison.json
+.venv/bin/python -m reliable_alerting.evidence family-table results/day04-final-check-family-a --output results/day04-final-check-table.json
+.venv/bin/python -m reliable_alerting.evidence family-figure results/day04-final-check-family-a --output results/day04-final-check-family.svg
+```
+
+Verified here: 247 tests pass (`unittest discover -s tests -v`; interim
+245 during execution plus 2 resource-scope tests; HEAD suite itself is 164,
+not 245). The suite was re-run fresh during this
+documentation update; regenerate the ignored `results/*` paths locally
+rather than treating them as tracked evidence.
 
 ## Optional tooling
 

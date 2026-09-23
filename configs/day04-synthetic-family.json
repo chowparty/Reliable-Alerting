@@ -1,0 +1,19 @@
+{
+  "authoritative_operating_record": false,
+  "coverage_floor": 1.0,
+  "episode_rate_tolerance_per_1000_decisions": 250,
+  "high_source": "frozen_source_calibration_threshold",
+  "initial_state": "normal",
+  "low_ratio": 0.8,
+  "notes": "Synthetic engineering only: replay the frozen source score trace with two policies (fixed and hysteresis) at one setting each, no sweep. High is the frozen source calibration threshold; low is 0.8*high. Initial latch is normal; ties hold (strict comparisons); each replay resets to normal independently. Episode-rate tolerance (<=250 per 1000 decisions, label-free) and coverage floor (1.0) are reporting criteria recorded per policy as feasible plus reasons, not rejection gates: infeasible rows are preserved with actual rate and coverage. No quality selection and no recall targets. Not an authoritative operating record. Future source reuse is not real-data support; absent a manifest/reservation there is no real data.",
+  "policies": [
+    "fixed",
+    "hysteresis"
+  ],
+  "quality_selection": "none",
+  "recall_targets": "none",
+  "schema_version": 1,
+  "scope": "synthetic_engineering_only",
+  "settings_per_policy": 1,
+  "tie_rule": "hold"
+}
