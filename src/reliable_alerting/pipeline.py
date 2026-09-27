@@ -20,7 +20,7 @@ import tracemalloc
 import uuid
 from datetime import datetime, timezone
 
-from reliable_alerting import calibration, loading, policy, provenance, scoring, splitting, writing
+from reliable_alerting import calibration, loading, policy, provenance, scoring, splitting, writing, diagnostics_features
 
 INTENDED_DAY1 = "2026-09-19"
 RESOURCE_SCOPE = "validated_compute_trace_only"
@@ -54,12 +54,12 @@ def _exact(d, allowed, where):
 
 
 def validate_config(config):
-    _exact(
-        config,
-        ["schema_version", "input", "segments", "window", "scoring", "calibration",
-         "policy", "missing_policy", "source_label_use", "time_basis", "held_out"],
-        "config",
-    )
+    valid_keys = {"schema_version", "input", "segments", "window", "scoring", "calibration",
+                  "policy", "missing_policy", "source_label_use", "time_basis", "held_out"}
+    keys = set(config.keys())
+    if "features" in keys:
+        valid_keys.add("features")
+    _exact(config, list(valid_keys), "config")
     if not _is_int(config["schema_version"]) or config["schema_version"] != 1:
         raise ValueError("schema_version must be 1")
     for k, want in (("missing_policy", "reject"), ("source_label_use", "none"),
@@ -141,12 +141,36 @@ def validate_config(config):
         raise ValueError("calibration.min_samples must be >= 1")
     if cal["score_segment"] != "calibration":
         raise ValueError("calibration.score_segment must be 'calibration'")
-    pol = _exact(config["policy"], ["kind", "comparison"], "policy")
-    if pol["kind"] != "fixed_threshold":
-        raise ValueError("policy.kind must be 'fixed_threshold'")
+    po = config["policy"]
+    if not isinstance(po, dict) or "kind" not in po:
+        raise ValueError("policy must be a dict with a kind")
+    if po["kind"] == "fixed_threshold":
+        pol = _exact(po, ["kind", "comparison"], "policy")
+    elif po["kind"] == "rolling_threshold":
+        pol = _exact(po, ["kind", "comparison", "history_length", "admission_rule", "quantile"], "policy")
+        if not _is_int(pol["history_length"]) or pol["history_length"] < 1:
+            raise ValueError("history_length must be a positive int")
+        if pol["admission_rule"] not in ("normal_only", "all"):
+            raise ValueError("admission_rule must be normal_only or all")
+        f_q = _num(pol["quantile"], "quantile")
+        if not 0 < f_q <= 1:
+            raise ValueError("quantile must satisfy 0 < q <= 1")
+    elif po["kind"] == "k_consecutive":
+        pol = _exact(po, ["kind", "comparison", "k"], "policy")
+        if not _is_int(pol["k"]) or pol["k"] < 1:
+            raise ValueError("k must be a positive int")
+    elif po["kind"] == "m_of_n":
+        pol = _exact(po, ["kind", "comparison", "m", "n"], "policy")
+        if not _is_int(pol["m"]) or not _is_int(pol["n"]):
+            raise ValueError("m and n must be integers")
+        if pol["m"] < 1 or pol["n"] < 1 or pol["m"] > pol["n"]:
+            raise ValueError("must satisfy 1 <= m <= n")
+    else:
+        raise ValueError("policy.kind must be 'fixed_threshold' or 'rolling_threshold' or 'k_consecutive' or 'm_of_n'")
+    
     if pol["comparison"] != "strict_greater":
         raise ValueError("policy.comparison must be 'strict_greater'")
-    return {
+    out_d = {
         "schema_version": 1,
         "input": {"kind": "synthetic_periodic_v1", "length": n,
                   "pattern": pattern, "offsets": offsets},
@@ -159,12 +183,33 @@ def validate_config(config):
         "calibration": {"kind": "fixed_quantile", "quantile": q,
                         "method": "nearest_rank", "min_samples": cal["min_samples"],
                         "score_segment": "calibration"},
-        "policy": {"kind": "fixed_threshold", "comparison": "strict_greater"},
+        "policy": {"kind": pol["kind"], "comparison": "strict_greater"},
         "missing_policy": "reject",
         "source_label_use": "none",
         "time_basis": "sample_index",
         "held_out": "not_reserved_or_evaluated",
     }
+    for pol_k in ("history_length", "admission_rule", "quantile", "k", "m", "n"):
+        if pol_k in pol:
+            out_d["policy"][pol_k] = pol[pol_k]
+
+    feats = []
+    if "features" in config:
+        f_list = config["features"]
+        if not isinstance(f_list, (list, tuple)):
+            raise TypeError("features must be a list")
+        for f in f_list:
+            if not isinstance(f, dict):
+                raise TypeError("feature entry must be dict")
+            if f.get("kind") not in ("rolling_median", "rolling_spread"):
+                raise ValueError("feature kind must be string rolling_median or rolling_spread")
+            if not _is_int(f.get("length")) or f["length"] < 1:
+                raise ValueError("feature length must be positive int")
+            _exact(f, ["kind", "length"], "feature entry")
+            feats.append({"kind": f["kind"], "length": f["length"]})
+        out_d["features"] = feats
+
+    return out_d
 
 
 def config_id_of(resolved):
@@ -215,17 +260,49 @@ def compute_trace(config, values=None):
     quant = calibration.FixedQuantile.fit(
         cal_scores, quantile=resolved["calibration"]["quantile"],
         min_samples=resolved["calibration"]["min_samples"])
-    pol = policy.FixedThresholdPolicy(threshold=quant.threshold)
+    pol_conf = resolved["policy"]
+    if pol_conf["kind"] == "rolling_threshold":
+        pol = policy.RollingThresholdPolicy(
+            initial_threshold=quant.threshold,
+            history_length=pol_conf["history_length"],
+            quantile=pol_conf["quantile"],
+            admission_rule=pol_conf["admission_rule"]
+        )
+    elif pol_conf["kind"] == "k_consecutive":
+        pol = policy.KConsecutivePolicy(threshold=quant.threshold, k=pol_conf["k"])
+    elif pol_conf["kind"] == "m_of_n":
+        pol = policy.MOfNPolicy(threshold=quant.threshold, m=pol_conf["m"], n=pol_conf["n"])
+    else:
+        pol = policy.FixedThresholdPolicy(threshold=quant.threshold)
     cal_rows = [{"window_id": w.window_id, "start_index": w.start_index,
                  "end_index": w.end_index, "score": scorer.score(w.values)}
                 for w in wins["calibration"]]
+    feature_trackers = []
+    for f in resolved.get("features", []):
+        if f["kind"] == "rolling_median":
+            feature_trackers.append(diagnostics_features.RollingMedianFeature(f["length"]))
+        elif f["kind"] == "rolling_spread":
+            feature_trackers.append(diagnostics_features.RollingSpreadFeature(f["length"]))
+
     rows = []
     for w in wins["replay"]:
         s = scorer.score(w.values)
-        rows.append({"window_id": w.window_id, "start_index": w.start_index,
-                     "end_index": w.end_index, "score": s,
-                     "output_state": pol.decide(s),
-                     "threshold": float(quant.threshold), "config_id": cid})
+        
+        pol_threshold = getattr(pol, "threshold", quant.threshold)
+        
+        row = {"window_id": w.window_id, "start_index": w.start_index,
+               "end_index": w.end_index, "score": s,
+               "output_state": pol.decide(s),
+               "threshold": float(pol_threshold), "config_id": cid}
+        
+        feats = []
+        for t in feature_trackers:
+            feats.append(t.update(s))
+        
+        if feats:
+            row["features"] = feats
+            
+        rows.append(row)
     alerts = sum(1 for r in rows if r["output_state"] == "alert")
     diagnostics = {
         "config_id": cid,

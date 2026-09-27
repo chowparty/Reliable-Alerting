@@ -1,0 +1,374 @@
+test_accepts_no_labels (test_decisions.FixedQuantileTest.test_accepts_no_labels) ... ok
+test_default_quantile (test_decisions.FixedQuantileTest.test_default_quantile) ... ok
+test_frozen_and_fields (test_decisions.FixedQuantileTest.test_frozen_and_fields) ... ok
+test_hand_quantile_half_of_four (test_decisions.FixedQuantileTest.test_hand_quantile_half_of_four) ... ok
+test_no_interpolation (test_decisions.FixedQuantileTest.test_no_interpolation) ... ok
+test_quantile_one_gives_max (test_decisions.FixedQuantileTest.test_quantile_one_gives_max) ... ok
+test_rejects_bad_min_samples (test_decisions.FixedQuantileTest.test_rejects_bad_min_samples) ... ok
+test_rejects_bad_quantile (test_decisions.FixedQuantileTest.test_rejects_bad_quantile) ... ok
+test_rejects_bool_and_missing_scores (test_decisions.FixedQuantileTest.test_rejects_bool_and_missing_scores) ... ok
+test_rejects_empty_and_nonfinite (test_decisions.FixedQuantileTest.test_rejects_empty_and_nonfinite) ... ok
+test_rejects_shortage (test_decisions.FixedQuantileTest.test_rejects_shortage) ... ok
+test_retains_duplicates (test_decisions.FixedQuantileTest.test_retains_duplicates) ... ok
+test_accepts_no_labels (test_decisions.FixedThresholdPolicyTest.test_accepts_no_labels) ... ok
+test_frozen (test_decisions.FixedThresholdPolicyTest.test_frozen) ... ok
+test_rejects_bad_score (test_decisions.FixedThresholdPolicyTest.test_rejects_bad_score) ... ok
+test_rejects_bad_threshold (test_decisions.FixedThresholdPolicyTest.test_rejects_bad_threshold) ... ok
+test_ties_are_normal (test_decisions.FixedThresholdPolicyTest.test_ties_are_normal) ... ok
+test_existing_output_not_overwritten (test_decisions.WriteRunTest.test_existing_output_not_overwritten) ... ok
+test_no_output_on_validation_failure (test_decisions.WriteRunTest.test_no_output_on_validation_failure) ... ok
+test_rejects_bad_calibration (test_decisions.WriteRunTest.test_rejects_bad_calibration) ... ok
+test_rejects_bad_ids_indices_and_states (test_decisions.WriteRunTest.test_rejects_bad_ids_indices_and_states) ... ok
+test_rejects_extra_missing_keys (test_decisions.WriteRunTest.test_rejects_extra_missing_keys) ... ok
+test_roundtrip_schema_and_json (test_decisions.WriteRunTest.test_roundtrip_schema_and_json) ... ok
+test_signature_has_no_labels (test_decisions.WriteRunTest.test_signature_has_no_labels) ... ok
+test_inclusive_to_half_open (test_evaluation.AdapterTest.test_inclusive_to_half_open) ... ok
+test_point_labels_basic_and_short (test_evaluation.AdapterTest.test_point_labels_basic_and_short) ... ok
+test_point_labels_reject_empty_bool_missing (test_evaluation.AdapterTest.test_point_labels_reject_empty_bool_missing) ... ok
+test_rejects_bad_horizon_stride_window (test_evaluation.ConfigTest.test_rejects_bad_horizon_stride_window) ... ok
+test_rejects_bad_schema_timebasis (test_evaluation.ConfigTest.test_rejects_bad_schema_timebasis) ... ok
+test_rejects_first_decision_mismatch (test_evaluation.ConfigTest.test_rejects_first_decision_mismatch) ... ok
+test_rejects_missing_extra_keys (test_evaluation.ConfigTest.test_rejects_missing_extra_keys) ... ok
+test_uses_predictions_columns (test_evaluation.ConfigTest.test_uses_predictions_columns) ... ok
+test_valid_resolves (test_evaluation.ConfigTest.test_valid_resolves) ... ok
+test_adjacent_alerts_merge (test_evaluation.EpisodeTest.test_adjacent_alerts_merge) ... ok
+test_does_not_infer_state_from_score (test_evaluation.EpisodeTest.test_does_not_infer_state_from_score) ... ok
+test_final_clipped (test_evaluation.EpisodeTest.test_final_clipped) ... ok
+test_normal_defer_separate (test_evaluation.EpisodeTest.test_normal_defer_separate) ... ok
+test_rejects_duplicate_unsorted_nonfinite (test_evaluation.EpisodeTest.test_rejects_duplicate_unsorted_nonfinite) ... ok
+test_rejects_empty_missing_offschedule_irregular (test_evaluation.EpisodeTest.test_rejects_empty_missing_offschedule_irregular) ... ok
+test_warmup_is_before_first_decision (test_evaluation.EpisodeTest.test_warmup_is_before_first_decision) ... ok
+test_active_at_onset_zero_delay (test_evaluation.EvaluateTest.test_active_at_onset_zero_delay) ... ok
+test_alert_strictly_before_onset_zero_delay (test_evaluation.EvaluateTest.test_alert_strictly_before_onset_zero_delay) ... ok
+test_always_alert_duration_volume (test_evaluation.EvaluateTest.test_always_alert_duration_volume) ... ok
+test_boundary_touching_no_overlap (test_evaluation.EvaluateTest.test_boundary_touching_no_overlap) ... ok
+test_clipped_event_delay_uses_original_onset (test_evaluation.EvaluateTest.test_clipped_event_delay_uses_original_onset) ... ok
+test_deferred_duration_and_rates (test_evaluation.EvaluateTest.test_deferred_duration_and_rates) ... ok
+test_diagnostics_scope_zeros_units_and_per1000_rate (test_evaluation.EvaluateTest.test_diagnostics_scope_zeros_units_and_per1000_rate) ... ok
+test_event_ends_before_alert_miss (test_evaluation.EvaluateTest.test_event_ends_before_alert_miss) ... ok
+test_excluded_events_and_coverage_rejection (test_evaluation.EvaluateTest.test_excluded_events_and_coverage_rejection) ... ok
+test_first_window_event_miss_despite_first_alert (test_evaluation.EvaluateTest.test_first_window_event_miss_despite_first_alert) ... ok
+test_input_immutability (test_evaluation.EvaluateTest.test_input_immutability) ... ok
+test_one_episode_two_events (test_evaluation.EvaluateTest.test_one_episode_two_events) ... ok
+test_overlapping_union_duration (test_evaluation.EvaluateTest.test_overlapping_union_duration) ... ok
+test_positive_delay (test_evaluation.EvaluateTest.test_positive_delay) ... ok
+test_prefix_stable_when_future_rows_appended (test_evaluation.EvaluateTest.test_prefix_stable_when_future_rows_appended) ... ok
+test_reference_graph_recall_precision_durations (test_evaluation.EvaluateTest.test_reference_graph_recall_precision_durations) ... ok
+test_rejects_bad_labels (test_evaluation.EvaluateTest.test_rejects_bad_labels) ... ok
+test_strict_json_and_keys (test_evaluation.EvaluateTest.test_strict_json_and_keys) ... ok
+test_two_episodes_one_event (test_evaluation.EvaluateTest.test_two_episodes_one_event) ... ok
+test_warmup_event_miss_and_clipping (test_evaluation.EvaluateTest.test_warmup_event_miss_and_clipping) ... ok
+test_zero_alerts_null_precision (test_evaluation.EvaluateTest.test_zero_alerts_null_precision) ... ok
+test_zero_events_null_recall (test_evaluation.EvaluateTest.test_zero_events_null_recall) ... ok
+test_cli_and_evidence_compare_figure (test_evaluation_io.CliTest.test_cli_and_evidence_compare_figure) ... FAIL
+test_forged_metadata_config_id_rejected_before_labels (test_evaluation_io.ForgedRunMetadataTest.test_forged_metadata_config_id_rejected_before_labels) ... ok
+test_forged_metadata_input_hash_rejected_before_labels (test_evaluation_io.ForgedRunMetadataTest.test_forged_metadata_input_hash_rejected_before_labels) ... ok
+test_forged_metadata_run_id_rejected_before_labels (test_evaluation_io.ForgedRunMetadataTest.test_forged_metadata_run_id_rejected_before_labels) ... ok
+test_fixed_validator_still_rejects_defer (test_evaluation_io.GenericLoaderTest.test_fixed_validator_still_rejects_defer) ... ok
+test_generic_accepts_defer_varying_threshold (test_evaluation_io.GenericLoaderTest.test_generic_accepts_defer_varying_threshold) ... ok
+test_overwrite_refused_before_side_effects (test_evaluation_io.OverwriteTest.test_overwrite_refused_before_side_effects) ... ok
+test_provenance_failure_leaves_no_partial_output (test_evaluation_io.PartialOutputTest.test_provenance_failure_leaves_no_partial_output) ... ok
+test_command_launcher_rerun_shell_uses_venv_unresolved (test_evaluation_io.ProvenanceTest.test_command_launcher_rerun_shell_uses_venv_unresolved) ... FAIL
+test_metadata_provenance_fields (test_evaluation_io.ProvenanceTest.test_metadata_provenance_fields) ... ok
+test_whitelist_covers_new_files (test_evaluation_io.ProvenanceTest.test_whitelist_covers_new_files) ... ok
+test_compare_reports_variable_fields (test_evaluation_io.ProvenanceValidityTest.test_compare_reports_variable_fields) ... ok
+test_figure_refuses_missing_provenance (test_evaluation_io.ProvenanceValidityTest.test_figure_refuses_missing_provenance) ... ok
+test_stripped_provenance_fails_status_but_keeps_scientific (test_evaluation_io.ProvenanceValidityTest.test_stripped_provenance_fails_status_but_keeps_scientific) ... FAIL
+test_distinct_label_checksums_saved (test_evaluation_io.RawIntegrityTest.test_distinct_label_checksums_saved) ... FAIL
+test_eval_copy_run_id_forgery_detected (test_evaluation_io.RawIntegrityTest.test_eval_copy_run_id_forgery_detected) ... ok
+test_eval_source_run_linkage_forgery_detected (test_evaluation_io.RawIntegrityTest.test_eval_source_run_linkage_forgery_detected) ... ok
+test_entry_timestamp_precedes_output_files (test_evaluation_io.ResourceScopeTest.test_entry_timestamp_precedes_output_files) ... ok
+test_scope_names_validation_and_hashing_span (test_evaluation_io.ResourceScopeTest.test_scope_names_validation_and_hashing_span) ... ok
+test_evaluate_saved_predictions_reusable (test_evaluation_io.RoundtripTest.test_evaluate_saved_predictions_reusable) ... ok
+test_future_append_earlier_stable (test_evaluation_io.RoundtripTest.test_future_append_earlier_stable) ... ok
+test_label_changes_do_not_change_predictions_scorer_policy (test_evaluation_io.RoundtripTest.test_label_changes_do_not_change_predictions_scorer_policy) ... ok
+test_pipeline_writer_evaluation_roundtrip_expected_scores (test_evaluation_io.RoundtripTest.test_pipeline_writer_evaluation_roundtrip_expected_scores) ... ok
+test_two_fresh_runs_equal_eval_despite_run_id (test_evaluation_io.RoundtripTest.test_two_fresh_runs_equal_eval_despite_run_id) ... ok
+test_schedule_mismatch_fails_before_side_effects (test_evaluation_io.ScheduleMismatchTest.test_schedule_mismatch_fails_before_side_effects) ... ok
+test_rejects_nan_infinity_duplicate_keys (test_evaluation_io.StrictJsonTest.test_rejects_nan_infinity_duplicate_keys) ... ok
+test_write_rejects_nonfinite (test_evaluation_io.StrictJsonTest.test_write_rejects_nonfinite) ... ok
+test_run_config_duplicate_keys_rejected (test_evaluation_io.StrictRunJsonTest.test_run_config_duplicate_keys_rejected) ... ok
+test_run_metadata_duplicate_keys_rejected (test_evaluation_io.StrictRunJsonTest.test_run_metadata_duplicate_keys_rejected) ... ok
+test_predictions_before_labels_ordering (test_evaluation_io.TamperTest.test_predictions_before_labels_ordering) ... ok
+test_tampered_labels_predictions_hashes_detected (test_evaluation_io.TamperTest.test_tampered_labels_predictions_hashes_detected) ... ok
+test_tampered_metric_detected_and_both_forged (test_evaluation_io.TamperTest.test_tampered_metric_detected_and_both_forged) ... ok
+test_both_runs_same_invalid_fails_recompute (test_evidence.CompareTest.test_both_runs_same_invalid_fails_recompute) ... ok
+test_cli_compare_and_figure (test_evidence.CompareTest.test_cli_compare_and_figure) ... ok
+test_differing_boundary_fails (test_evidence.CompareTest.test_differing_boundary_fails) ... ok
+test_differing_config_fails (test_evidence.CompareTest.test_differing_config_fails) ... ok
+test_differing_run_ids_pass_same_substantive (test_evidence.CompareTest.test_differing_run_ids_pass_same_substantive) ... ok
+test_differing_score_fails (test_evidence.CompareTest.test_differing_score_fails) ... ok
+test_differing_threshold_fails (test_evidence.CompareTest.test_differing_threshold_fails) ... ok
+test_existing_output_preserved (test_evidence.CompareTest.test_existing_output_preserved) ... ok
+test_git_branch_status_recorded_varying (test_evidence.CompareTest.test_git_branch_status_recorded_varying) ... ok
+test_missing_metadata_fields_fails (test_evidence.CompareTest.test_missing_metadata_fields_fails) ... ok
+test_report_requires_valid_provenance (test_evidence.CompareTest.test_report_requires_valid_provenance) ... ok
+test_resource_scope_mismatch_fails (test_evidence.CompareTest.test_resource_scope_mismatch_fails) ... ok
+test_figure_existing_output_preserved (test_evidence.FigureTest.test_figure_existing_output_preserved) ... ok
+test_figure_legend_and_wrapped_caption (test_evidence.FigureTest.test_figure_legend_and_wrapped_caption) ... ok
+test_figure_rejects_bad_schema_and_nonfinite (test_evidence.FigureTest.test_figure_rejects_bad_schema_and_nonfinite) ... ok
+test_figure_rejects_varying_thresholds_no_output (test_evidence.FigureTest.test_figure_rejects_varying_thresholds_no_output) ... ok
+test_hand_csv_end_index_circles_labels_ties (test_evidence.FigureTest.test_hand_csv_end_index_circles_labels_ties) ... ok
+test_parse_int_simple (test_evidence.FigureTest.test_parse_int_simple) ... ok
+test_hold_fixture_annotations_trace_windows (test_family_evidence.AnnotationWindowTraceTest.test_hold_fixture_annotations_trace_windows) ... ok
+test_standard_fixture_annotations_trace_windows (test_family_evidence.AnnotationWindowTraceTest.test_standard_fixture_annotations_trace_windows) ... ok
+test_equal_fresh_runs_despite_provenance_hashes (test_family_evidence.CompareFamiliesTest.test_equal_fresh_runs_despite_provenance_hashes) ... ok
+test_same_score_predictions_mismatch_rejected (test_family_evidence.CompareFamiliesTest.test_same_score_predictions_mismatch_rejected) ... ok
+test_same_score_state_mismatch_rejected (test_family_evidence.CompareFamiliesTest.test_same_score_state_mismatch_rejected) ... ok
+test_write_comparison_no_overwrite (test_family_evidence.CompareFamiliesTest.test_write_comparison_no_overwrite) ... ok
+test_cli_compare_table_figure (test_family_evidence.FamilyCliTest.test_cli_compare_table_figure) ... ok
+test_all_text_inside_canvas_and_wrapped (test_family_evidence.FamilyFigureGeometryTest.test_all_text_inside_canvas_and_wrapped) ... ERROR
+test_held_forward_intervals_drawn_with_window_ids (test_family_evidence.FamilyFigureGeometryTest.test_held_forward_intervals_drawn_with_window_ids) ... ERROR
+test_horizon_and_warmup_cover_all_lanes (test_family_evidence.FamilyFigureGeometryTest.test_horizon_and_warmup_cover_all_lanes) ... ERROR
+test_figure_parses_and_episodes_match_saved_bounds (test_family_evidence.FamilyFigureTest.test_figure_parses_and_episodes_match_saved_bounds) ... ERROR
+test_figure_tamper_refuses_and_no_overwrite (test_family_evidence.FamilyFigureTest.test_figure_tamper_refuses_and_no_overwrite) ... ok
+test_table_rows_annotations_and_feasible (test_family_evidence.FamilyTableTest.test_table_rows_annotations_and_feasible) ... ok
+test_table_tamper_refuses_and_no_overwrite (test_family_evidence.FamilyTableTest.test_table_tamper_refuses_and_no_overwrite) ... ok
+test_hand_spike_then_low_forward_intervals (test_family_evidence.HeldIntervalHelperTest.test_hand_spike_then_low_forward_intervals) ... ok
+test_deferral_rate_exact_zero_of_8 (test_family_evidence.TableDeferralTest.test_deferral_rate_exact_zero_of_8) ... ok
+test_accepts_no_labels (test_hysteresis.HysteresisInitTest.test_accepts_no_labels) ... ok
+test_levels_and_state_are_read_only (test_hysteresis.HysteresisInitTest.test_levels_and_state_are_read_only) ... ok
+test_levels_are_validated_numbers (test_hysteresis.HysteresisInitTest.test_levels_are_validated_numbers) ... ok
+test_rejects_equal_and_reversed_levels (test_hysteresis.HysteresisInitTest.test_rejects_equal_and_reversed_levels) ... ok
+test_rejects_non_numeric_levels (test_hysteresis.HysteresisInitTest.test_rejects_non_numeric_levels) ... ok
+test_rejects_nonfinite_levels (test_hysteresis.HysteresisInitTest.test_rejects_nonfinite_levels) ... ok
+test_starts_normal (test_hysteresis.HysteresisInitTest.test_starts_normal) ... ok
+test_invalid_score_does_not_mutate_state (test_hysteresis.HysteresisRobustnessTest.test_invalid_score_does_not_mutate_state) ... ok
+test_prefix_invariance_to_future_scores (test_hysteresis.HysteresisRobustnessTest.test_prefix_invariance_to_future_scores) ... ok
+test_rejects_bad_scores (test_hysteresis.HysteresisRobustnessTest.test_rejects_bad_scores) ... ok
+test_separate_instances_do_not_leak (test_hysteresis.HysteresisRobustnessTest.test_separate_instances_do_not_leak) ... ok
+test_alert_to_normal_only_below_low (test_hysteresis.HysteresisTransitionsTest.test_alert_to_normal_only_below_low) ... ok
+test_band_holds_alert_and_low_equality_preserves (test_hysteresis.HysteresisTransitionsTest.test_band_holds_alert_and_low_equality_preserves) ... ok
+test_band_holds_normal (test_hysteresis.HysteresisTransitionsTest.test_band_holds_normal) ... ok
+test_normal_to_alert_only_above_high (test_hysteresis.HysteresisTransitionsTest.test_normal_to_alert_only_above_high) ... ok
+test_repeated_on_off_cycles (test_hysteresis.HysteresisTransitionsTest.test_repeated_on_off_cycles) ... ok
+test_reset_returns_to_normal (test_hysteresis.HysteresisTransitionsTest.test_reset_returns_to_normal) ... ok
+test_spike_holds_unwanted_tail (test_hysteresis.HysteresisTransitionsTest.test_spike_holds_unwanted_tail) ... ok
+test_boundary_nonalignment_drops_tail (test_pipeline.ComputeTraceTest.test_boundary_nonalignment_drops_tail) ... ok
+test_cli_writes_expected_artifacts (test_pipeline.ComputeTraceTest.test_cli_writes_expected_artifacts) ... ok
+test_diagnostics_label_free_and_warmup (test_pipeline.ComputeTraceTest.test_diagnostics_label_free_and_warmup) ... ok
+test_label_file_ignored (test_pipeline.ComputeTraceTest.test_label_file_ignored) ... ok
+test_metadata_resource_scope (test_pipeline.ComputeTraceTest.test_metadata_resource_scope) ... ok
+test_mutate_calibration_changes_cutoff_not_source_fit (test_pipeline.ComputeTraceTest.test_mutate_calibration_changes_cutoff_not_source_fit) ... ok
+test_mutate_replay_leaves_earlier_rows_and_cutoff (test_pipeline.ComputeTraceTest.test_mutate_replay_leaves_earlier_rows_and_cutoff) ... ok
+test_provenance_git_failure_raises (test_pipeline.ComputeTraceTest.test_provenance_git_failure_raises) ... ok
+test_provenance_missing_hash_raises (test_pipeline.ComputeTraceTest.test_provenance_missing_hash_raises) ... ok
+test_provenance_symlink_hash_raises (test_pipeline.ComputeTraceTest.test_provenance_symlink_hash_raises) ... ok
+test_public_api_is_label_free (test_pipeline.ComputeTraceTest.test_public_api_is_label_free) ... ok
+test_repeat_compute_same_rows (test_pipeline.ComputeTraceTest.test_repeat_compute_same_rows) ... ok
+test_schema_rejects_labels (test_pipeline.ComputeTraceTest.test_schema_rejects_labels) ... ok
+test_unknown_and_invalid_inputs_fail (test_pipeline.ComputeTraceTest.test_unknown_and_invalid_inputs_fail) ... ok
+test_write_and_reload_config_rerun (test_pipeline.ComputeTraceTest.test_write_and_reload_config_rerun) ... ok
+test_write_rejects_forged_score_and_diagnostics (test_pipeline.ComputeTraceTest.test_write_rejects_forged_score_and_diagnostics) ... ok
+test_write_rejects_values_override (test_pipeline.ComputeTraceTest.test_write_rejects_values_override) ... ok
+test_all_admission (test_policy_rolling.RollingThresholdPolicyTest.test_all_admission) ... ok
+test_initialization (test_policy_rolling.RollingThresholdPolicyTest.test_initialization) ... ok
+test_normal_only_admission (test_policy_rolling.RollingThresholdPolicyTest.test_normal_only_admission) ... ok
+test_rolling_window (test_policy_rolling.RollingThresholdPolicyTest.test_rolling_window) ... FAIL
+test_validation (test_policy_rolling.RollingThresholdPolicyTest.test_validation) ... ok
+test_labels_mutation_leaves_decisions_fixed (test_replay.FamilyRoundtripTest.test_labels_mutation_leaves_decisions_fixed) ... ok
+test_pipeline_writer_family_evaluator_roundtrip (test_replay.FamilyRoundtripTest.test_pipeline_writer_family_evaluator_roundtrip) ... ok
+test_family_records_actual_feasibility (test_replay.FeasibilityReportingTest.test_family_records_actual_feasibility) ... ok
+test_high_episode_toy_preserved_with_reasons_no_override (test_replay.FeasibilityReportingTest.test_high_episode_toy_preserved_with_reasons_no_override) ... ok
+test_protocol_notes_say_reporting (test_replay.FeasibilityReportingTest.test_protocol_notes_say_reporting) ... ok
+test_tolerance_is_reporting_not_rejection (test_replay.FeasibilityReportingTest.test_tolerance_is_reporting_not_rejection) ... ok
+test_development_labels_both_policies_invariant (test_replay.InvarianceTest.test_development_labels_both_policies_invariant) ... ok
+test_replay_id_binds_version (test_replay.InvarianceTest.test_replay_id_binds_version) ... ok
+test_source_collapsed_high_rejected (test_replay.InvarianceTest.test_source_collapsed_high_rejected) ... ok
+test_label_failure_leaves_documented_incomplete_output (test_replay.LabelOrderingTest.test_label_failure_leaves_documented_incomplete_output) ... ok
+test_labels_opened_once_after_both_policies_persisted (test_replay.LabelOrderingTest.test_labels_opened_once_after_both_policies_persisted) ... ok
+test_pipeline_family_alert_then_exact_low_holds (test_replay.LowEqualityRoundtripTest.test_pipeline_family_alert_then_exact_low_holds) ... ok
+test_pipeline_family_evaluation_at_exact_low (test_replay.LowEqualityRoundtripTest.test_pipeline_family_evaluation_at_exact_low) ... ok
+test_sidecar_write_read_exact_at_low_and_exclusive (test_replay.LowEqualityRoundtripTest.test_sidecar_write_read_exact_at_low_and_exclusive) ... ok
+test_artifact_extra_and_parent_paths_rejected (test_replay.MetadataIntegrityTest.test_artifact_extra_and_parent_paths_rejected) ... ok
+test_evaluation_config_id_mismatch_rejected (test_replay.MetadataIntegrityTest.test_evaluation_config_id_mismatch_rejected) ... ok
+test_extra_metadata_key_rejected (test_replay.MetadataIntegrityTest.test_extra_metadata_key_rejected) ... ok
+test_file_hashes_incomplete_rejected (test_replay.MetadataIntegrityTest.test_file_hashes_incomplete_rejected) ... ok
+test_missing_source_scores_id_rejected (test_replay.MetadataIntegrityTest.test_missing_source_scores_id_rejected) ... ok
+test_nonfinite_elapsed_rejected (test_replay.MetadataIntegrityTest.test_nonfinite_elapsed_rejected) ... ok
+test_policy_metadata_link_mismatch_rejected (test_replay.MetadataIntegrityTest.test_policy_metadata_link_mismatch_rejected) ... ok
+test_refreshed_checksums_do_not_hide_tamper (test_replay.MetadataIntegrityTest.test_refreshed_checksums_do_not_hide_tamper) ... ok
+test_symlinked_artifact_refused (test_replay.MetadataIntegrityTest.test_symlinked_artifact_refused) ... skipped 'Symlinks require admin privileges on Windows'
+test_wrong_policy_kind_in_named_dir_rejected (test_replay.MetadataIntegrityTest.test_wrong_policy_kind_in_named_dir_rejected) ... ok
+test_cli_produces_verifiable_family (test_replay.ProvenanceCliTest.test_cli_produces_verifiable_family) ... ok
+test_family_metadata_provenance_and_checksums (test_replay.ProvenanceCliTest.test_family_metadata_provenance_and_checksums) ... ok
+test_whitelist_covers_new_files (test_replay.ProvenanceCliTest.test_whitelist_covers_new_files) ... ok
+test_fixed_replay_matches_strict_greater (test_replay.ReplayApiLabelFreeTest.test_fixed_replay_matches_strict_greater) ... ok
+test_hysteresis_replay_latches_and_exits (test_replay.ReplayApiLabelFreeTest.test_hysteresis_replay_latches_and_exits) ... ok
+test_prefix_invariance_to_future_scores (test_replay.ReplayApiLabelFreeTest.test_prefix_invariance_to_future_scores) ... ok
+test_repeat_replay_from_fresh_state_agrees (test_replay.ReplayApiLabelFreeTest.test_repeat_replay_from_fresh_state_agrees) ... ok
+test_replay_rows_is_label_free (test_replay.ReplayApiLabelFreeTest.test_replay_rows_is_label_free) ... ok
+test_description_excludes_provenance_and_completion_writes (test_replay.ResourceScopeTest.test_description_excludes_provenance_and_completion_writes) ... ok
+test_timing_boundary_precedes_provenance_capture (test_replay.ResourceScopeTest.test_timing_boundary_precedes_provenance_capture) ... ok
+test_bool_start_score_high_low_rejected_not_equal (test_replay.SidecarTypingTest.test_bool_start_score_high_low_rejected_not_equal) ... ok
+test_state_missing_duplicate_unordered_rejected (test_replay.SidecarTypingTest.test_state_missing_duplicate_unordered_rejected) ... ok
+test_shared_scores_and_distinct_policy_ids (test_replay.SourceIdentityTest.test_shared_scores_and_distinct_policy_ids) ... ok
+test_source_high_immutable (test_replay.SourceIdentityTest.test_source_high_immutable) ... ok
+test_run_family_refuses_symlinked_inputs (test_replay.SymlinkConfinementTest.test_run_family_refuses_symlinked_inputs) ... skipped 'Symlinks require admin privileges on Windows'
+test_symlinked_family_base_refused (test_replay.SymlinkConfinementTest.test_symlinked_family_base_refused) ... skipped 'Symlinks require admin privileges on Windows'
+test_symlinked_family_metadata_refused (test_replay.SymlinkConfinementTest.test_symlinked_family_metadata_refused) ... skipped 'Symlinks require admin privileges on Windows'
+test_symlinked_policy_dir_refused (test_replay.SymlinkConfinementTest.test_symlinked_policy_dir_refused) ... skipped 'Symlinks require admin privileges on Windows'
+test_malformed_score_rows_rejected (test_replay.TamperMalformedTest.test_malformed_score_rows_rejected) ... ok
+test_no_overwrite (test_replay.TamperMalformedTest.test_no_overwrite) ... ok
+test_nonstrict_protocol_rejected (test_replay.TamperMalformedTest.test_nonstrict_protocol_rejected) ... ok
+test_replay_rows_rejects_empty_score_rows (test_replay.TamperMalformedTest.test_replay_rows_rejects_empty_score_rows) ... ok
+test_schedule_mismatch_fails_before_output (test_replay.TamperMalformedTest.test_schedule_mismatch_fails_before_output) ... ok
+test_strict_fixed_validator_still_rejects_threshold_equality_alert (test_replay.TamperMalformedTest.test_strict_fixed_validator_still_rejects_threshold_equality_alert) ... ok
+test_tampered_family_predictions_detected (test_replay.TamperMalformedTest.test_tampered_family_predictions_detected) ... ok
+test_accepts_generator (test_source.LoadValuesTest.test_accepts_generator) ... ok
+test_converts_ints_to_float_tuple (test_source.LoadValuesTest.test_converts_ints_to_float_tuple) ... ok
+test_rejects_bool_element (test_source.LoadValuesTest.test_rejects_bool_element) ... ok
+test_rejects_empty (test_source.LoadValuesTest.test_rejects_empty) ... ok
+test_rejects_nan_inf (test_source.LoadValuesTest.test_rejects_nan_inf) ... ok
+test_rejects_non_iterable (test_source.LoadValuesTest.test_rejects_non_iterable) ... ok
+test_rejects_none_and_nonnumeric (test_source.LoadValuesTest.test_rejects_none_and_nonnumeric) ... ok
+test_rejects_overflow_conversion (test_source.LoadValuesTest.test_rejects_overflow_conversion) ... ok
+test_non_aligned_split_skips_tail (test_source.MakeWindowsTest.test_non_aligned_split_skips_tail) ... ok
+test_rejects_bad_length_stride (test_source.MakeWindowsTest.test_rejects_bad_length_stride) ... ok
+test_rejects_bad_segment_name (test_source.MakeWindowsTest.test_rejects_bad_segment_name) ... ok
+test_rejects_bad_segments (test_source.MakeWindowsTest.test_rejects_bad_segments) ... ok
+test_rejects_nonfinite_or_nonnumeric_elements (test_source.MakeWindowsTest.test_rejects_nonfinite_or_nonnumeric_elements) ... ok
+test_rejects_segment_shorter_than_length (test_source.MakeWindowsTest.test_rejects_segment_shorter_than_length) ... ok
+test_window_dataclass_shape_and_frozen (test_source.MakeWindowsTest.test_window_dataclass_shape_and_frozen) ... ok
+test_constant_source (test_source.MeanDistanceScorerTest.test_constant_source) ... ok
+test_direct_construction_validated (test_source.MeanDistanceScorerTest.test_direct_construction_validated) ... ok
+test_fit_hand_values (test_source.MeanDistanceScorerTest.test_fit_hand_values) ... ok
+test_future_mutation_leaves_earlier_scores_unchanged (test_source.MeanDistanceScorerTest.test_future_mutation_leaves_earlier_scores_unchanged) ... ok
+test_rejects_bad_fit (test_source.MeanDistanceScorerTest.test_rejects_bad_fit) ... ok
+test_rejects_bad_score_input (test_source.MeanDistanceScorerTest.test_rejects_bad_score_input) ... ok
+test_rejects_nonfinite_output (test_source.MeanDistanceScorerTest.test_rejects_nonfinite_output) ... ok
+test_score_hand_values (test_source.MeanDistanceScorerTest.test_score_hand_values) ... ok
+test_scorer_frozen_and_no_labels (test_source.MeanDistanceScorerTest.test_scorer_frozen_and_no_labels) ... ok
+test_accepts_no_labels (test_source.SyntheticValuesTest.test_accepts_no_labels) ... ok
+test_offset_half_open_range (test_source.SyntheticValuesTest.test_offset_half_open_range) ... ok
+test_rejects_bad_length (test_source.SyntheticValuesTest.test_rejects_bad_length) ... ok
+test_rejects_bad_offset_entry (test_source.SyntheticValuesTest.test_rejects_bad_offset_entry) ... ok
+test_rejects_bad_offset_keys (test_source.SyntheticValuesTest.test_rejects_bad_offset_keys) ... ok
+test_rejects_bad_pattern_entry (test_source.SyntheticValuesTest.test_rejects_bad_pattern_entry) ... ok
+test_rejects_empty_pattern (test_source.SyntheticValuesTest.test_rejects_empty_pattern) ... ok
+test_rejects_nonfinite_result (test_source.SyntheticValuesTest.test_rejects_nonfinite_result) ... ok
+test_rejects_out_of_bounds_offset (test_source.SyntheticValuesTest.test_rejects_out_of_bounds_offset) ... ok
+test_repeats_pattern (test_source.SyntheticValuesTest.test_repeats_pattern) ... ok
+test_stop_is_exclusive (test_source.SyntheticValuesTest.test_stop_is_exclusive) ... ok
+
+======================================================================
+ERROR: test_all_text_inside_canvas_and_wrapped (test_family_evidence.FamilyFigureGeometryTest.test_all_text_inside_canvas_and_wrapped)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Reliable-Alerting\tests\test_family_evidence.py", line 445, in test_all_text_inside_canvas_and_wrapped
+    w, h, texts, _ = self._texts(svg_p)
+                     ~~~~~~~~~~~^^^^^^^
+  File "D:\Reliable-Alerting\tests\test_family_evidence.py", line 432, in _texts
+    tree = ET.parse(svg_p)
+  File "C:\Python314\Lib\xml\etree\ElementTree.py", line 1214, in parse
+    tree.parse(source, parser)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\xml\etree\ElementTree.py", line 577, in parse
+    self._root = parser._parse_whole(source)
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^
+xml.etree.ElementTree.ParseError: not well-formed (invalid token): line 2, column 35
+
+======================================================================
+ERROR: test_held_forward_intervals_drawn_with_window_ids (test_family_evidence.FamilyFigureGeometryTest.test_held_forward_intervals_drawn_with_window_ids)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Reliable-Alerting\tests\test_family_evidence.py", line 467, in test_held_forward_intervals_drawn_with_window_ids
+    _, _, _, root = self._texts(svg_p)
+                    ~~~~~~~~~~~^^^^^^^
+  File "D:\Reliable-Alerting\tests\test_family_evidence.py", line 432, in _texts
+    tree = ET.parse(svg_p)
+  File "C:\Python314\Lib\xml\etree\ElementTree.py", line 1214, in parse
+    tree.parse(source, parser)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\xml\etree\ElementTree.py", line 577, in parse
+    self._root = parser._parse_whole(source)
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^
+xml.etree.ElementTree.ParseError: not well-formed (invalid token): line 2, column 35
+
+======================================================================
+ERROR: test_horizon_and_warmup_cover_all_lanes (test_family_evidence.FamilyFigureGeometryTest.test_horizon_and_warmup_cover_all_lanes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Reliable-Alerting\tests\test_family_evidence.py", line 491, in test_horizon_and_warmup_cover_all_lanes
+    _, _, _, root = self._texts(svg_p)
+                    ~~~~~~~~~~~^^^^^^^
+  File "D:\Reliable-Alerting\tests\test_family_evidence.py", line 432, in _texts
+    tree = ET.parse(svg_p)
+  File "C:\Python314\Lib\xml\etree\ElementTree.py", line 1214, in parse
+    tree.parse(source, parser)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\xml\etree\ElementTree.py", line 577, in parse
+    self._root = parser._parse_whole(source)
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^
+xml.etree.ElementTree.ParseError: not well-formed (invalid token): line 2, column 35
+
+======================================================================
+ERROR: test_figure_parses_and_episodes_match_saved_bounds (test_family_evidence.FamilyFigureTest.test_figure_parses_and_episodes_match_saved_bounds)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Reliable-Alerting\tests\test_family_evidence.py", line 271, in test_figure_parses_and_episodes_match_saved_bounds
+    tree = ET.parse(svg_p)
+  File "C:\Python314\Lib\xml\etree\ElementTree.py", line 1214, in parse
+    tree.parse(source, parser)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\xml\etree\ElementTree.py", line 577, in parse
+    self._root = parser._parse_whole(source)
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^
+xml.etree.ElementTree.ParseError: not well-formed (invalid token): line 2, column 35
+
+======================================================================
+FAIL: test_cli_and_evidence_compare_figure (test_evaluation_io.CliTest.test_cli_and_evidence_compare_figure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Reliable-Alerting\tests\test_evaluation_io.py", line 431, in test_cli_and_evidence_compare_figure
+    self.assertTrue(rep["status"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_command_launcher_rerun_shell_uses_venv_unresolved (test_evaluation_io.ProvenanceTest.test_command_launcher_rerun_shell_uses_venv_unresolved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Reliable-Alerting\tests\test_evaluation_io.py", line 359, in test_command_launcher_rerun_shell_uses_venv_unresolved
+    self.assertIn(".venv", sys.executable)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '.venv' not found in 'C:\\Python314\\python.exe'
+
+======================================================================
+FAIL: test_stripped_provenance_fails_status_but_keeps_scientific (test_evaluation_io.ProvenanceValidityTest.test_stripped_provenance_fails_status_but_keeps_scientific)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Reliable-Alerting\tests\test_evaluation_io.py", line 657, in test_stripped_provenance_fails_status_but_keeps_scientific
+    self.assertTrue(rep["scientific_equal"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_distinct_label_checksums_saved (test_evaluation_io.RawIntegrityTest.test_distinct_label_checksums_saved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Reliable-Alerting\tests\test_evaluation_io.py", line 583, in test_distinct_label_checksums_saved
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        meta["persisted_labels_file_sha256"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        evaluation_io.file_sha256(str(Path(out) / "labels.json")))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '6e3ff51298d3de48d370fecaf03bb596a371f2ee6924b725af17e76833100f26' != '4c77811db238e78ad8bd5a7599f08d85152d63dc9041ca346183e92a07749323'
+- 6e3ff51298d3de48d370fecaf03bb596a371f2ee6924b725af17e76833100f26
++ 4c77811db238e78ad8bd5a7599f08d85152d63dc9041ca346183e92a07749323
+
+
+======================================================================
+FAIL: test_rolling_window (test_policy_rolling.RollingThresholdPolicyTest.test_rolling_window)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Reliable-Alerting\tests\test_policy_rolling.py", line 42, in test_rolling_window
+    self.assertEqual(pol.threshold, 3.0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1.0 != 3.0
+
+----------------------------------------------------------------------
+Ran 252 tests in 191.708s
+
+FAILED (failures=5, errors=4, skipped=5)

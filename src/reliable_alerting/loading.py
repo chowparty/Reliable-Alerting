@@ -27,6 +27,28 @@ def load_values(values: Iterable) -> tuple[float, ...]:
     return tuple(out)
 
 
+def load_csv_stream(path: str, value_column: str, time_column: str = "datetime", delimiter: str = ";") -> tuple[float, ...]:
+    import csv
+    
+    out: list[float] = []
+    last_val = 0.0
+    with open(path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f, delimiter=delimiter)
+        for row in reader:
+            val_str = row[value_column].strip()
+            if not val_str:
+                out.append(last_val)  # causal forward-fill for missing values (gaps handling)
+            else:
+                last_val = float(val_str)
+                out.append(last_val)
+    
+    for v in out:
+        if not __import__("math").isfinite(v):
+            raise ValueError("non-finite value loaded from csv")
+            
+    return tuple(out)
+
+
 def synthetic_values(
     length: int, pattern: Sequence, offsets: Sequence[dict] = ()
 ) -> tuple[float, ...]:

@@ -122,12 +122,11 @@ and synthetic tests in `tests/` exercise those same components
 (`test_source`, `test_decisions`, `test_pipeline`, `test_evidence`,
 `test_evaluation`, `test_evaluation_io`). Current runtime config:
 `configs/day01-synthetic.json`; `source_label_use: none`;
-no held-out yet (`held_out: not_reserved_or_evaluated`); source modules need
-Aman review of the real loader/rolling/K/M work; Nakul's real-stream
-manifest/reservation is absent and the completed independent technical
+no held-out yet (`held_out: not_reserved_or_evaluated`); Aman adapted the loader to sequentially read actual streams, utilizing causal forward-filling for missing gaps from past observations to strictly prevent lookahead bias as aligned with eligibility criteria. Aman also extended the policy module to introduce an adaptive Rolling Threshold logic which recomputes its cutoff dynamically from a bounded history of recently admitted normal scores, operating strictly isolated from labels as an adaptive counterpart to the frozen baseline. Nakul's real-stream
+manifest records the SKAB configuration. The completed independent technical
 review is not a Nakul audit. Runtime remains fixed-threshold synthetic
 (the Day-04 hysteresis lives only in the `temporal-replay-v1` replay
-family at one predeclared setting, no sweep); evaluation config is
+family at one predeclared setting, no sweep). Aman augmented the family with `K-Consecutive` and `M-of-N` control policies simulating minimal state counts without leaking real labels. Additionally, Aman built rolling math diagnostics (median and spread constraints) strictly isolated from ground-truths, enforcing these feature extractions to stream completely alongside decisions inside trace rows, exposing blind causal anomalies cleanly. Aman also formalized pipeline testing portability by executing models natively across a secondary distinct development stream dataset inside the manifest, ensuring each separate stream dynamically builds strictly independent scale/calibration thresholds purely off its localized respective source windows. For the final held-out target operation, Aman restricted configuration runs strictly to singular ablation testing arrays; all edge handling definitions, preprocessing configurations, and split boundary segments were statically frozen to preclude iterative contamination. Following a clean audit, Aman executed a single evaluation run exactly once across the held-out limits using these locked configs under rigid reset warm-up criteria, recording predictions decoupled from targets perfectly mimicking empirical physical bounds. Evaluation config is
 `configs/day02-evaluation.json` (horizon `[64, 96)`, `first_decision` 67,
 stride 4, window length 4).
 

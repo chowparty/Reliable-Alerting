@@ -727,6 +727,7 @@ class MetadataIntegrityTest(unittest.TestCase):
                     {"../outside.json": "0" * 64}))
             self.assertFalse(replay.load_family(fam)["status"])
 
+    @unittest.skipIf(sys.platform == "win32", "Symlinks require admin privileges on Windows")
     def test_symlinked_artifact_refused(self):
         from reliable_alerting import replay
         with tempfile.TemporaryDirectory(dir=str(RESULTS)) as tmp:
@@ -1077,6 +1078,7 @@ class InvarianceTest(unittest.TestCase):
 
 
 class SymlinkConfinementTest(unittest.TestCase):
+    @unittest.skipIf(sys.platform == "win32", "Symlinks require admin privileges on Windows")
     def test_symlinked_policy_dir_refused(self):
         from reliable_alerting import replay
         with tempfile.TemporaryDirectory(dir=str(RESULTS)) as tmp:
@@ -1102,6 +1104,7 @@ class SymlinkConfinementTest(unittest.TestCase):
                 os.unlink(str(victim))
                 os.rename(str(backup), str(victim))
 
+    @unittest.skipIf(sys.platform == "win32", "Symlinks require admin privileges on Windows")
     def test_symlinked_family_base_refused(self):
         from reliable_alerting import replay
         with tempfile.TemporaryDirectory(dir=str(RESULTS)) as tmp:
@@ -1113,6 +1116,7 @@ class SymlinkConfinementTest(unittest.TestCase):
             os.symlink(fam, alias)
             self.assertFalse(replay.load_family(alias)["status"])
 
+    @unittest.skipIf(sys.platform == "win32", "Symlinks require admin privileges on Windows")
     def test_symlinked_family_metadata_refused(self):
         from reliable_alerting import replay
         with tempfile.TemporaryDirectory(dir=str(RESULTS)) as tmp:
@@ -1127,6 +1131,7 @@ class SymlinkConfinementTest(unittest.TestCase):
             os.symlink(str(staged), str(target))
             self.assertFalse(replay.load_family(fam)["status"])
 
+    @unittest.skipIf(sys.platform == "win32", "Symlinks require admin privileges on Windows")
     def test_run_family_refuses_symlinked_inputs(self):
         from reliable_alerting import replay
         with tempfile.TemporaryDirectory(dir=str(RESULTS)) as tmp:

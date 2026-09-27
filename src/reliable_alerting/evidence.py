@@ -648,7 +648,7 @@ def render_figure(predictions_csv, output_svg):
     parts.append(f'<text x="{lx + 73}" y="{ly + 4}" font-size="10">alert</text>')
     parts.append("</svg>")
     text = "\n".join(parts) + "\n"
-    with open(output_svg, "x") as fh:
+    with open(output_svg, "x", encoding="utf-8") as fh:
         fh.write(text)
     return str(output_svg)
 
