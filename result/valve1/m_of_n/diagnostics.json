@@ -1,0 +1,59 @@
+{
+  "alert_count": 0,
+  "alert_fraction": 0.0,
+  "config_id": "43551a065a31b89e24026f59838ba8f5283874d563625cc0053c2930bf2a1ac6",
+  "decision_coverage": 1.0,
+  "generation_spec": {
+    "delimiter": ";",
+    "kind": "csv_stream",
+    "length": 1148,
+    "path": "D:\\Reliable-Alerting\\SKAB\\valve1\\0.csv",
+    "value_column": "Current"
+  },
+  "input_hash": "4854592eabe719ecf33d5e3a32af06127778b41b48bc9983504d536ba5f6e340",
+  "quantile": {
+    "method": "nearest_rank",
+    "quantile": 0.95,
+    "sample_count": 100,
+    "threshold": 1.3249013096528448
+  },
+  "replay_windows": 87,
+  "scorer": {
+    "epsilon": 1e-06,
+    "mean": 0.993951245,
+    "std": 0.2795535919545123
+  },
+  "segments": {
+    "calibration": {
+      "bounds": [
+        400,
+        800
+      ],
+      "dropped_tail": 0,
+      "first_end": 403,
+      "last_end": 799,
+      "window_count": 100
+    },
+    "replay": {
+      "bounds": [
+        800,
+        1148
+      ],
+      "dropped_tail": 0,
+      "first_end": 803,
+      "last_end": 1147,
+      "window_count": 87
+    },
+    "source_fit": {
+      "bounds": [
+        0,
+        400
+      ],
+      "dropped_tail": 0,
+      "first_end": 3,
+      "last_end": 399,
+      "window_count": 100
+    }
+  },
+  "warmup_samples": 3
+}

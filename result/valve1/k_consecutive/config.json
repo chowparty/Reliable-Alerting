@@ -1,0 +1,63 @@
+{
+  "calibration": {
+    "kind": "fixed_quantile",
+    "method": "nearest_rank",
+    "min_samples": 2,
+    "quantile": 0.95,
+    "score_segment": "calibration"
+  },
+  "features": [
+    {
+      "kind": "rolling_median",
+      "length": 5
+    },
+    {
+      "kind": "rolling_spread",
+      "length": 5
+    }
+  ],
+  "held_out": "not_reserved_or_evaluated",
+  "input": {
+    "delimiter": ";",
+    "kind": "csv_stream",
+    "length": 1148,
+    "path": "D:\\Reliable-Alerting\\SKAB\\valve1\\0.csv",
+    "value_column": "Current"
+  },
+  "missing_policy": "reject",
+  "policy": {
+    "comparison": "strict_greater",
+    "k": 3,
+    "kind": "k_consecutive"
+  },
+  "schema_version": 1,
+  "scoring": {
+    "epsilon": 1e-06,
+    "fit_scope": "source_fit",
+    "kind": "mean_distance",
+    "standard_deviation": "population"
+  },
+  "segments": {
+    "calibration": [
+      400,
+      800
+    ],
+    "replay": [
+      800,
+      1148
+    ],
+    "source_fit": [
+      0,
+      400
+    ]
+  },
+  "source_label_use": "none",
+  "time_basis": "sample_index",
+  "window": {
+    "anchor": "segment_start",
+    "edge_policy": "drop_incomplete",
+    "end_index": "inclusive",
+    "length": 4,
+    "stride": 4
+  }
+}
