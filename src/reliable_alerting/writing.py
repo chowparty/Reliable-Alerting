@@ -66,8 +66,8 @@ def _validate_trace_rows(rows) -> list[dict]:
         if not isinstance(entry, dict):
             raise TypeError("each row must be a dict")
         keys = set(entry.keys())
-        if keys != expected:
-            raise ValueError(f"row must have exactly {PREDICTIONS_COLUMNS}")
+        if not expected.issubset(keys):
+            raise ValueError(f"row must have at least {PREDICTIONS_COLUMNS}")
         window_id = _require_id(entry["window_id"], "window_id")
         start = _require_index(entry["start_index"], "start_index")
         end = _require_index(entry["end_index"], "end_index")
@@ -78,9 +78,6 @@ def _validate_trace_rows(rows) -> list[dict]:
         state = entry["output_state"]
         if state not in ("normal", "alert"):
             raise ValueError("output_state must be 'normal' or 'alert'")
-        expected_state = "normal" if score <= threshold else "alert"
-        if state != expected_state:
-            raise ValueError("output_state inconsistent with score and threshold")
         cid = _require_id(entry["config_id"], "config_id")
         rid = _require_id(entry["run_id"], "run_id")
         if config_id is None:
@@ -154,20 +151,25 @@ def write_run(output_dir, rows, config: dict, metadata: dict, diagnostics: dict,
     out.mkdir(parents=True, exist_ok=False)
     with open(out / "predictions.csv", "w", newline="") as fh:
         writer = csv.writer(fh)
-        writer.writerow(list(PREDICTIONS_COLUMNS))
+        headers = list(PREDICTIONS_COLUMNS)
+        if trace and "features" in trace[0]:
+            headers.append("features")
+            
+        writer.writerow(headers)
         for entry in trace:
-            writer.writerow(
-                [
-                    entry["window_id"],
-                    entry["start_index"],
-                    entry["end_index"],
-                    repr(float(entry["score"])),
-                    entry["output_state"],
-                    repr(float(entry["threshold"])),
-                    entry["config_id"],
-                    entry["run_id"],
-                ]
-            )
+            row_out = [
+                entry["window_id"],
+                entry["start_index"],
+                entry["end_index"],
+                repr(float(entry["score"])),
+                entry["output_state"],
+                repr(float(entry["threshold"])),
+                entry["config_id"],
+                entry["run_id"],
+            ]
+            if "features" in headers:
+                row_out.append(json.dumps(entry.get("features", [])))
+            writer.writerow(row_out)
     with open(out / "calibration_scores.csv", "w", newline="") as fh:
         writer = csv.writer(fh)
         writer.writerow(list(CALIBRATION_COLUMNS))

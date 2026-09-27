@@ -1,0 +1,22 @@
+{
+    "authoritative_operating_record": false,
+    "coverage_floor": 1.0,
+    "episode_rate_tolerance_per_1000_decisions": 250,
+    "high_source": "frozen_source_calibration_threshold",
+    "initial_state": "normal",
+    "low_ratio": 0.8,
+    "notes": "Day 07 Full Ablation Record: Compares the baseline frozen fixed threshold against the conservative rolling threshold policy (testing calibration adaptability against concept drift), alongside temporal state-machine policies (k_consecutive, m_of_n, hysteresis) to evaluate structural false-alarm suppression under identical warmup periods.",
+    "policies": [
+        "fixed_threshold",
+        "rolling_threshold",
+        "k_consecutive",
+        "m_of_n",
+        "hysteresis"
+    ],
+    "quality_selection": "none",
+    "recall_targets": "none",
+    "schema_version": 1,
+    "scope": "held_out_validation_ablation",
+    "settings_per_policy": 1,
+    "tie_rule": "hold"
+}

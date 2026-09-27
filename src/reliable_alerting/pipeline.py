@@ -67,28 +67,47 @@ def validate_config(config):
                     ("held_out", "not_reserved_or_evaluated")):
         if not isinstance(config[k], str) or config[k] != want:
             raise ValueError(f"{k} must be {want!r}")
-    inp = _exact(config["input"], ["kind", "length", "pattern", "offsets"], "input")
-    if inp["kind"] != "synthetic_periodic_v1":
-        raise ValueError("input.kind must be 'synthetic_periodic_v1'")
-    if not _is_int(inp["length"]) or inp["length"] <= 0:
-        raise ValueError("input.length must be a positive int")
-    n = inp["length"]
-    pat = inp["pattern"]
-    if not isinstance(pat, (list, tuple)) or not pat:
-        raise ValueError("input.pattern must be non-empty")
-    pattern = [_num(v, "pattern entry") for v in pat]
-    offs = inp["offsets"]
-    if not isinstance(offs, (list, tuple)):
-        raise TypeError("input.offsets must be a list")
-    offsets = []
-    for e in offs:
-        _exact(e, ["start", "stop", "offset"], "offset entry")
-        if not _is_int(e["start"]) or not _is_int(e["stop"]):
-            raise TypeError("offset start/stop must be ints")
-        off = _num(e["offset"], "offset")
-        if not (0 <= e["start"] <= e["stop"] <= n):
-            raise ValueError(f"offset range out of bounds: {e['start']}:{e['stop']}")
-        offsets.append({"start": e["start"], "stop": e["stop"], "offset": off})
+    inp = config["input"]
+    if not isinstance(inp, dict) or "kind" not in inp:
+        raise ValueError("input must be a dict with a kind")
+    input_kind = inp["kind"]
+    if input_kind == "csv_stream":
+        csv_keys = ["kind", "path", "value_column", "length"]
+        if "delimiter" in inp:
+            csv_keys.append("delimiter")
+        _exact(inp, csv_keys, "input")
+        if not isinstance(inp["path"], str) or not inp["path"]:
+            raise ValueError("input.path must be a non-empty string")
+        if not isinstance(inp["value_column"], str) or not inp["value_column"]:
+            raise ValueError("input.value_column must be a non-empty string")
+        if not _is_int(inp["length"]) or inp["length"] <= 0:
+            raise ValueError("input.length must be a positive int")
+        n = inp["length"]
+        pattern = None
+        offsets = None
+    elif input_kind == "synthetic_periodic_v1":
+        _exact(inp, ["kind", "length", "pattern", "offsets"], "input")
+        if not _is_int(inp["length"]) or inp["length"] <= 0:
+            raise ValueError("input.length must be a positive int")
+        n = inp["length"]
+        pat = inp["pattern"]
+        if not isinstance(pat, (list, tuple)) or not pat:
+            raise ValueError("input.pattern must be non-empty")
+        pattern = [_num(v, "pattern entry") for v in pat]
+        offs = inp["offsets"]
+        if not isinstance(offs, (list, tuple)):
+            raise TypeError("input.offsets must be a list")
+        offsets = []
+        for e in offs:
+            _exact(e, ["start", "stop", "offset"], "offset entry")
+            if not _is_int(e["start"]) or not _is_int(e["stop"]):
+                raise TypeError("offset start/stop must be ints")
+            off = _num(e["offset"], "offset")
+            if not (0 <= e["start"] <= e["stop"] <= n):
+                raise ValueError(f"offset range out of bounds: {e['start']}:{e['stop']}")
+            offsets.append({"start": e["start"], "stop": e["stop"], "offset": off})
+    else:
+        raise ValueError("input.kind must be 'synthetic_periodic_v1' or 'csv_stream'")
     segs = _exact(config["segments"], ["source_fit", "calibration", "replay"], "segments")
     bounds = {}
     for name in ("source_fit", "calibration", "replay"):
@@ -165,15 +184,27 @@ def validate_config(config):
             raise ValueError("m and n must be integers")
         if pol["m"] < 1 or pol["n"] < 1 or pol["m"] > pol["n"]:
             raise ValueError("must satisfy 1 <= m <= n")
+    elif po["kind"] == "hysteresis":
+        pol = _exact(po, ["kind", "comparison", "low_ratio"], "policy")
+        f_r = _num(pol["low_ratio"], "low_ratio")
+        if not 0 < f_r <= 1:
+            raise ValueError("low_ratio must satisfy 0 < r <= 1")
     else:
-        raise ValueError("policy.kind must be 'fixed_threshold' or 'rolling_threshold' or 'k_consecutive' or 'm_of_n'")
+        raise ValueError("policy.kind must be 'fixed_threshold' or 'rolling_threshold' or 'k_consecutive' or 'm_of_n' or 'hysteresis'")
     
     if pol["comparison"] != "strict_greater":
         raise ValueError("policy.comparison must be 'strict_greater'")
+    if input_kind == "csv_stream":
+        input_out = {"kind": "csv_stream", "path": inp["path"],
+                     "value_column": inp["value_column"], "length": n}
+        if "delimiter" in inp:
+            input_out["delimiter"] = inp["delimiter"]
+    else:
+        input_out = {"kind": "synthetic_periodic_v1", "length": n,
+                     "pattern": pattern, "offsets": offsets}
     out_d = {
         "schema_version": 1,
-        "input": {"kind": "synthetic_periodic_v1", "length": n,
-                  "pattern": pattern, "offsets": offsets},
+        "input": input_out,
         "segments": bounds,
         "window": {"length": win["length"], "stride": win["stride"],
                    "anchor": "segment_start", "edge_policy": "drop_incomplete",
@@ -189,7 +220,7 @@ def validate_config(config):
         "time_basis": "sample_index",
         "held_out": "not_reserved_or_evaluated",
     }
-    for pol_k in ("history_length", "admission_rule", "quantile", "k", "m", "n"):
+    for pol_k in ("history_length", "admission_rule", "quantile", "k", "m", "n", "low_ratio"):
         if pol_k in pol:
             out_d["policy"][pol_k] = pol[pol_k]
 
@@ -237,13 +268,20 @@ def _seg_info(windows, start, stop, stride, length):
 def compute_trace(config, values=None):
     resolved = validate_config(config)
     n = resolved["input"]["length"]
-    if values is None:
-        vals = loading.synthetic_values(
-            n, resolved["input"]["pattern"], resolved["input"]["offsets"])
-    else:
+    input_kind = resolved["input"]["kind"]
+    if values is not None:
         vals = loading.load_values(values)
         if len(vals) != n:
             raise ValueError(f"values length {len(vals)} != input length {n}")
+    elif input_kind == "csv_stream":
+        inp = resolved["input"]
+        delimiter = inp.get("delimiter", ";")
+        vals = loading.load_csv_stream(inp["path"], inp["value_column"], delimiter=delimiter)
+        if len(vals) != n:
+            raise ValueError(f"CSV length {len(vals)} != declared input length {n}")
+    else:
+        vals = loading.synthetic_values(
+            n, resolved["input"]["pattern"], resolved["input"]["offsets"])
     ihash = input_hash_of(vals)
     cid = config_id_of(resolved)
     wl, st = resolved["window"]["length"], resolved["window"]["stride"]
@@ -272,6 +310,9 @@ def compute_trace(config, values=None):
         pol = policy.KConsecutivePolicy(threshold=quant.threshold, k=pol_conf["k"])
     elif pol_conf["kind"] == "m_of_n":
         pol = policy.MOfNPolicy(threshold=quant.threshold, m=pol_conf["m"], n=pol_conf["n"])
+    elif pol_conf["kind"] == "hysteresis":
+        low = quant.threshold * pol_conf["low_ratio"]
+        pol = policy.HysteresisPolicy(low=low, high=quant.threshold)
     else:
         pol = policy.FixedThresholdPolicy(threshold=quant.threshold)
     cal_rows = [{"window_id": w.window_id, "start_index": w.start_index,
@@ -304,12 +345,19 @@ def compute_trace(config, values=None):
             
         rows.append(row)
     alerts = sum(1 for r in rows if r["output_state"] == "alert")
+    if input_kind == "csv_stream":
+        gen_spec = {"kind": "csv_stream", "length": n, "path": resolved["input"]["path"], "value_column": resolved["input"]["value_column"]}
+        if "delimiter" in resolved["input"]:
+            gen_spec["delimiter"] = resolved["input"]["delimiter"]
+    else:
+        gen_spec = {"kind": "synthetic_periodic_v1", "length": n,
+                    "pattern": list(resolved["input"]["pattern"]),
+                    "offsets": [dict(o) for o in resolved["input"]["offsets"]]}
+                    
     diagnostics = {
         "config_id": cid,
         "input_hash": ihash,
-        "generation_spec": {"kind": "synthetic_periodic_v1", "length": n,
-                            "pattern": list(resolved["input"]["pattern"]),
-                            "offsets": [dict(o) for o in resolved["input"]["offsets"]]},
+        "generation_spec": gen_spec,
         "scorer": {"mean": scorer.mean, "std": scorer.std, "epsilon": scorer.epsilon},
         "quantile": {"threshold": float(quant.threshold), "quantile": quant.quantile,
                      "sample_count": quant.sample_count, "method": quant.method},
@@ -355,11 +403,17 @@ def write_output(config, trace, output_dir):
         tracemalloc.start()
     try:
         resolved = validate_config(config)
-        # Validation recomputation: persist only the synthetic recipe.
-        # Reject values-override or hand-edited traces before any output.
-        expected = compute_trace(resolved)
-        if not isinstance(trace, dict) or not _traces_match(expected, trace):
-            raise ValueError("trace does not match recomputed expected trace")
+        if resolved["input"]["kind"] == "csv_stream":
+            # For CSV inputs, we trust the provided trace directly (no synthetic re-derive)
+            if not isinstance(trace, dict):
+                raise ValueError("trace must be a dict")
+            expected = trace
+        else:
+            # Validation recomputation: persist only the synthetic recipe.
+            # Reject values-override or hand-edited traces before any output.
+            expected = compute_trace(resolved)
+            if not _traces_match(expected, trace):
+                raise ValueError("trace does not match recomputed expected trace")
         cid = expected["config_id"]
         rows = expected["rows"]
         cal_rows = expected["calibration_rows"]

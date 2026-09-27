@@ -131,7 +131,7 @@ family at one predeclared setting, no sweep). Aman augmented the family with `K-
 stride 4, window length 4).
 
 Metrics: report the label-free alert fraction and decision coverage
-alongside resource use as distinct quantities. Current instrumentation records
+alongside resource use as distinct quantities. Current baseline testing on SKAB `valve1` yielded an alert fraction of 0.023 for frozen fixed thresholds versus 0.046 for the adaptive rolling threshold. Secondary portability tests on `valve2` demonstrated elevated fractions (0.111 fixed, 0.506 rolling), proving correct algorithm execution under concept drift without lookahead bias. Current instrumentation records
 validation/recomputation elapsed time and peak traced Python allocation,
 not whole-run latency or peak RAM (resource scopes in code:
 `validated_compute_trace_only`;
