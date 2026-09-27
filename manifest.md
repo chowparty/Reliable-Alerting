@@ -12,8 +12,8 @@
   - Development Label Field: `anomaly`
 - **Segment Split Positions:**
   - `source_fit`: 0 to 400
-  - `calibration`: 400 to 800
-  - `replay`: 800 to 1150
+  - `calibration`: 400 to 574  (moved from 800 on 2026-09-27: row 574 is the first anomalous row; calibration must be source-normal)
+  - `replay`: 574 to end of stream  (start moved from 800 to stay contiguous with calibration end)
 - **Pipeline Architecture Decisions:**
   - **Window Length (4):** Extremely sensitive short-term window to catch immediate mechanical strain.
   - **Stride (4):** Non-overlapping windows ensure independent diagnostic metric blocks.
@@ -32,5 +32,5 @@
   - Development Label Field: `anomaly`
 - **Segment Split Positions:**
   - `source_fit`: 0 to 400
-  - `calibration`: 400 to 800
-  - `replay`: 800 to 1150
+  - `calibration`: 400 to 574  (moved from 800 on 2026-09-27: row 574 is the first anomalous row; calibration must be source-normal)
+  - `replay`: 574 to end of stream  (start moved from 800 to stay contiguous with calibration end)

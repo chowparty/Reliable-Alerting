@@ -66,8 +66,19 @@ def _validate_trace_rows(rows) -> list[dict]:
         if not isinstance(entry, dict):
             raise TypeError("each row must be a dict")
         keys = set(entry.keys())
-        if not expected.issubset(keys):
-            raise ValueError(f"row must have at least {PREDICTIONS_COLUMNS}")
+        missing = expected - keys
+        if missing:
+            raise ValueError(f"row missing required columns {sorted(missing)}")
+        # Strict schema: the required PREDICTIONS_COLUMNS plus the optional
+        # 'features' field only. 'features' carries score-derived diagnostics
+        # emitted by the pipeline and is the sole permitted extra key; any other
+        # unexpected key is rejected. (Score/threshold vs output_state
+        # consistency is intentionally NOT enforced here: stateful policies
+        # such as k_consecutive/m_of_n/hysteresis legitimately emit an
+        # output_state that is not a pure function of score vs threshold.)
+        unexpected = keys - expected - {"features"}
+        if unexpected:
+            raise ValueError(f"row has unexpected columns {sorted(unexpected)}")
         window_id = _require_id(entry["window_id"], "window_id")
         start = _require_index(entry["start_index"], "start_index")
         end = _require_index(entry["end_index"], "end_index")

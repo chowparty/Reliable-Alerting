@@ -36,8 +36,8 @@ def run_policy(stream_name, stream_path, length, policy_config):
         },
         "segments": {
             "source_fit": [0, 400],
-            "calibration": [400, 800],
-            "replay": [800, length]
+            "calibration": [400, 574],
+            "replay": [574, length]
         },
         "window": {
             "length": 4,

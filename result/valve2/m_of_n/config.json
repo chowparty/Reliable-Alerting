@@ -21,7 +21,7 @@
     "delimiter": ";",
     "kind": "csv_stream",
     "length": 1125,
-    "path": "D:\\Reliable-Alerting\\SKAB\\valve2\\0.csv",
+    "path": "C:\\Users\\hp\\OneDrive\\Desktop\\btp\\Reliable-Alerting\\SKAB\\valve2\\0.csv",
     "value_column": "Current"
   },
   "missing_policy": "reject",
@@ -41,10 +41,10 @@
   "segments": {
     "calibration": [
       400,
-      800
+      574
     ],
     "replay": [
-      800,
+      574,
       1125
     ],
     "source_fit": [
