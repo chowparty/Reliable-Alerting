@@ -1,0 +1,360 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="440" role="img">
+<title>valve1 rolling_threshold - Day 5 inspection: score, threshold trace, episodes, event</title>
+<rect x="0" y="0" width="720" height="440" fill="white"/>
+<text x="360" y="24" text-anchor="middle" font-size="13">valve1 rolling_threshold - Day 5 inspection: score, threshold trace, episodes, event</text>
+<rect x="60.00" y="54" width="449.46" height="308" fill="orange" fill-opacity="0.15"><title>labelled event [574,975)</title></rect>
+<rect x="72.33" y="54" width="4.48" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 585..589</title></rect>
+<rect x="85.78" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 597..597</title></rect>
+<rect x="103.71" y="54" width="22.42" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 613..633</title></rect>
+<rect x="139.58" y="54" width="8.97" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 645..653</title></rect>
+<rect x="157.51" y="54" width="13.45" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 661..673</title></rect>
+<rect x="184.41" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 685..685</title></rect>
+<rect x="197.86" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 697..697</title></rect>
+<rect x="211.31" y="54" width="17.93" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 709..725</title></rect>
+<rect x="242.70" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 737..737</title></rect>
+<rect x="251.66" y="54" width="26.90" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 745..769</title></rect>
+<rect x="287.53" y="54" width="8.97" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 777..785</title></rect>
+<rect x="314.43" y="54" width="35.87" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 801..833</title></rect>
+<rect x="359.26" y="54" width="22.42" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 841..861</title></rect>
+<rect x="390.65" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 869..869</title></rect>
+<rect x="399.61" y="54" width="35.87" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 877..909</title></rect>
+<rect x="448.93" y="54" width="4.48" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 921..925</title></rect>
+<rect x="462.38" y="54" width="26.90" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 933..957</title></rect>
+<rect x="498.25" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 965..965</title></rect>
+<rect x="507.22" y="54" width="22.42" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 973..993</title></rect>
+<rect x="538.60" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 1001..1001</title></rect>
+<rect x="547.57" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 1009..1009</title></rect>
+<rect x="561.02" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 1021..1021</title></rect>
+<rect x="569.98" y="54" width="8.97" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 1029..1037</title></rect>
+<rect x="601.37" y="54" width="2.00" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 1057..1057</title></rect>
+<rect x="610.33" y="54" width="22.42" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 1065..1085</title></rect>
+<rect x="646.20" y="54" width="4.48" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 1097..1101</title></rect>
+<rect x="673.10" y="54" width="26.90" height="308" fill="red" fill-opacity="0.08"><title>alert episode ends 1121..1145</title></rect>
+<line x1="60" y1="54" x2="60" y2="362" stroke="black"/>
+<line x1="60" y1="362" x2="700" y2="362" stroke="black"/>
+<text x="12" y="208" font-size="11" transform="rotate(-90 12,208)">score</text>
+<text x="380" y="428" text-anchor="middle" font-size="11">end_index (sample_index)</text>
+<line x1="60.00" y1="362" x2="60.00" y2="367" stroke="black"/>
+<text x="60.00" y="380" text-anchor="middle" font-size="10">574</text>
+<line x1="187.78" y1="362" x2="187.78" y2="367" stroke="black"/>
+<text x="187.78" y="380" text-anchor="middle" font-size="10">688</text>
+<line x1="315.55" y1="362" x2="315.55" y2="367" stroke="black"/>
+<text x="315.55" y="380" text-anchor="middle" font-size="10">802</text>
+<line x1="444.45" y1="362" x2="444.45" y2="367" stroke="black"/>
+<text x="444.45" y="380" text-anchor="middle" font-size="10">917</text>
+<line x1="572.22" y1="362" x2="572.22" y2="367" stroke="black"/>
+<text x="572.22" y="380" text-anchor="middle" font-size="10">1031</text>
+<line x1="700.00" y1="362" x2="700.00" y2="367" stroke="black"/>
+<text x="700.00" y="380" text-anchor="middle" font-size="10">1145</text>
+<line x1="55" y1="362.00" x2="60" y2="362.00" stroke="black"/>
+<text x="52" y="365.00" text-anchor="end" font-size="10">-20.9</text>
+<line x1="55" y1="285.00" x2="60" y2="285.00" stroke="black"/>
+<text x="52" y="288.00" text-anchor="end" font-size="10">41.8</text>
+<line x1="55" y1="208.00" x2="60" y2="208.00" stroke="black"/>
+<text x="52" y="211.00" text-anchor="end" font-size="10">105</text>
+<line x1="55" y1="131.00" x2="60" y2="131.00" stroke="black"/>
+<text x="52" y="134.00" text-anchor="end" font-size="10">167</text>
+<line x1="55" y1="54.00" x2="60" y2="54.00" stroke="black"/>
+<text x="52" y="57.00" text-anchor="end" font-size="10">230</text>
+<line x1="63.36" y1="334.73" x2="67.85" y2="334.73" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="67.85" y1="334.73" x2="67.85" y2="335.74" stroke="green" stroke-dasharray="2,3" stroke-width="1"/>
+<line x1="67.85" y1="335.74" x2="72.33" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="72.33" y1="335.74" x2="76.81" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="76.81" y1="335.74" x2="81.30" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="81.30" y1="335.74" x2="85.78" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="85.78" y1="335.74" x2="90.26" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="90.26" y1="335.74" x2="94.75" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="94.75" y1="335.74" x2="99.23" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="99.23" y1="335.74" x2="103.71" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="103.71" y1="335.74" x2="108.20" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="108.20" y1="335.74" x2="112.68" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="112.68" y1="335.74" x2="117.16" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="117.16" y1="335.74" x2="121.65" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="121.65" y1="335.74" x2="126.13" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="126.13" y1="335.74" x2="130.61" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="130.61" y1="335.74" x2="135.10" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="135.10" y1="335.74" x2="139.58" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="139.58" y1="335.74" x2="144.06" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="144.06" y1="335.74" x2="148.55" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="148.55" y1="335.74" x2="153.03" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="153.03" y1="335.74" x2="157.51" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="157.51" y1="335.74" x2="162.00" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="162.00" y1="335.74" x2="166.48" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="166.48" y1="335.74" x2="170.96" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="170.96" y1="335.74" x2="175.45" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="175.45" y1="335.74" x2="179.93" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="179.93" y1="335.74" x2="184.41" y2="335.74" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="184.41" y1="335.74" x2="184.41" y2="335.77" stroke="green" stroke-dasharray="2,3" stroke-width="1"/>
+<line x1="184.41" y1="335.77" x2="188.90" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="188.90" y1="335.77" x2="193.38" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="193.38" y1="335.77" x2="197.86" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="197.86" y1="335.77" x2="202.35" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="202.35" y1="335.77" x2="206.83" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="206.83" y1="335.77" x2="211.31" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="211.31" y1="335.77" x2="215.80" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="215.80" y1="335.77" x2="220.28" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="220.28" y1="335.77" x2="224.76" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="224.76" y1="335.77" x2="229.25" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="229.25" y1="335.77" x2="233.73" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="233.73" y1="335.77" x2="238.21" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="238.21" y1="335.77" x2="242.70" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="242.70" y1="335.77" x2="247.18" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="247.18" y1="335.77" x2="251.66" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="251.66" y1="335.77" x2="256.15" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="256.15" y1="335.77" x2="260.63" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="260.63" y1="335.77" x2="265.11" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="265.11" y1="335.77" x2="269.60" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="269.60" y1="335.77" x2="274.08" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="274.08" y1="335.77" x2="278.56" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="278.56" y1="335.77" x2="283.05" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="283.05" y1="335.77" x2="287.53" y2="335.77" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="287.53" y1="335.77" x2="287.53" y2="335.82" stroke="green" stroke-dasharray="2,3" stroke-width="1"/>
+<line x1="287.53" y1="335.82" x2="292.01" y2="335.82" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="292.01" y1="335.82" x2="296.50" y2="335.82" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="296.50" y1="335.82" x2="300.98" y2="335.82" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="300.98" y1="335.82" x2="305.46" y2="335.82" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="305.46" y1="335.82" x2="309.95" y2="335.82" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="309.95" y1="335.82" x2="309.95" y2="335.84" stroke="green" stroke-dasharray="2,3" stroke-width="1"/>
+<line x1="309.95" y1="335.84" x2="314.43" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="314.43" y1="335.84" x2="318.91" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="318.91" y1="335.84" x2="323.40" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="323.40" y1="335.84" x2="327.88" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="327.88" y1="335.84" x2="332.36" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="332.36" y1="335.84" x2="336.85" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="336.85" y1="335.84" x2="341.33" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="341.33" y1="335.84" x2="345.81" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="345.81" y1="335.84" x2="350.30" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="350.30" y1="335.84" x2="354.78" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="354.78" y1="335.84" x2="359.26" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="359.26" y1="335.84" x2="363.75" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="363.75" y1="335.84" x2="368.23" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="368.23" y1="335.84" x2="372.71" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="372.71" y1="335.84" x2="377.20" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="377.20" y1="335.84" x2="381.68" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="381.68" y1="335.84" x2="386.16" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="386.16" y1="335.84" x2="390.65" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="390.65" y1="335.84" x2="395.13" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="395.13" y1="335.84" x2="399.61" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="399.61" y1="335.84" x2="404.10" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="404.10" y1="335.84" x2="408.58" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="408.58" y1="335.84" x2="413.06" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="413.06" y1="335.84" x2="417.55" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="417.55" y1="335.84" x2="422.03" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="422.03" y1="335.84" x2="426.51" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="426.51" y1="335.84" x2="431.00" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="431.00" y1="335.84" x2="435.48" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="435.48" y1="335.84" x2="439.96" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="439.96" y1="335.84" x2="444.45" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="444.45" y1="335.84" x2="448.93" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="448.93" y1="335.84" x2="453.42" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="453.42" y1="335.84" x2="457.90" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="457.90" y1="335.84" x2="462.38" y2="335.84" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="462.38" y1="335.84" x2="462.38" y2="335.89" stroke="green" stroke-dasharray="2,3" stroke-width="1"/>
+<line x1="462.38" y1="335.89" x2="466.87" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="466.87" y1="335.89" x2="471.35" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="471.35" y1="335.89" x2="475.83" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="475.83" y1="335.89" x2="480.32" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="480.32" y1="335.89" x2="484.80" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="484.80" y1="335.89" x2="489.28" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="489.28" y1="335.89" x2="493.77" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="493.77" y1="335.89" x2="498.25" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="498.25" y1="335.89" x2="502.73" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="502.73" y1="335.89" x2="507.22" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="507.22" y1="335.89" x2="511.70" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="511.70" y1="335.89" x2="516.18" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="516.18" y1="335.89" x2="520.67" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="520.67" y1="335.89" x2="525.15" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="525.15" y1="335.89" x2="529.63" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="529.63" y1="335.89" x2="534.12" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="534.12" y1="335.89" x2="538.60" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="538.60" y1="335.89" x2="543.08" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="543.08" y1="335.89" x2="547.57" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="547.57" y1="335.89" x2="552.05" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="552.05" y1="335.89" x2="556.53" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="556.53" y1="335.89" x2="561.02" y2="335.89" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="561.02" y1="335.89" x2="561.02" y2="335.98" stroke="green" stroke-dasharray="2,3" stroke-width="1"/>
+<line x1="561.02" y1="335.98" x2="565.50" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="565.50" y1="335.98" x2="569.98" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="569.98" y1="335.98" x2="574.47" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="574.47" y1="335.98" x2="578.95" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="578.95" y1="335.98" x2="583.43" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="583.43" y1="335.98" x2="587.92" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="587.92" y1="335.98" x2="592.40" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="592.40" y1="335.98" x2="596.88" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="596.88" y1="335.98" x2="601.37" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="601.37" y1="335.98" x2="605.85" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="605.85" y1="335.98" x2="610.33" y2="335.98" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="610.33" y1="335.98" x2="610.33" y2="336.02" stroke="green" stroke-dasharray="2,3" stroke-width="1"/>
+<line x1="610.33" y1="336.02" x2="614.82" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="614.82" y1="336.02" x2="619.30" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="619.30" y1="336.02" x2="623.78" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="623.78" y1="336.02" x2="628.27" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="628.27" y1="336.02" x2="632.75" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="632.75" y1="336.02" x2="637.23" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="637.23" y1="336.02" x2="641.72" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="641.72" y1="336.02" x2="646.20" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="646.20" y1="336.02" x2="650.68" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="650.68" y1="336.02" x2="655.17" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="655.17" y1="336.02" x2="659.65" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="659.65" y1="336.02" x2="664.13" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="664.13" y1="336.02" x2="668.62" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="668.62" y1="336.02" x2="673.10" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="673.10" y1="336.02" x2="677.58" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="677.58" y1="336.02" x2="682.07" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="682.07" y1="336.02" x2="686.55" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="686.55" y1="336.02" x2="691.03" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="691.03" y1="336.02" x2="695.52" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="695.52" y1="336.02" x2="700.00" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<line x1="700.00" y1="336.02" x2="700.00" y2="336.02" stroke="green" stroke-dasharray="6,4" stroke-width="1.5"/>
+<circle cx="63.36" cy="335.74" r="3.5" fill="blue"><title>replay:574:577 end=577 score=0.4851 thr=1.309 normal</title></circle>
+<circle cx="67.85" cy="335.83" r="3.5" fill="blue"><title>replay:578:581 end=581 score=0.4154 thr=0.4851 normal</title></circle>
+<circle cx="72.33" cy="334.54" r="3.5" fill="red"><title>replay:582:585 end=585 score=1.46 thr=0.4851 alert</title></circle>
+<circle cx="76.81" cy="334.60" r="3.5" fill="red"><title>replay:586:589 end=589 score=1.419 thr=0.4851 alert</title></circle>
+<circle cx="81.30" cy="335.77" r="3.5" fill="blue"><title>replay:590:593 end=593 score=0.4605 thr=0.4851 normal</title></circle>
+<circle cx="85.78" cy="335.70" r="3.5" fill="red"><title>replay:594:597 end=597 score=0.5178 thr=0.4851 alert</title></circle>
+<circle cx="90.26" cy="335.99" r="3.5" fill="blue"><title>replay:598:601 end=601 score=0.2807 thr=0.4851 normal</title></circle>
+<circle cx="94.75" cy="336.03" r="3.5" fill="blue"><title>replay:602:605 end=605 score=0.2524 thr=0.4851 normal</title></circle>
+<circle cx="99.23" cy="336.32" r="3.5" fill="blue"><title>replay:606:609 end=609 score=0.01609 thr=0.4851 normal</title></circle>
+<circle cx="103.71" cy="335.27" r="3.5" fill="red"><title>replay:610:613 end=613 score=0.8656 thr=0.4851 alert</title></circle>
+<circle cx="108.20" cy="334.81" r="3.5" fill="red"><title>replay:614:617 end=617 score=1.248 thr=0.4851 alert</title></circle>
+<circle cx="112.68" cy="335.23" r="3.5" fill="red"><title>replay:618:621 end=621 score=0.898 thr=0.4851 alert</title></circle>
+<circle cx="117.16" cy="334.96" r="3.5" fill="red"><title>replay:622:625 end=625 score=1.124 thr=0.4851 alert</title></circle>
+<circle cx="121.65" cy="334.80" r="3.5" fill="red"><title>replay:626:629 end=629 score=1.248 thr=0.4851 alert</title></circle>
+<circle cx="126.13" cy="335.44" r="3.5" fill="red"><title>replay:630:633 end=633 score=0.7308 thr=0.4851 alert</title></circle>
+<circle cx="130.61" cy="336.30" r="3.5" fill="blue"><title>replay:634:637 end=637 score=0.02849 thr=0.4851 normal</title></circle>
+<circle cx="135.10" cy="336.04" r="3.5" fill="blue"><title>replay:638:641 end=641 score=0.2453 thr=0.4851 normal</title></circle>
+<circle cx="139.58" cy="335.66" r="3.5" fill="red"><title>replay:642:645 end=645 score=0.5499 thr=0.4851 alert</title></circle>
+<circle cx="144.06" cy="335.56" r="3.5" fill="red"><title>replay:646:649 end=649 score=0.6327 thr=0.4851 alert</title></circle>
+<circle cx="148.55" cy="335.65" r="3.5" fill="red"><title>replay:650:653 end=653 score=0.5604 thr=0.4851 alert</title></circle>
+<circle cx="153.03" cy="335.77" r="3.5" fill="blue"><title>replay:654:657 end=657 score=0.4616 thr=0.4851 normal</title></circle>
+<circle cx="157.51" cy="334.65" r="3.5" fill="red"><title>replay:658:661 end=661 score=1.374 thr=0.4851 alert</title></circle>
+<circle cx="162.00" cy="335.45" r="3.5" fill="red"><title>replay:662:665 end=665 score=0.7226 thr=0.4851 alert</title></circle>
+<circle cx="166.48" cy="335.72" r="3.5" fill="red"><title>replay:666:669 end=669 score=0.5054 thr=0.4851 alert</title></circle>
+<circle cx="170.96" cy="335.70" r="3.5" fill="red"><title>replay:670:673 end=673 score=0.5218 thr=0.4851 alert</title></circle>
+<circle cx="175.45" cy="336.19" r="3.5" fill="blue"><title>replay:674:677 end=677 score=0.1191 thr=0.4851 normal</title></circle>
+<circle cx="179.93" cy="335.82" r="3.5" fill="blue"><title>replay:678:681 end=681 score=0.4204 thr=0.4851 normal</title></circle>
+<circle cx="184.41" cy="335.69" r="3.5" fill="red"><title>replay:682:685 end=685 score=0.5279 thr=0.4616 alert</title></circle>
+<circle cx="188.90" cy="336.13" r="3.5" fill="blue"><title>replay:686:689 end=689 score=0.1668 thr=0.4616 normal</title></circle>
+<circle cx="193.38" cy="335.99" r="3.5" fill="blue"><title>replay:690:693 end=693 score=0.2803 thr=0.4616 normal</title></circle>
+<circle cx="197.86" cy="335.39" r="3.5" fill="red"><title>replay:694:697 end=697 score=0.7732 thr=0.4616 alert</title></circle>
+<circle cx="202.35" cy="336.33" r="3.5" fill="blue"><title>replay:698:701 end=701 score=0.002937 thr=0.4616 normal</title></circle>
+<circle cx="206.83" cy="336.18" r="3.5" fill="blue"><title>replay:702:705 end=705 score=0.1298 thr=0.4616 normal</title></circle>
+<circle cx="211.31" cy="335.61" r="3.5" fill="red"><title>replay:706:709 end=709 score=0.5912 thr=0.4616 alert</title></circle>
+<circle cx="215.80" cy="335.11" r="3.5" fill="red"><title>replay:710:713 end=713 score=1.001 thr=0.4616 alert</title></circle>
+<circle cx="220.28" cy="335.61" r="3.5" fill="red"><title>replay:714:717 end=717 score=0.5916 thr=0.4616 alert</title></circle>
+<circle cx="224.76" cy="335.33" r="3.5" fill="red"><title>replay:718:721 end=721 score=0.8235 thr=0.4616 alert</title></circle>
+<circle cx="229.25" cy="335.65" r="3.5" fill="red"><title>replay:722:725 end=725 score=0.5626 thr=0.4616 alert</title></circle>
+<circle cx="233.73" cy="336.27" r="3.5" fill="blue"><title>replay:726:729 end=729 score=0.05535 thr=0.4616 normal</title></circle>
+<circle cx="238.21" cy="335.92" r="3.5" fill="blue"><title>replay:730:733 end=733 score=0.3412 thr=0.4616 normal</title></circle>
+<circle cx="242.70" cy="82.94" r="3.5" fill="red"><title>replay:734:737 end=737 score=206.4 thr=0.4616 alert</title></circle>
+<circle cx="247.18" cy="335.84" r="3.5" fill="blue"><title>replay:738:741 end=741 score=0.4014 thr=0.4616 normal</title></circle>
+<circle cx="251.66" cy="335.40" r="3.5" fill="red"><title>replay:742:745 end=745 score=0.766 thr=0.4616 alert</title></circle>
+<circle cx="256.15" cy="335.47" r="3.5" fill="red"><title>replay:746:749 end=749 score=0.7038 thr=0.4616 alert</title></circle>
+<circle cx="260.63" cy="335.55" r="3.5" fill="red"><title>replay:750:753 end=753 score=0.6383 thr=0.4616 alert</title></circle>
+<circle cx="265.11" cy="335.72" r="3.5" fill="red"><title>replay:754:757 end=757 score=0.5046 thr=0.4616 alert</title></circle>
+<circle cx="269.60" cy="335.56" r="3.5" fill="red"><title>replay:758:761 end=761 score=0.6367 thr=0.4616 alert</title></circle>
+<circle cx="274.08" cy="334.48" r="3.5" fill="red"><title>replay:762:765 end=765 score=1.51 thr=0.4616 alert</title></circle>
+<circle cx="278.56" cy="79.67" r="3.5" fill="red"><title>replay:766:769 end=769 score=209.1 thr=0.4616 alert</title></circle>
+<circle cx="283.05" cy="335.94" r="3.5" fill="blue"><title>replay:770:773 end=773 score=0.3273 thr=0.4616 normal</title></circle>
+<circle cx="287.53" cy="335.22" r="3.5" fill="red"><title>replay:774:777 end=777 score=0.9095 thr=0.4204 alert</title></circle>
+<circle cx="292.01" cy="335.35" r="3.5" fill="red"><title>replay:778:781 end=781 score=0.8012 thr=0.4204 alert</title></circle>
+<circle cx="296.50" cy="335.62" r="3.5" fill="red"><title>replay:782:785 end=785 score=0.5858 thr=0.4204 alert</title></circle>
+<circle cx="300.98" cy="336.25" r="3.5" fill="blue"><title>replay:786:789 end=789 score=0.07378 thr=0.4204 normal</title></circle>
+<circle cx="305.46" cy="336.17" r="3.5" fill="blue"><title>replay:790:793 end=793 score=0.1398 thr=0.4204 normal</title></circle>
+<circle cx="309.95" cy="335.93" r="3.5" fill="blue"><title>replay:794:797 end=797 score=0.3335 thr=0.4014 normal</title></circle>
+<circle cx="314.43" cy="335.53" r="3.5" fill="red"><title>replay:798:801 end=801 score=0.6565 thr=0.4014 alert</title></circle>
+<circle cx="318.91" cy="335.15" r="3.5" fill="red"><title>replay:802:805 end=805 score=0.9629 thr=0.4014 alert</title></circle>
+<circle cx="323.40" cy="335.27" r="3.5" fill="red"><title>replay:806:809 end=809 score=0.8693 thr=0.4014 alert</title></circle>
+<circle cx="327.88" cy="335.65" r="3.5" fill="red"><title>replay:810:813 end=813 score=0.5594 thr=0.4014 alert</title></circle>
+<circle cx="332.36" cy="335.66" r="3.5" fill="red"><title>replay:814:817 end=817 score=0.5543 thr=0.4014 alert</title></circle>
+<circle cx="336.85" cy="335.03" r="3.5" fill="red"><title>replay:818:821 end=821 score=1.066 thr=0.4014 alert</title></circle>
+<circle cx="341.33" cy="335.31" r="3.5" fill="red"><title>replay:822:825 end=825 score=0.8328 thr=0.4014 alert</title></circle>
+<circle cx="345.81" cy="335.76" r="3.5" fill="red"><title>replay:826:829 end=829 score=0.4689 thr=0.4014 alert</title></circle>
+<circle cx="350.30" cy="335.57" r="3.5" fill="red"><title>replay:830:833 end=833 score=0.6238 thr=0.4014 alert</title></circle>
+<circle cx="354.78" cy="336.23" r="3.5" fill="blue"><title>replay:834:837 end=837 score=0.08734 thr=0.4014 normal</title></circle>
+<circle cx="359.26" cy="335.82" r="3.5" fill="red"><title>replay:838:841 end=841 score=0.4181 thr=0.4014 alert</title></circle>
+<circle cx="363.75" cy="335.18" r="3.5" fill="red"><title>replay:842:845 end=845 score=0.9388 thr=0.4014 alert</title></circle>
+<circle cx="368.23" cy="335.57" r="3.5" fill="red"><title>replay:846:849 end=849 score=0.6259 thr=0.4014 alert</title></circle>
+<circle cx="372.71" cy="335.70" r="3.5" fill="red"><title>replay:850:853 end=853 score=0.5151 thr=0.4014 alert</title></circle>
+<circle cx="377.20" cy="334.80" r="3.5" fill="red"><title>replay:854:857 end=857 score=1.254 thr=0.4014 alert</title></circle>
+<circle cx="381.68" cy="335.68" r="3.5" fill="red"><title>replay:858:861 end=861 score=0.5379 thr=0.4014 alert</title></circle>
+<circle cx="386.16" cy="335.89" r="3.5" fill="blue"><title>replay:862:865 end=865 score=0.3619 thr=0.4014 normal</title></circle>
+<circle cx="390.65" cy="335.65" r="3.5" fill="red"><title>replay:866:869 end=869 score=0.5599 thr=0.4014 alert</title></circle>
+<circle cx="395.13" cy="336.17" r="3.5" fill="blue"><title>replay:870:873 end=873 score=0.1383 thr=0.4014 normal</title></circle>
+<circle cx="399.61" cy="335.73" r="3.5" fill="red"><title>replay:874:877 end=877 score=0.495 thr=0.4014 alert</title></circle>
+<circle cx="404.10" cy="335.73" r="3.5" fill="red"><title>replay:878:881 end=881 score=0.4925 thr=0.4014 alert</title></circle>
+<circle cx="408.58" cy="335.81" r="3.5" fill="red"><title>replay:882:885 end=885 score=0.4271 thr=0.4014 alert</title></circle>
+<circle cx="413.06" cy="335.52" r="3.5" fill="red"><title>replay:886:889 end=889 score=0.6682 thr=0.4014 alert</title></circle>
+<circle cx="417.55" cy="335.01" r="3.5" fill="red"><title>replay:890:893 end=893 score=1.079 thr=0.4014 alert</title></circle>
+<circle cx="422.03" cy="335.81" r="3.5" fill="red"><title>replay:894:897 end=897 score=0.4284 thr=0.4014 alert</title></circle>
+<circle cx="426.51" cy="335.05" r="3.5" fill="red"><title>replay:898:901 end=901 score=1.045 thr=0.4014 alert</title></circle>
+<circle cx="431.00" cy="335.21" r="3.5" fill="red"><title>replay:902:905 end=905 score=0.9181 thr=0.4014 alert</title></circle>
+<circle cx="435.48" cy="335.37" r="3.5" fill="red"><title>replay:906:909 end=909 score=0.7857 thr=0.4014 alert</title></circle>
+<circle cx="439.96" cy="336.11" r="3.5" fill="blue"><title>replay:910:913 end=913 score=0.1821 thr=0.4014 normal</title></circle>
+<circle cx="444.45" cy="336.30" r="3.5" fill="blue"><title>replay:914:917 end=917 score=0.03049 thr=0.4014 normal</title></circle>
+<circle cx="448.93" cy="335.65" r="3.5" fill="red"><title>replay:918:921 end=921 score=0.5615 thr=0.4014 alert</title></circle>
+<circle cx="453.42" cy="335.46" r="3.5" fill="red"><title>replay:922:925 end=925 score=0.7161 thr=0.4014 alert</title></circle>
+<circle cx="457.90" cy="336.29" r="3.5" fill="blue"><title>replay:926:929 end=929 score=0.03544 thr=0.4014 normal</title></circle>
+<circle cx="462.38" cy="335.65" r="3.5" fill="red"><title>replay:930:933 end=933 score=0.5606 thr=0.3619 alert</title></circle>
+<circle cx="466.87" cy="335.60" r="3.5" fill="red"><title>replay:934:937 end=937 score=0.6035 thr=0.3619 alert</title></circle>
+<circle cx="471.35" cy="335.22" r="3.5" fill="red"><title>replay:938:941 end=941 score=0.9117 thr=0.3619 alert</title></circle>
+<circle cx="475.83" cy="335.55" r="3.5" fill="red"><title>replay:942:945 end=945 score=0.6435 thr=0.3619 alert</title></circle>
+<circle cx="480.32" cy="335.59" r="3.5" fill="red"><title>replay:946:949 end=949 score=0.6125 thr=0.3619 alert</title></circle>
+<circle cx="484.80" cy="335.37" r="3.5" fill="red"><title>replay:950:953 end=953 score=0.7846 thr=0.3619 alert</title></circle>
+<circle cx="489.28" cy="335.87" r="3.5" fill="red"><title>replay:954:957 end=957 score=0.3777 thr=0.3619 alert</title></circle>
+<circle cx="493.77" cy="336.10" r="3.5" fill="blue"><title>replay:958:961 end=961 score=0.1911 thr=0.3619 normal</title></circle>
+<circle cx="498.25" cy="335.40" r="3.5" fill="red"><title>replay:962:965 end=965 score=0.765 thr=0.3619 alert</title></circle>
+<circle cx="502.73" cy="335.98" r="3.5" fill="blue"><title>replay:966:969 end=969 score=0.2876 thr=0.3619 normal</title></circle>
+<circle cx="507.22" cy="334.85" r="3.5" fill="red"><title>replay:970:973 end=973 score=1.208 thr=0.3619 alert</title></circle>
+<circle cx="511.70" cy="335.38" r="3.5" fill="red"><title>replay:974:977 end=977 score=0.7813 thr=0.3619 alert</title></circle>
+<circle cx="516.18" cy="335.28" r="3.5" fill="red"><title>replay:978:981 end=981 score=0.8615 thr=0.3619 alert</title></circle>
+<circle cx="520.67" cy="335.43" r="3.5" fill="red"><title>replay:982:985 end=985 score=0.7378 thr=0.3619 alert</title></circle>
+<circle cx="525.15" cy="335.58" r="3.5" fill="red"><title>replay:986:989 end=989 score=0.6165 thr=0.3619 alert</title></circle>
+<circle cx="529.63" cy="335.05" r="3.5" fill="red"><title>replay:990:993 end=993 score=1.047 thr=0.3619 alert</title></circle>
+<circle cx="534.12" cy="336.04" r="3.5" fill="blue"><title>replay:994:997 end=997 score=0.2396 thr=0.3619 normal</title></circle>
+<circle cx="538.60" cy="335.77" r="3.5" fill="red"><title>replay:998:1001 end=1001 score=0.4605 thr=0.3619 alert</title></circle>
+<circle cx="543.08" cy="336.13" r="3.5" fill="blue"><title>replay:1002:1005 end=1005 score=0.1649 thr=0.3619 normal</title></circle>
+<circle cx="547.57" cy="335.56" r="3.5" fill="red"><title>replay:1006:1009 end=1009 score=0.6323 thr=0.3619 alert</title></circle>
+<circle cx="552.05" cy="336.14" r="3.5" fill="blue"><title>replay:1010:1013 end=1013 score=0.1601 thr=0.3619 normal</title></circle>
+<circle cx="556.53" cy="336.02" r="3.5" fill="blue"><title>replay:1014:1017 end=1017 score=0.2604 thr=0.3619 normal</title></circle>
+<circle cx="561.02" cy="335.32" r="3.5" fill="red"><title>replay:1018:1021 end=1021 score=0.8244 thr=0.2876 alert</title></circle>
+<circle cx="565.50" cy="336.25" r="3.5" fill="blue"><title>replay:1022:1025 end=1025 score=0.06799 thr=0.2876 normal</title></circle>
+<circle cx="569.98" cy="335.48" r="3.5" fill="red"><title>replay:1026:1029 end=1029 score=0.6954 thr=0.2876 alert</title></circle>
+<circle cx="574.47" cy="335.58" r="3.5" fill="red"><title>replay:1030:1033 end=1033 score=0.6154 thr=0.2876 alert</title></circle>
+<circle cx="578.95" cy="335.36" r="3.5" fill="red"><title>replay:1034:1037 end=1037 score=0.7965 thr=0.2876 alert</title></circle>
+<circle cx="583.43" cy="336.13" r="3.5" fill="blue"><title>replay:1038:1041 end=1041 score=0.1704 thr=0.2876 normal</title></circle>
+<circle cx="587.92" cy="336.10" r="3.5" fill="blue"><title>replay:1042:1045 end=1045 score=0.1916 thr=0.2876 normal</title></circle>
+<circle cx="592.40" cy="336.11" r="3.5" fill="blue"><title>replay:1046:1049 end=1049 score=0.1823 thr=0.2876 normal</title></circle>
+<circle cx="596.88" cy="336.06" r="3.5" fill="blue"><title>replay:1050:1053 end=1053 score=0.2233 thr=0.2876 normal</title></circle>
+<circle cx="601.37" cy="335.60" r="3.5" fill="red"><title>replay:1054:1057 end=1057 score=0.6011 thr=0.2876 alert</title></circle>
+<circle cx="605.85" cy="336.12" r="3.5" fill="blue"><title>replay:1058:1061 end=1061 score=0.1795 thr=0.2876 normal</title></circle>
+<circle cx="610.33" cy="335.12" r="3.5" fill="red"><title>replay:1062:1065 end=1065 score=0.9905 thr=0.2604 alert</title></circle>
+<circle cx="614.82" cy="335.79" r="3.5" fill="red"><title>replay:1066:1069 end=1069 score=0.4478 thr=0.2604 alert</title></circle>
+<circle cx="619.30" cy="335.41" r="3.5" fill="red"><title>replay:1070:1073 end=1073 score=0.7589 thr=0.2604 alert</title></circle>
+<circle cx="623.78" cy="335.32" r="3.5" fill="red"><title>replay:1074:1077 end=1077 score=0.8303 thr=0.2604 alert</title></circle>
+<circle cx="628.27" cy="335.84" r="3.5" fill="red"><title>replay:1078:1081 end=1081 score=0.4031 thr=0.2604 alert</title></circle>
+<circle cx="632.75" cy="335.98" r="3.5" fill="red"><title>replay:1082:1085 end=1085 score=0.2926 thr=0.2604 alert</title></circle>
+<circle cx="637.23" cy="336.03" r="3.5" fill="blue"><title>replay:1086:1089 end=1089 score=0.2518 thr=0.2604 normal</title></circle>
+<circle cx="641.72" cy="336.02" r="3.5" fill="blue"><title>replay:1090:1093 end=1093 score=0.2581 thr=0.2604 normal</title></circle>
+<circle cx="646.20" cy="334.92" r="3.5" fill="red"><title>replay:1094:1097 end=1097 score=1.152 thr=0.2604 alert</title></circle>
+<circle cx="650.68" cy="335.36" r="3.5" fill="red"><title>replay:1098:1101 end=1101 score=0.7921 thr=0.2604 alert</title></circle>
+<circle cx="655.17" cy="336.05" r="3.5" fill="blue"><title>replay:1102:1105 end=1105 score=0.2329 thr=0.2604 normal</title></circle>
+<circle cx="659.65" cy="336.27" r="3.5" fill="blue"><title>replay:1106:1109 end=1109 score=0.05638 thr=0.2604 normal</title></circle>
+<circle cx="664.13" cy="336.12" r="3.5" fill="blue"><title>replay:1110:1113 end=1113 score=0.1765 thr=0.2581 normal</title></circle>
+<circle cx="668.62" cy="336.30" r="3.5" fill="blue"><title>replay:1114:1117 end=1117 score=0.0269 thr=0.2581 normal</title></circle>
+<circle cx="673.10" cy="335.71" r="3.5" fill="red"><title>replay:1118:1121 end=1121 score=0.5121 thr=0.2581 alert</title></circle>
+<circle cx="677.58" cy="335.93" r="3.5" fill="red"><title>replay:1122:1125 end=1125 score=0.3283 thr=0.2581 alert</title></circle>
+<circle cx="682.07" cy="335.03" r="3.5" fill="red"><title>replay:1126:1129 end=1129 score=1.067 thr=0.2581 alert</title></circle>
+<circle cx="686.55" cy="335.01" r="3.5" fill="red"><title>replay:1130:1133 end=1133 score=1.081 thr=0.2581 alert</title></circle>
+<circle cx="691.03" cy="335.30" r="3.5" fill="red"><title>replay:1134:1137 end=1137 score=0.8456 thr=0.2581 alert</title></circle>
+<circle cx="695.52" cy="335.38" r="3.5" fill="red"><title>replay:1138:1141 end=1141 score=0.7804 thr=0.2581 alert</title></circle>
+<circle cx="700.00" cy="335.51" r="3.5" fill="red"><title>replay:1142:1145 end=1145 score=0.6747 thr=0.2581 alert</title></circle>
+<text x="60" y="394" font-size="10">source=c:\Users\hp\OneDrive\Desktop\btp\Reliable-Alerting\result\valve1\rolling_threshold\predictions.csv</text>
+<text x="60" y="408" font-size="10">threshold trace (varying); orange band = labelled event; grey/red band = alert episode</text>
+<circle cx="550" cy="66" r="4" fill="blue"/>
+<text x="558" y="70" font-size="10">normal</text>
+<circle cx="612" cy="66" r="4" fill="red"/>
+<text x="620" y="70" font-size="10">alert</text>
+<line x1="550" y1="82" x2="570" y2="82" stroke="green" stroke-dasharray="6,4"/>
+<text x="576" y="86" font-size="10">threshold</text>
+</svg>
