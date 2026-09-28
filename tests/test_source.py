@@ -6,12 +6,21 @@ hand-computed values. No labels flow through runtime paths.
 import dataclasses
 import inspect
 import math
+import tempfile
+from pathlib import Path
 import unittest
 
 from reliable_alerting import loading, scoring, splitting
 
 
 class LoadValuesTest(unittest.TestCase):
+    def test_csv_rejects_missing_current_instead_of_filling(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "stream.csv"
+            path.write_text("datetime;Current\n0;1.5\n1;\n")
+            with self.assertRaisesRegex(ValueError, "missing Current.*row 2"):
+                loading.load_csv_stream(str(path), "Current")
+
     def test_converts_ints_to_float_tuple(self):
         self.assertEqual(loading.load_values([0, 2]), (0.0, 2.0))
 

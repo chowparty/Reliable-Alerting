@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "time_basis": "sample_index",
+  "horizon": [562, 1125],
+  "first_decision": 565,
+  "decision_stride": 4,
+  "window_length": 4
+}

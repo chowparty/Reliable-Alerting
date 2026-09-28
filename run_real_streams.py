@@ -1,4 +1,4 @@
-import os
+import argparse
 import sys
 import uuid
 import time
@@ -14,16 +14,22 @@ from reliable_alerting import pipeline
 from reliable_alerting import writing
 from reliable_alerting import provenance
 
+STREAMS = {
+    "valve1": ("SKAB/valve1/0.csv", 1148, 574),
+    "valve2": ("SKAB/valve2/0.csv", 1125, 562),
+}
+
 def peak_allocation():
     _, peak = tracemalloc.get_traced_memory()
     return int(peak)
 
-def run_policy(stream_name, stream_path, length, policy_config):
+def run_policy(stream_name, stream_path, length, policy_config, output_root=Path("results/real"), calibration_end=None):
+    if calibration_end is None:
+        calibration_end = STREAMS[stream_name][2]
     kind = policy_config["kind"]
-    output_dir = here / "results" / stream_name / kind
+    output_dir = Path(output_root) / stream_name / kind
     if output_dir.exists():
-        import shutil
-        shutil.rmtree(output_dir)
+        raise FileExistsError(f"output directory already exists: {output_dir}")
         
     config = {
         "schema_version": 1,
@@ -36,8 +42,8 @@ def run_policy(stream_name, stream_path, length, policy_config):
         },
         "segments": {
             "source_fit": [0, 400],
-            "calibration": [400, 574],
-            "replay": [574, length]
+            "calibration": [400, calibration_end],
+            "replay": [calibration_end, length]
         },
         "window": {
             "length": 4,
@@ -113,11 +119,9 @@ def run_policy(stream_name, stream_path, length, policy_config):
         tracemalloc.stop()
 
 def main():
-    streams = {
-        "valve1": (here / "SKAB" / "valve1" / "0.csv", 1148),
-        "valve2": (here / "SKAB" / "valve2" / "0.csv", 1125),
-    }
-
+    parser = argparse.ArgumentParser(description="Run five policies on two development streams")
+    parser.add_argument("--output-root", default="results/real", help="new output directory")
+    args = parser.parse_args()
     policies = [
         {"kind": "fixed_threshold", "comparison": "strict_greater"},
         {"kind": "rolling_threshold", "comparison": "strict_greater", "history_length": 10, "admission_rule": "normal_only", "quantile": 0.95},
@@ -126,9 +130,10 @@ def main():
         {"kind": "hysteresis", "comparison": "strict_greater", "low_ratio": 0.8}
     ]
 
-    for sname, (spath, slen) in streams.items():
+    for sname, (spath, slen, calibration_end) in STREAMS.items():
         for pol in policies:
-            run_policy(sname, spath, slen, pol)
+            run_policy(sname, spath, slen, pol, output_root=args.output_root,
+                       calibration_end=calibration_end)
 
 if __name__ == "__main__":
     main()

@@ -1241,5 +1241,118 @@ class ResourceScopeTest(unittest.TestCase):
                 marks["t"] - t_start)
 
 
+class FileHashesWhitelistCompatibilityTest(unittest.TestCase):
+    """Day4 (29-path) vs current whitelist: exact-set acceptance only."""
+    DAY4_29 = (
+        "README.md",
+        "configs/day01-synthetic.json",
+        "configs/day02-evaluation.json",
+        "configs/day04-synthetic-family.json",
+        "pyproject.toml",
+        "report/outline.md",
+        "src/reliable_alerting/__init__.py",
+        "src/reliable_alerting/calibration.py",
+        "src/reliable_alerting/evaluation.py",
+        "src/reliable_alerting/evaluation_io.py",
+        "src/reliable_alerting/evidence.py",
+        "src/reliable_alerting/loading.py",
+        "src/reliable_alerting/pipeline.py",
+        "src/reliable_alerting/policy.py",
+        "src/reliable_alerting/provenance.py",
+        "src/reliable_alerting/replay.py",
+        "src/reliable_alerting/scoring.py",
+        "src/reliable_alerting/splitting.py",
+        "src/reliable_alerting/writing.py",
+        "tests/fixtures/day02-synthetic-labels.json",
+        "tests/test_decisions.py",
+        "tests/test_evaluation.py",
+        "tests/test_evaluation_io.py",
+        "tests/test_evidence.py",
+        "tests/test_family_evidence.py",
+        "tests/test_hysteresis.py",
+        "tests/test_pipeline.py",
+        "tests/test_replay.py",
+        "tests/test_source.py",
+    )
+
+    def _hashes(self, keys, digest="ab" * 32):
+        return {k: digest for k in keys}
+
+    def test_day4_constant_is_exact_29(self):
+        from reliable_alerting import replay
+        self.assertTrue(hasattr(replay, "WHITELIST_DAY4_20260922"))
+        self.assertEqual(tuple(replay.WHITELIST_DAY4_20260922),
+                         tuple(self.DAY4_29))
+        self.assertEqual(len(set(replay.WHITELIST_DAY4_20260922)), 29)
+
+    def test_current_exact_passes(self):
+        from reliable_alerting import provenance, replay
+        doc = self._hashes(provenance.WHITELIST)
+        diffs = []
+        self.assertTrue(replay._validate_file_hashes(doc, "t", diffs), msg=diffs)
+        self.assertEqual(diffs, [])
+
+    def test_day4_exact_passes(self):
+        from reliable_alerting import replay
+        doc = self._hashes(self.DAY4_29)
+        diffs = []
+        self.assertTrue(replay._validate_file_hashes(doc, "t", diffs), msg=diffs)
+        self.assertEqual(diffs, [])
+
+    def test_missing_one_from_current_fails(self):
+        from reliable_alerting import provenance, replay
+        keys = list(provenance.WHITELIST)[:-1]
+        diffs = []
+        self.assertFalse(replay._validate_file_hashes(
+            self._hashes(keys), "t", diffs))
+        self.assertTrue(any("whitelist" in d for d in diffs))
+
+    def test_missing_one_from_day4_fails(self):
+        from reliable_alerting import replay
+        keys = list(self.DAY4_29)[:-1]
+        diffs = []
+        self.assertFalse(replay._validate_file_hashes(
+            self._hashes(keys), "t", diffs))
+        self.assertTrue(any("whitelist" in d for d in diffs))
+
+    def test_extra_unknown_fails(self):
+        from reliable_alerting import provenance, replay
+        for base in (tuple(provenance.WHITELIST), tuple(self.DAY4_29)):
+            doc = self._hashes(base)
+            doc["extra-unknown.json"] = "ab" * 32
+            diffs = []
+            self.assertFalse(replay._validate_file_hashes(doc, "t", diffs),
+                             msg=base[:1])
+            self.assertTrue(any("whitelist" in d for d in diffs))
+
+    def test_invalid_digest_fails(self):
+        from reliable_alerting import provenance, replay
+        for base in (tuple(provenance.WHITELIST), tuple(self.DAY4_29)):
+            doc = self._hashes(base)
+            doc[base[0]] = "not-a-sha"
+            diffs = []
+            self.assertFalse(replay._validate_file_hashes(doc, "t", diffs))
+            self.assertTrue(any("sha256" in d for d in diffs))
+
+    def test_tampered_predictions_still_rejected(self):
+        from reliable_alerting import replay
+        with tempfile.TemporaryDirectory(dir=str(RESULTS)) as tmp:
+            run = make_source_run(tmp)
+            fam = str(Path(tmp) / "fam")
+            replay.run_family(run, str(PROTOCOL), str(EVAL_CONFIG),
+                              str(LABELS), fam)
+            p = Path(fam) / "fixed" / "predictions.csv"
+            with open(p, newline="") as fh:
+                rows = list(csv.DictReader(fh))
+            rows[0]["output_state"] = ("alert"
+                                       if rows[0]["output_state"] == "normal"
+                                       else "normal")
+            with open(p, "w", newline="") as fh:
+                w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
+                w.writeheader()
+                w.writerows(rows)
+            self.assertFalse(replay.load_family(fam)["status"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1955,6 +1955,780 @@ def render_family_figure(path, output):
     return str(output)
 
 
+DIAGNOSTIC_ABSENT = "None observed in this evaluated scope"
+DIAGNOSTIC_DURATION_UNIT = "sample_index"
+
+
+def _read_diagnostic_validated(diagnostic_dir):
+    """Load and verify a diagnostic dir first; raise on any tamper."""
+    from reliable_alerting import diagnostics as _diagnostics
+    report = _diagnostics.load_diagnostic(diagnostic_dir)
+    if not report.get("status"):
+        raise ValueError(
+            f"diagnostic failed validation: {report.get('differences')}")
+    return report
+
+
+def _load_diagnostic_linkage(diagnostic_dir, family_dir):
+    """Verify exact score/calibration/config linkage via parsed rows.
+
+    Why: raw rows and resolved configs are compared directly; hash
+    strings of different constructions are never compared.
+    """
+    from reliable_alerting import diagnostics as _diagnostics
+    diag_report = _read_diagnostic_validated(diagnostic_dir)
+    fam = _read_family_validated(family_dir)
+    base_d = Path(diagnostic_dir)
+    base_f = Path(family_dir)
+    diag_scores = _diagnostics._parse_scores_csv(str(base_d / "source_scores.csv"))
+    fam_scores = _read_family_scores(base_f)
+    scores_equal = (diag_scores == fam_scores)
+    try:
+        diag_cals = _diagnostics._parse_scores_csv(
+            str(base_d / "source_calibration_scores.csv"))
+    except Exception:
+        diag_cals = None
+    try:
+        fam_cals = _load_calibration_csv(
+            str(base_f / "source_calibration_scores.csv"))
+        fam_cals_norm = [{"window_id": r["window_id"],
+                          "start_index": r["start_index"],
+                          "end_index": r["end_index"],
+                          "score": float(r["score"])} for r in fam_cals]
+    except Exception:
+        fam_cals_norm = None
+    calibration_equal = (diag_cals is not None and fam_cals_norm is not None
+                         and diag_cals == fam_cals_norm)
+    try:
+        diag_src_cfg = _load_json(base_d / "source_config.json")
+    except Exception:
+        diag_src_cfg = None
+    try:
+        fam_src_cfg = _load_json(base_f / "source_config.json")
+    except Exception:
+        fam_src_cfg = None
+    source_config_equal = (diag_src_cfg is not None and fam_src_cfg is not None
+                           and diag_src_cfg == fam_src_cfg)
+    if not scores_equal:
+        raise ValueError("diagnostic source_scores != family source_scores")
+    if not calibration_equal:
+        raise ValueError("diagnostic calibration != family calibration")
+    if not source_config_equal:
+        raise ValueError("diagnostic source_config != family source_config")
+    # window alignment across diagnostic rows, family scores, policies
+    doc_rows = diag_report["document"]["rows"]
+    if [r["window_id"] for r in doc_rows] != [r["window_id"] for r in fam_scores]:
+        raise ValueError("diagnostic windows != family score windows")
+    for name in FAMILY_POLICIES:
+        prows = fam["policies"][name]["rows"]
+        if [r["window_id"] for r in prows] != [r["window_id"] for r in fam_scores]:
+            raise ValueError(f"policy {name} windows != family scores")
+    return {
+        "report": diag_report,
+        "family": fam,
+        "scores_equal": bool(scores_equal),
+        "calibration_equal": bool(calibration_equal),
+        "source_config_equal": bool(source_config_equal),
+    }
+
+
+def _diagnostic_per_row(diag_rows, policy_rows, policy_state, high):
+    """Join diagnostic features with actual policy states per window.
+
+    Why: recent_exceedance_rate uses the frozen family HIGH for the
+    current-inclusive trailing trio (same HIGH both policies);
+    margin vs current judging is retained separately from
+    margin_high vs frozen HIGH.
+    """
+    state_by_id = {e["window_id"]: e for e in policy_state}
+    scores = [float(r["score"]) for r in policy_rows]
+    out = []
+    for i, prow in enumerate(policy_rows):
+        wid = prow["window_id"]
+        st = state_by_id[wid]
+        judging = float(st["judging_threshold"])
+        score = float(prow["score"])
+        margin = float(score - judging)
+        margin_high = float(score - float(high))
+        lo = max(0, i - 2)
+        window = scores[lo: i + 1]
+        exceed = sum(1 for s in window if s > float(high))
+        rate = float(exceed / len(window)) if window else 0.0
+        drow = diag_rows[i]
+        out.append({
+            "window_id": wid,
+            "start_index": int(prow["start_index"]),
+            "end_index": int(prow["end_index"]),
+            "availability_end": int(st["availability_end"]),
+            "score": float(score),
+            "judging_threshold": float(judging),
+            "margin": float(margin),
+            "threshold_high": float(high),
+            "margin_high": float(margin_high),
+            "recent_exceedance_rate": float(rate),
+            "output_state": str(prow["output_state"]),
+            "before_state": str(st["before_state"]),
+            "after_state": str(st["after_state"]),
+            "comparator": str(st["comparator"]),
+            "feature": (None if drow.get("feature") is None
+                        else float(drow["feature"])),
+            "trailing_median": (None if drow.get("trailing_median") is None
+                                else float(drow["trailing_median"])),
+            "reference_median": float(drow.get("reference_median")),
+            "warmup": bool(drow.get("warmup")),
+        })
+    return out
+
+
+def _diagnostic_misleading(per_row, high):
+    """First ready window where feature sign gaps frozen-HIGH exceedance.
+
+    Descriptive example only; not a claim beyond the saved scope.
+    Positive feature with current score<=HIGH (no strict_greater
+    exceedance), or non-positive feature with current score>HIGH,
+    is shown as-is.
+    """
+    for r in per_row:
+        if r.get("warmup") or r.get("feature") is None:
+            continue
+        feat = float(r["feature"])
+        exceeds = float(r["score"]) > float(high)
+        if (feat > 0 and not exceeds) or (feat <= 0 and exceeds):
+            return {
+                "window_id": r["window_id"],
+                "end_index": r["end_index"],
+                "score": r["score"],
+                "judging_threshold": r["judging_threshold"],
+                "margin": r["margin"],
+                "threshold_high": float(high),
+                "margin_high": r["margin_high"],
+                "exceeds_high": bool(exceeds),
+                "output_state": r["output_state"],
+                "feature": feat,
+                "note": "descriptive only; shown as saved",
+            }
+    return None
+
+
+def diagnostic_table(diagnostic_dir, family_dir):
+    """Build a descriptive join of saved diagnostic + family artifacts.
+
+    Features are loaded and verified before the family labels are
+    consulted. Exact score/calibration/config linkage is checked on
+    parsed rows (no cross-format hash comparison). Per-row entries
+    carry raw score, margin vs actual judging plus margin_high vs
+    frozen HIGH, recent exceedance rate over the current-inclusive
+    trailing 3 vs frozen HIGH, comparator with before/after state,
+    and feature.
+    """
+    linked = _load_diagnostic_linkage(diagnostic_dir, family_dir)
+    diag_report = linked["report"]
+    fam = linked["family"]
+    doc = diag_report["document"]
+    diag_rows = doc["rows"]
+    metadata = fam["metadata"]
+    high_frozen = float(metadata["threshold_high"])
+    table = family_table(str(Path(family_dir)))
+    warm_ids = [r["window_id"] for r in diag_rows if r.get("warmup")]
+    ready_ids = [r["window_id"] for r in diag_rows if not r.get("warmup")]
+    policies = {}
+    for name in FAMILY_POLICIES:
+        p = fam["policies"][name]
+        per_row = _diagnostic_per_row(diag_rows, p["rows"], p["state"],
+                                      high_frozen)
+        ann = table["policies"][name]["annotations"]
+        # largest delay with tied ids preserved
+        largest = ann.get("largest_delay_recalled_event")
+        if isinstance(largest, dict):
+            persisted = p["evaluation"]
+            recalled = [m for m in persisted.get("matches", []) if m.get("recalled")]
+            if recalled:
+                top = max(m["delay"] for m in recalled)
+                cands = sorted(m["event_id"] for m in recalled if m["delay"] == top)
+                largest = dict(largest)
+                largest["tied_event_ids"] = list(cands)
+        # longest non-event with tied ids preserved
+        longest = ann.get("longest_non_event_alert_episode")
+        if isinstance(longest, dict):
+            persisted = p["evaluation"]
+            merged = _merge_intervals(
+                [(c["start"], c["stop"]) for c in
+                 (persisted.get("events") or {}).get("clipped", [])])
+            stats = []
+            for ep in persisted.get("episodes", []):
+                ov = _overlap_len(ep["start"], ep["stop"], merged)
+                stats.append((ep["episode_id"], (ep["stop"] - ep["start"]) - ov))
+            if stats:
+                top_len = max(v for _, v in stats)
+                cands = sorted(eid for eid, v in stats if v == top_len)
+                longest = dict(longest)
+                longest["tied_episode_ids"] = list(cands)
+        first_false = ann.get("first_false_episode")
+        first_miss = ann.get("first_missed_event")
+        mislead = _diagnostic_misleading(per_row, high_frozen)
+        cases = {
+            "first_false_episode": (first_false if first_false is not None
+                                    else DIAGNOSTIC_ABSENT),
+            "largest_delay_recalled_event": (largest if largest is not None
+                                             else DIAGNOSTIC_ABSENT),
+            "first_missed_event": (first_miss if first_miss is not None
+                                   else DIAGNOSTIC_ABSENT),
+            "longest_non_event_alert_episode": (longest if longest is not None
+                                                else DIAGNOSTIC_ABSENT),
+            "misleading_feature_example": (mislead if mislead is not None
+                                           else DIAGNOSTIC_ABSENT),
+        }
+        policies[name] = {
+            "policy": name,
+            "policy_config": p["policy_config"],
+            "config_id": p["rows"][0]["config_id"] if p["rows"] else None,
+            "run_id": p["rows"][0]["run_id"] if p["rows"] else None,
+            "source_paths": {
+                "diagnostic": str(Path(diagnostic_dir) / "diagnostic.json"),
+                "family": str(Path(family_dir)),
+                "predictions_csv": str(Path(family_dir) / name / "predictions.csv"),
+                "state_json": str(Path(family_dir) / name / "state.json"),
+                "evaluation_json": str(Path(family_dir) / name / "evaluation.json"),
+            },
+            "decision_count": len(per_row),
+            "per_row": per_row,
+            "cases": cases,
+            "annotations": ann,
+        }
+    return {
+        "diagnostic_path": str(Path(diagnostic_dir)),
+        "family_path": str(Path(family_dir)),
+        "diagnostic_id": doc.get("diagnostic_id"),
+        "diagnostic_config_id": doc.get("diagnostic_config_id"),
+        "score_identity": doc.get("score_identity"),
+        "reference_identity": doc.get("reference_identity"),
+        "reference_median": float(doc.get("reference", {}).get("median")),
+        "family_id": metadata.get("family_id"),
+        "source_scores_id": metadata.get("source_scores_id"),
+        "evaluation_config_id": metadata.get("evaluation_config_id"),
+        "evaluation_config": fam["evaluation_config"],
+        "threshold_high": metadata.get("threshold_high"),
+        "threshold_low": metadata.get("threshold_low"),
+        "horizon": list(fam["evaluation_config"]["horizon"]),
+        "first_decision": fam["evaluation_config"]["first_decision"],
+        "duration_unit": DIAGNOSTIC_DURATION_UNIT,
+        "time_basis": "sample_index",
+        "scope_note": ("SYNTHETIC ONLY engineering check; descriptive comparison "
+                       "of saved scores, states, and features in sample_index units"),
+        "linkage": {
+            "scores_equal": bool(linked["scores_equal"]),
+            "calibration_equal": bool(linked["calibration_equal"]),
+            "source_config_equal": bool(linked["source_config_equal"]),
+        },
+        "warmup": {
+            "warmup_count": len(warm_ids),
+            "decision_count": len(diag_rows),
+            "ready_count": len(ready_ids),
+            "warmup_window_ids": list(warm_ids),
+            "ready_window_ids": list(ready_ids),
+        },
+        "policies": policies,
+    }
+
+
+def write_diagnostic_table(diagnostic_dir, family_dir, output):
+    """Serialize a diagnostic table to a new file only (mode 'x')."""
+    table = diagnostic_table(diagnostic_dir, family_dir)
+    text = json.dumps(table, sort_keys=True, indent=2, allow_nan=False) + "\n"
+    with open(output, "x") as fh:
+        fh.write(text)
+    return table
+
+
+def render_diagnostic_plot(diagnostic_dir, family_dir, output):
+    """Plot saved diagnostic + family to plain SVG using saved evidence.
+
+    Shared scores at availability end, high/low plus actual per-window
+    sidecar judging markers, forward episodes for fixed and hysteresis,
+    half-open events, a ready/warmup diagnostic lane, and a separate
+    median-gap magnitude panel (feature markers at availability end
+    with a zero line; warmup rows have no markers). No rolling
+    values are plotted.
+    """
+    linked = _load_diagnostic_linkage(diagnostic_dir, family_dir)
+    diag_report = linked["report"]
+    fam = linked["family"]
+    table = diagnostic_table(diagnostic_dir, family_dir)
+    doc = diag_report["document"]
+    base_d = Path(diagnostic_dir)
+    base_f = Path(family_dir)
+    metadata = fam["metadata"]
+    cfg = fam["evaluation_config"]
+    h0, h1 = list(cfg["horizon"])
+    first = cfg["first_decision"]
+    high = float(metadata["threshold_high"])
+    low = float(metadata["threshold_low"])
+    scores = fam["scores"]
+    ys = [s["score"] for s in scores]
+    feat_rows = [r for r in doc["rows"] if not r.get("warmup")]
+    feat_vals = [float(r["feature"]) for r in feat_rows]
+
+    width = 880
+    left, right, top = 60, 20, 88
+    plot_w = width - left - right
+    score_top = top
+    score_h = 170
+    lane_step = 40
+    y_event = score_top + score_h + 34
+    y_fixed = y_event + lane_step
+    y_hyst = y_fixed + lane_step
+    y_diag = y_hyst + lane_step
+    feat_top = y_diag + 40
+    feat_h = 120
+    lanes_bottom = feat_top + feat_h
+
+    footer_raw = []
+    for name in FAMILY_POLICIES:
+        cases = table["policies"][name]["cases"]
+        largest = cases.get("largest_delay_recalled_event")
+        missed = cases.get("first_missed_event")
+        false_ep = cases.get("first_false_episode")
+        longest = cases.get("longest_non_event_alert_episode")
+        mislead = cases.get("misleading_feature_example")
+        footer_raw.append(
+            f"{name} largest-delay: "
+            f"{largest['event_id'] + ' delay=' + str(largest['delay']) if isinstance(largest, dict) else 'none'}; "
+            f"missed: {missed['event_id'] if isinstance(missed, dict) else 'none'}")
+        footer_raw.append(
+            f"{name} false: "
+            f"{false_ep['episode_id'] if isinstance(false_ep, dict) else 'none'}; "
+            f"longest non-event: "
+            f"{longest['episode_id'] + ' len=' + str(longest['non_event_duration']) if isinstance(longest, dict) else 'none'}")
+        footer_raw.append(
+            f"{name} misleading-feature: "
+            f"{mislead['window_id'] + ' feat=' + repr(float(mislead['feature'])) if isinstance(mislead, dict) else 'none'}")
+    footer_raw.append("diagnostic_id")
+    footer_raw.append(f"diagnostic_id={doc.get('diagnostic_id', '')}")
+    footer_raw.append("diagnostic_config_id")
+    footer_raw.append(f"diagnostic_config_id={doc.get('diagnostic_config_id', '')}")
+    footer_raw.append("family_id")
+    footer_raw.append(f"family_id={metadata.get('family_id', '')}")
+    footer_raw.append(f"source={base_f / 'source_scores.csv'}")
+    footer_raw.append(f"diagnostic={base_d / 'diagnostic.json'}")
+    footer_lines = []
+    for raw in footer_raw:
+        if raw in ("diagnostic_id", "diagnostic_config_id", "family_id"):
+            footer_lines.append(raw)
+        elif raw.startswith(("diagnostic_config_id=", "family_id=",
+                             "diagnostic_id=")):
+            # hex IDs stay contiguous on one label-then-id line pair
+            footer_lines.append(raw)
+        else:
+            footer_lines.extend(
+                textwrap.wrap(raw, width=FAMILY_FIGURE_WRAP_WIDTH) or [""])
+    axis_y = lanes_bottom + 14
+    footer_top = lanes_bottom + 30
+    line_h = 14
+    height = int(footer_top + len(footer_lines) * line_h + 16)
+
+    y_lo = min(min(ys), low)
+    y_hi = max(max(ys), high)
+    if y_hi == y_lo:
+        y_lo -= 1.0
+        y_hi += 1.0
+    else:
+        pad = (y_hi - y_lo) * 0.1 or 1.0
+        y_lo -= pad
+        y_hi += pad
+
+    def _cx(x):
+        if h1 == h0:
+            return left + plot_w / 2
+        return left + (x - h0) / (h1 - h0) * plot_w
+
+    def _cy(y):
+        return score_top + score_h - (y - y_lo) / (y_hi - y_lo) * score_h
+
+    f_lo = min([0.0] + feat_vals)
+    f_hi = max([0.0] + feat_vals)
+    if f_hi == f_lo:
+        f_lo -= 1.0
+        f_hi += 1.0
+    else:
+        f_pad = (f_hi - f_lo) * 0.15 or 1.0
+        f_lo -= f_pad
+        f_hi += f_pad
+
+    def _fy(f):
+        return feat_top + feat_h - (f - f_lo) / (f_hi - f_lo) * feat_h
+
+    fixed_eps = list(fam["policies"]["fixed"]["evaluation"].get("episodes", []))
+    hyst_eps = list(fam["policies"]["hysteresis"]["evaluation"].get("episodes", []))
+    clipped = list((fam["policies"]["fixed"]["evaluation"].get("events")
+                    or {}).get("clipped", []))
+
+    parts = []
+    parts.append(
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" role="img">'
+    )
+    title = ("SYNTHETIC ONLY diagnostic check \u2014 no quality claim; "
+             "scores, episodes, and median-gap features")
+    parts.append(f"<title>{escape(title)}</title>")
+    parts.append(f'<rect x="0" y="0" width="{width}" height="{height}" fill="white"/>')
+    parts.append(
+        f'<text x="{width // 2}" y="24" text-anchor="middle" font-size="14">{escape(title)}</text>'
+    )
+    parts.append(
+        f'<text x="{width // 2}" y="42" text-anchor="middle" font-size="11">sample_index units; horizon [{h0}, {h1}); warmup [{h0}, {first})</text>'
+    )
+    parts.append(
+        f'<text x="{width // 2}" y="58" text-anchor="middle" font-size="11">shared scores at availability end; episodes forward; events half-open; median-gap ready vs warmup</text>'
+    )
+    if first > h0:
+        parts.append(
+            f'<rect x="{_cx(h0):.2f}" y="{top}" width="{_cx(first) - _cx(h0):.2f}" height="{lanes_bottom - top}" fill="#eeeeee"/>'
+        )
+    parts.append(
+        f'<rect x="{_cx(h0):.2f}" y="{top}" width="{_cx(h1) - _cx(h0):.2f}" height="{lanes_bottom - top}" fill="none" stroke="black"/>'
+    )
+    parts.append(
+        f'<line x1="{left}" y1="{score_top}" x2="{left}" y2="{score_top + score_h}" stroke="black"/>'
+    )
+    parts.append(
+        f'<line x1="{left}" y1="{score_top + score_h}" x2="{left + plot_w}" y2="{score_top + score_h}" stroke="black"/>'
+    )
+    parts.append(
+        f'<text x="12" y="{score_top + score_h // 2}" font-size="11" transform="rotate(-90 12,{score_top + score_h // 2})">score</text>'
+    )
+    for xt in [s["end_index"] for s in scores]:
+        cx = _cx(xt)
+        parts.append(
+            f'<line x1="{cx:.2f}" y1="{score_top + score_h}" x2="{cx:.2f}" y2="{score_top + score_h + 5}" stroke="black"/>'
+        )
+        parts.append(
+            f'<text x="{cx:.2f}" y="{score_top + score_h + 18}" text-anchor="middle" font-size="9">{escape(str(xt))}</text>'
+        )
+    parts.append(
+        f'<text x="{left + plot_w // 2}" y="{axis_y:.0f}" text-anchor="middle" font-size="11">sample_index</text>'
+    )
+    for val, dash in ((high, "6,4"), (low, "2,3")):
+        cy = _cy(val)
+        parts.append(
+            f'<line x1="{left}" y1="{cy:.2f}" x2="{left + plot_w}" y2="{cy:.2f}" '
+            f'stroke="black" stroke-dasharray="{dash}" stroke-width="1.5"/>'
+        )
+    # threshold legend on fixed rows with connectors to the dashed lines
+    leg_x, leg_w = left + plot_w - 250, 44
+    leg_high_y, leg_low_y = score_top + 16, score_top + 32
+    for val, dash, tag, ly in ((high, "6,4", "high", leg_high_y),
+                               (low, "2,3", "low", leg_low_y)):
+        cy = _cy(val)
+        parts.append(
+            f'<line x1="{leg_x:.2f}" y1="{ly:.2f}" x2="{leg_x + leg_w:.2f}" y2="{ly:.2f}" '
+            f'stroke="black" stroke-dasharray="{dash}" stroke-width="1.5">'
+            f"<title>{escape(tag + ' threshold legend')}</title>"
+            "</line>"
+        )
+        parts.append(
+            f'<text x="{leg_x + leg_w + 6:.2f}" y="{ly + 4:.2f}" font-size="10">{escape(tag + " " + repr(float(val)))}</text>'
+        )
+        parts.append(
+            f'<line x1="{leg_x + leg_w:.2f}" y1="{ly:.2f}" x2="{left + plot_w:.2f}" y2="{cy:.2f}" '
+            f'stroke="grey" stroke-dasharray="2,2" stroke-width="1">'
+            f"<title>{escape(tag + ' threshold connector to dashed line')}</title>"
+            "</line>"
+        )
+    for s in scores:
+        cx = _cx(s["end_index"])
+        cy = _cy(s["score"])
+        parts.append(
+            f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="4" fill="blue">'
+            f"<title>{escape(s['window_id'] + ' end=' + str(s['end_index']) + ' score=' + repr(float(s['score'])))}</title>"
+            "</circle>"
+        )
+    # actual per-window sidecar judging markers at window end
+    for name, sym in (("fixed", "square"), ("hysteresis", "diamond")):
+        for e in fam["policies"][name]["state"]:
+            cx = _cx(e["end_index"])
+            cy = _cy(float(e["judging_threshold"]))
+            if sym == "square":
+                parts.append(
+                    f'<rect x="{cx - 3:.2f}" y="{cy - 3:.2f}" width="6" height="6" fill="none" stroke="black">'
+                    f"<title>{escape(name + ' judging ' + e['window_id'] + ' end=' + str(e['end_index']) + ' judging=' + repr(float(e['judging_threshold'])) + ' ' + e['comparator'])}</title>"
+                    "</rect>"
+                )
+            else:
+                x0, y0 = cx, cy
+                pts = f"{x0:.2f},{y0 - 5:.2f} {x0 + 5:.2f},{y0:.2f} {x0:.2f},{y0 + 5:.2f} {x0 - 5:.2f},{y0:.2f}"
+                parts.append(
+                    f'<polygon points="{pts}" fill="none" stroke="purple" stroke-width="1.5">'
+                    f"<title>{escape(name + ' judging ' + e['window_id'] + ' end=' + str(e['end_index']) + ' judging=' + repr(float(e['judging_threshold'])) + ' ' + e['comparator'])}</title>"
+                    "</polygon>"
+                )
+    parts.append(f'<text x="{left}" y="{y_event - 8:.2f}" font-size="11">events (half-open)</text>')
+    for e in clipped:
+        x1, x2 = _cx(e["start"]), _cx(e["stop"])
+        parts.append(
+            f'<rect x="{x1:.2f}" y="{y_event:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="blue">'
+            f"<title>{escape(str(e.get('event_id', '')) + ' [' + str(e['start']) + ', ' + str(e['stop']) + ')')}</title>"
+            "</rect>"
+        )
+    parts.append(f'<text x="{left}" y="{y_fixed - 8:.2f}" font-size="11">fixed episodes (forward)</text>')
+    for ep in fixed_eps:
+        x1, x2 = _cx(ep["start"]), _cx(ep["stop"])
+        parts.append(
+            f'<rect x="{x1:.2f}" y="{y_fixed:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="red">'
+            f"<title>{escape(str(ep.get('episode_id', '')) + ' [' + str(ep['start']) + ', ' + str(ep['stop']) + ')')}</title>"
+            "</rect>"
+        )
+    parts.append(f'<text x="{left}" y="{y_hyst - 8:.2f}" font-size="11">hysteresis episodes (forward)</text>')
+    for ep in hyst_eps:
+        x1, x2 = _cx(ep["start"]), _cx(ep["stop"])
+        parts.append(
+            f'<rect x="{x1:.2f}" y="{y_hyst:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="red">'
+            f"<title>{escape(str(ep.get('episode_id', '')) + ' [' + str(ep['start']) + ', ' + str(ep['stop']) + ')')}</title>"
+            "</rect>"
+        )
+    parts.append(f'<text x="{left}" y="{y_diag - 8:.2f}" font-size="11">median-gap ready (green) vs warmup (grey)</text>')
+    for i, drow in enumerate(doc["rows"]):
+        start = drow["end_index"]
+        if i + 1 < len(doc["rows"]):
+            stop = doc["rows"][i + 1]["end_index"]
+        else:
+            stop = h1
+        x1, x2 = _cx(start), _cx(stop)
+        fill = "#bbbbbb" if drow.get("warmup") else "green"
+        feat_txt = "warmup" if drow.get("warmup") else f"feat={repr(float(drow['feature']))}"
+        parts.append(
+            f'<rect x="{x1:.2f}" y="{y_diag:.2f}" width="{max(1.0, x2 - x1):.2f}" height="16" fill="{fill}">'
+            f"<title>{escape(drow['window_id'] + ' [' + str(start) + ', ' + str(stop) + ') ' + feat_txt)}</title>"
+            "</rect>"
+        )
+    # separate median-gap magnitude panel: actual features at availability_end
+    parts.append(f'<text x="{left}" y="{feat_top - 8:.2f}" font-size="11">median-gap feature (score units)</text>')
+    parts.append(
+        f'<text x="{width // 2}" y="{feat_top + 12:.2f}" text-anchor="middle" font-size="10">median(last 3 scores, current-inclusive) - calibration median; score units</text>'
+    )
+    if first > h0:
+        parts.append(
+            f'<rect x="{_cx(h0):.2f}" y="{feat_top}" width="{_cx(first) - _cx(h0):.2f}" height="{feat_h}" fill="#eeeeee"/>'
+        )
+    parts.append(
+        f'<rect x="{_cx(h0):.2f}" y="{feat_top}" width="{_cx(h1) - _cx(h0):.2f}" height="{feat_h}" fill="none" stroke="black"/>'
+    )
+    parts.append(
+        f'<line x1="{left}" y1="{feat_top}" x2="{left}" y2="{feat_top + feat_h}" stroke="black"/>'
+    )
+    parts.append(
+        f'<text x="12" y="{feat_top + feat_h // 2}" font-size="11" transform="rotate(-90 12,{feat_top + feat_h // 2})">feature</text>'
+    )
+    zero_y = _fy(0.0)
+    parts.append(
+        f'<line x1="{left}" y1="{zero_y:.2f}" x2="{left + plot_w}" y2="{zero_y:.2f}" '
+        f'stroke="grey" stroke-dasharray="4,3" stroke-width="1.5">'
+        f"<title>feature=0 zero reference line</title>"
+        "</line>"
+    )
+    parts.append(
+        f'<text x="{left - 8}" y="{zero_y + 3:.2f}" text-anchor="end" font-size="9">0</text>'
+    )
+    for fval in (f_lo, f_hi):
+        fy = _fy(fval)
+        parts.append(
+            f'<line x1="{left - 5}" y1="{fy:.2f}" x2="{left}" y2="{fy:.2f}" stroke="black"/>'
+        )
+        parts.append(
+            f'<text x="{left - 8}" y="{fy + 3:.2f}" text-anchor="end" font-size="9">{escape(f"{fval:.3g}")}</text>'
+        )
+    for drow in doc["rows"]:
+        if drow.get("warmup") or drow.get("feature") is None:
+            continue
+        cx = _cx(drow["end_index"])
+        cy = _fy(float(drow["feature"]))
+        parts.append(
+            f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="4" fill="green">'
+            f"<title>{escape(drow['window_id'] + ' end=' + str(drow['end_index']) + ' feat=' + repr(float(drow['feature'])))}</title>"
+            "</circle>"
+        )
+    ay = footer_top
+    for line in footer_lines:
+        parts.append(
+            f'<text x="{left}" y="{ay:.2f}" font-size="10">{escape(line)}</text>'
+        )
+        ay += line_h
+    parts.append("</svg>")
+    text = "\n".join(parts) + "\n"
+    with open(output, "x") as fh:
+        fh.write(text)
+    return str(output)
+
+
+render_diagnostic_figure = render_diagnostic_plot
+
+
+def compare_diagnostics(diag_a, diag_b):
+    """Compare two diagnostic dirs on scientific equality.
+
+    Scientific equality covers the verified document, config, source
+    scores, calibration, and source config. Timestamps, paths, timing,
+    and provenance docs are reported separately and never decide the
+    scientific flag. Never claims byte identity.
+    """
+    from reliable_alerting import diagnostics as _diagnostics
+    try:
+        ra = _diagnostics.load_diagnostic(diag_a)
+    except Exception as e:
+        ra = {"status": False, "differences": [f"load failed: {e}"]}
+    try:
+        rb = _diagnostics.load_diagnostic(diag_b)
+    except Exception as e:
+        rb = {"status": False, "differences": [f"load failed: {e}"]}
+    diffs = []
+    prov_diffs = []
+    va = bool(ra.get("status"))
+    vb = bool(rb.get("status"))
+    if not va:
+        diffs.append(f"diagnostic a invalid: {ra.get('differences')}")
+    if not vb:
+        diffs.append(f"diagnostic b invalid: {rb.get('differences')}")
+    flags = {}
+    scientific_equal = bool(va and vb)
+    if va and vb:
+        if ra.get("document") != rb.get("document"):
+            diffs.append("diagnostic document differs")
+            flags["document_equal"] = False
+        else:
+            flags["document_equal"] = True
+        if ra.get("config") != rb.get("config"):
+            diffs.append("diagnostic config differs")
+            flags["config_equal"] = False
+        else:
+            flags["config_equal"] = True
+        try:
+            sa = _diagnostics._parse_scores_csv(str(Path(diag_a) / "source_scores.csv"))
+            sb = _diagnostics._parse_scores_csv(str(Path(diag_b) / "source_scores.csv"))
+            flags["scores_equal"] = bool(sa == sb)
+            if not flags["scores_equal"]:
+                diffs.append("source scores differ")
+        except Exception as e:
+            flags["scores_equal"] = False
+            diffs.append(f"source scores unreadable: {e}")
+        try:
+            ca = _diagnostics._parse_scores_csv(
+                str(Path(diag_a) / "source_calibration_scores.csv"))
+            cb = _diagnostics._parse_scores_csv(
+                str(Path(diag_b) / "source_calibration_scores.csv"))
+            flags["calibration_equal"] = bool(ca == cb)
+            if not flags["calibration_equal"]:
+                diffs.append("source calibration differs")
+        except Exception as e:
+            flags["calibration_equal"] = False
+            diffs.append(f"source calibration unreadable: {e}")
+        try:
+            sa_cfg = _load_json(Path(diag_a) / "source_config.json")
+            sb_cfg = _load_json(Path(diag_b) / "source_config.json")
+            flags["source_config_equal"] = bool(sa_cfg == sb_cfg)
+            if not flags["source_config_equal"]:
+                diffs.append("source config differs")
+        except Exception as e:
+            flags["source_config_equal"] = False
+            diffs.append(f"source config unreadable: {e}")
+        if not all(flags.get(k, False) for k in (
+                "document_equal", "config_equal", "scores_equal",
+                "calibration_equal", "source_config_equal")):
+            scientific_equal = False
+    else:
+        scientific_equal = False
+    prov = {}
+    try:
+        ma = _load_json(Path(diag_a) / "metadata.json")
+        mb = _load_json(Path(diag_b) / "metadata.json")
+    except Exception as e:
+        ma = mb = None
+        prov_diffs.append(f"diagnostic metadata unreadable: {e}")
+    if ma is not None and mb is not None:
+        prov["file_hashes_equal"] = bool(ma.get("file_hashes") == mb.get("file_hashes"))
+        if not prov["file_hashes_equal"]:
+            prov_diffs.append("provenance file_hashes differ")
+        prov["environment_equal"] = bool(ma.get("environment") == mb.get("environment"))
+        if not prov["environment_equal"]:
+            prov_diffs.append("provenance environment differ")
+        ga = (ma.get("git") or {}).get("head") if isinstance(ma.get("git"), dict) else None
+        gb = (mb.get("git") or {}).get("head") if isinstance(mb.get("git"), dict) else None
+        prov["git_head_equal"] = bool(ga == gb)
+        prov["git_heads"] = {"a": ga, "b": gb}
+        if not prov["git_head_equal"]:
+            prov_diffs.append("provenance git head differ")
+        try:
+            current = provenance.file_hashes(provenance.repo_root())
+            prov["source_hashes_match_current"] = bool(
+                ma.get("file_hashes") == current
+                and mb.get("file_hashes") == current)
+        except Exception as e:
+            prov["source_hashes_match_current"] = False
+            prov_diffs.append(f"source hashes unreadable: {e}")
+        if not prov.get("source_hashes_match_current", False):
+            prov_diffs.append("source_hashes_match_current is false")
+    else:
+        prov = {"file_hashes_equal": False, "environment_equal": False,
+                "git_head_equal": False, "source_hashes_match_current": False}
+    status = bool(va and vb and scientific_equal)
+    report = {
+        "diag_a": str(diag_a),
+        "diag_b": str(diag_b),
+        "status": status,
+        "scientific_equal": bool(scientific_equal),
+        "diagnostics_valid": {"a": bool(va), "b": bool(vb)},
+        "document_equal": bool(flags.get("document_equal", False)),
+        "config_equal": bool(flags.get("config_equal", False)),
+        "scores_equal": bool(flags.get("scores_equal", False)),
+        "calibration_equal": bool(flags.get("calibration_equal", False)),
+        "source_config_equal": bool(flags.get("source_config_equal", False)),
+        "diagnostic_ids": {
+            "a": ((ra.get("document") or {}).get("diagnostic_config_id")
+                  if isinstance(ra.get("document"), dict) else None),
+            "b": ((rb.get("document") or {}).get("diagnostic_config_id")
+                  if isinstance(rb.get("document"), dict) else None),
+        },
+        "differences": diffs,
+        "provenance_differences": prov_diffs,
+        "provenance": prov,
+        "varying_metadata": {
+            "started_at": {
+                "a": (ma.get("started_at") if isinstance(ma, dict) else None),
+                "b": (mb.get("started_at") if isinstance(mb, dict) else None),
+            },
+            "finished_at": {
+                "a": (ma.get("finished_at") if isinstance(ma, dict) else None),
+                "b": (mb.get("finished_at") if isinstance(mb, dict) else None),
+            },
+            "elapsed_monotonic_seconds": {
+                "a": (ma.get("elapsed_monotonic_seconds")
+                      if isinstance(ma, dict) else None),
+                "b": (mb.get("elapsed_monotonic_seconds")
+                      if isinstance(mb, dict) else None),
+            },
+            "source_run_path": {
+                "a": ((ma.get("source_run") or {}).get("path")
+                      if isinstance(ma, dict)
+                      and isinstance(ma.get("source_run"), dict) else None),
+                "b": ((mb.get("source_run") or {}).get("path")
+                      if isinstance(mb, dict)
+                      and isinstance(mb.get("source_run"), dict) else None),
+            },
+            "command": {
+                "a": (ma.get("command") if isinstance(ma, dict) else None),
+                "b": (mb.get("command") if isinstance(mb, dict) else None),
+            },
+        },
+    }
+    return report
+
+
+def write_diagnostic_comparison(diag_a, diag_b, output):
+    """Serialize a diagnostic comparison to a new file only (mode 'x')."""
+    report = compare_diagnostics(diag_a, diag_b)
+    text = json.dumps(report, sort_keys=True, indent=2, allow_nan=False) + "\n"
+    with open(output, "x") as fh:
+        fh.write(text)
+    return report
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="reliable_alerting.evidence")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1982,6 +2756,22 @@ def main(argv=None):
     ff = sub.add_parser("family-figure", help="plot a validated family to SVG")
     ff.add_argument("family")
     ff.add_argument("--output", required=True)
+    dt = sub.add_parser("diagnostic-table", help="write a diagnostic+family table")
+    dt.add_argument("--diagnostic", required=True)
+    dt.add_argument("--family", required=True)
+    dt.add_argument("--output", required=True)
+    dp = sub.add_parser("diagnostic-plot", help="plot saved diagnostic+family to SVG")
+    dp.add_argument("--diagnostic", required=True)
+    dp.add_argument("--family", required=True)
+    dp.add_argument("--output", required=True)
+    df = sub.add_parser("diagnostic-figure", help="alias of diagnostic-plot")
+    df.add_argument("--diagnostic", required=True)
+    df.add_argument("--family", required=True)
+    df.add_argument("--output", required=True)
+    cd = sub.add_parser("compare-diagnostics", help="compare two diagnostic directories")
+    cd.add_argument("diag_a")
+    cd.add_argument("diag_b")
+    cd.add_argument("--output", required=True)
     args = ap.parse_args(argv)
     if args.cmd == "compare":
         report = write_comparison(args.run_a, args.run_b, args.output)
@@ -2012,6 +2802,19 @@ def main(argv=None):
         render_family_figure(args.family, args.output)
         print(args.output)
         return 0
+    if args.cmd == "diagnostic-table":
+        write_diagnostic_table(args.diagnostic, args.family, args.output)
+        print(args.output)
+        return 0
+    if args.cmd in ("diagnostic-plot", "diagnostic-figure"):
+        render_diagnostic_plot(args.diagnostic, args.family, args.output)
+        print(args.output)
+        return 0
+    if args.cmd == "compare-diagnostics":
+        report = write_diagnostic_comparison(args.diag_a, args.diag_b,
+                                             args.output)
+        print(json.dumps({"status": report["status"], "output": args.output}))
+        return 0 if report["status"] else 1
     return 2
 
 

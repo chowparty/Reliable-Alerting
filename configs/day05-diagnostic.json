@@ -1,0 +1,17 @@
+{
+  "diagnostic_id": "trailing-median-gap-v1",
+  "normalize": false,
+  "notes": "PROVISIONAL Pratyush support only; not an Aman deliverable.",
+  "provisional": true,
+  "provisional_owner": "pratyush",
+  "reference": {
+    "fit_scope": "calibration_scores",
+    "segment": "calibration",
+    "statistic": "median"
+  },
+  "schema_version": 1,
+  "score_unit": "score",
+  "time_basis": "sample_index",
+  "trailing_window": 3,
+  "warmup_count": 2
+}

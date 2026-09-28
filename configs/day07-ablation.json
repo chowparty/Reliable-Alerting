@@ -5,7 +5,7 @@
     "high_source": "frozen_source_calibration_threshold",
     "initial_state": "normal",
     "low_ratio": 0.8,
-    "notes": "Day 07 Full Ablation Record: Compares the baseline frozen fixed threshold against the conservative rolling threshold policy (testing calibration adaptability against concept drift), alongside temporal state-machine policies (k_consecutive, m_of_n, hysteresis) to evaluate structural false-alarm suppression under identical warmup periods.",
+    "notes": "Development planning record only. Five policies have been evaluated on valve1 and valve2 at unequal alert volumes. This file is not an executable replay protocol, an authoritative operating-point freeze, or held-out validation.",
     "policies": [
         "fixed_threshold",
         "rolling_threshold",
@@ -16,7 +16,7 @@
     "quality_selection": "none",
     "recall_targets": "none",
     "schema_version": 1,
-    "scope": "held_out_validation_ablation",
+    "scope": "development_planning_only",
     "settings_per_policy": 1,
     "tie_rule": "hold"
 }

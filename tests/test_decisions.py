@@ -208,7 +208,7 @@ class WriteRunTest(unittest.TestCase):
 
     def test_no_output_on_validation_failure(self):
         rows = _valid_rows()
-        bad = [dict(rows[0], output_state="alert"), dict(rows[1])]
+        bad = [dict(rows[0], window_id="duplicate"), dict(rows[1], window_id="duplicate")]
         with tempfile.TemporaryDirectory(dir=str(REPO)) as tmp:
             out = str(Path(tmp) / "run-bad")
             with self.assertRaises(ValueError):

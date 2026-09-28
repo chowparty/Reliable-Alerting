@@ -156,6 +156,42 @@ ALLOWED_ARTIFACTS = frozenset((
     "hysteresis/metadata.json",
 ))
 
+# Immutable Day4 (2026-09-22) provenance whitelist: exact 29 paths saved in
+# results/day04-20260922-final-family-a|b. Accepted exactly alongside the
+# current provenance.WHITELIST so new files do not retroactively fail
+# historical families. No subsets: keys must equal one set exactly.
+WHITELIST_DAY4_20260922 = (
+    "README.md",
+    "configs/day01-synthetic.json",
+    "configs/day02-evaluation.json",
+    "configs/day04-synthetic-family.json",
+    "pyproject.toml",
+    "report/outline.md",
+    "src/reliable_alerting/__init__.py",
+    "src/reliable_alerting/calibration.py",
+    "src/reliable_alerting/evaluation.py",
+    "src/reliable_alerting/evaluation_io.py",
+    "src/reliable_alerting/evidence.py",
+    "src/reliable_alerting/loading.py",
+    "src/reliable_alerting/pipeline.py",
+    "src/reliable_alerting/policy.py",
+    "src/reliable_alerting/provenance.py",
+    "src/reliable_alerting/replay.py",
+    "src/reliable_alerting/scoring.py",
+    "src/reliable_alerting/splitting.py",
+    "src/reliable_alerting/writing.py",
+    "tests/fixtures/day02-synthetic-labels.json",
+    "tests/test_decisions.py",
+    "tests/test_evaluation.py",
+    "tests/test_evaluation_io.py",
+    "tests/test_evidence.py",
+    "tests/test_family_evidence.py",
+    "tests/test_hysteresis.py",
+    "tests/test_pipeline.py",
+    "tests/test_replay.py",
+    "tests/test_source.py",
+)
+
 
 def _is_int(v):
     return type(v) is int
@@ -846,7 +882,8 @@ def _validate_file_hashes(doc, label, diffs):
         diffs.append(f"{label}: file_hashes must be a dict")
         return False
     ok = True
-    if set(doc.keys()) != set(provenance.WHITELIST):
+    keys = set(doc.keys())
+    if keys != set(provenance.WHITELIST) and keys != set(WHITELIST_DAY4_20260922):
         diffs.append(f"{label}: file_hashes keys must equal provenance whitelist")
         ok = False
     for key, value in doc.items():

@@ -1,5 +1,36 @@
 # Reliable Alerting for Time-Series Anomaly Detection
 
+## Current evidence for the Phase-I viva (28 September 2026)
+
+The two SKAB streams are **development only**. The corrected valve2 split
+ends calibration at its first anomalous row 562; older `result/valve2/`
+runs calibrated through row 573 and are not valid for the corrected
+comparison. See [manifest.md](manifest.md) for local file SHA-256 values,
+label-use qualification and split boundaries. The saved corrected results
+are ignored local artifacts under `results/20260928-corrected-development/`;
+regenerate them under a fresh path with:
+
+```sh
+.venv/bin/python run_real_streams.py --output-root results/my-development-run
+for stream in valve1 valve2; do
+  for policy in fixed_threshold rolling_threshold k_consecutive m_of_n hysteresis; do
+    .venv/bin/python -m reliable_alerting.evaluation_io --run "results/my-development-run/$stream/$policy" --labels "configs/day04-$stream-labels.json" --config "configs/day04-$stream-evaluation.json" --output "results/my-development-run/$stream/$policy/evaluation"
+  done
+done
+```
+
+The command refuses existing policy output directories. `report/outline.md`
+records the ten corrected development metric rows and their limits. Two
+fresh runs matched on all scientific prediction columns and full evaluation
+JSON. The provenance hash inventory omits the real runner, manifest, and
+real evaluation/label configs; saved copies and duplicate runs support
+reproduction but do not constitute a complete source audit. No held-out
+stream was prospectively reserved; there is no
+authoritative freeze, independent pre-held-out audit, or held-out result.
+Keep the target unseen and present Phase-I findings as development-only.
+The sections below retain dated implementation history; this section and
+the manifest govern current claims.
+
 ## Research question
 
 Does simple decision-time information improve alerting under changing
@@ -89,8 +120,8 @@ Why: source (`loading`, `splitting`, `scoring`) and calibration/policy
 reused by synthetic checks; `pipeline` joins them label-free and `evidence`
 reads saved runs and verifies them against the configured recipe and current
 source hashes. Source-module behaviour needs Aman review; the
-eligibility manifest and any real-stream reservation (Nakul) are absent, so
-current support is fixed-only synthetic with `source_label_use: none` and no
+eligibility manifest and any real-stream reservation (Nakul) were absent at
+that Day-1 checkpoint, so support then was fixed-only synthetic with `source_label_use: none` and no
 labels in any runtime signature. Fixed decisions: `quantile: 0.95`,
 `method: nearest_rank` over the 8 calibration scores is a reproducibility
 convention, not a false-alarm guarantee; `held_out:
@@ -145,19 +176,16 @@ current suite; the personal Day-2/3 guide records the execution snapshot.
 
 The evaluator makes forward-time alert behaviour independently checkable.
 
-Runtime scope is unchanged: fixed-only synthetic through
+At the 22 September checkpoint runtime scope was fixed-only synthetic through
 `configs/day01-synthetic.json` (`quantile: 0.95`, `method: nearest_rank`
 over 8 calibration scores, `source_label_use: none`,
 `held_out: not_reserved_or_evaluated`). Policies beyond fixed live only in
 the Day-04 replay family (`temporal-replay-v1`, fixed + hysteresis at one
 predeclared setting each, no sweep): the runtime writer stays schema-1
 strict (`normal`/`alert` only, `output_state` checked against
-score/threshold), so there is still no runtime defer path. No eligibility
-manifest, no real-stream reservation, no real config, and no
-rolling/persistence policy exists. Aman review of the real
-loader/rolling/K/M work is pending; the manifest/reservation (Nakul) is
-absent; an independent technical review of the current code is completed
-and is not a Nakul audit.
+score/threshold), so there was no runtime defer path then. This dated
+description predates the current five-policy real-stream runner. The
+independent technical review cited here was not a pre-held-out audit.
 
 ### What the evaluator is
 
@@ -347,11 +375,122 @@ comparison cannot be explained by different scores.
 .venv/bin/python -m reliable_alerting.evidence family-figure results/day04-final-check-family-a --output results/day04-final-check-family.svg
 ```
 
-Verified here: 247 tests pass (`unittest discover -s tests -v`; interim
-245 during execution plus 2 resource-scope tests; HEAD suite itself is 164,
-not 245). The suite was re-run fresh during this
-documentation update; regenerate the ignored `results/*` paths locally
-rather than treating them as tracked evidence.
+Day-04 completion recorded 247 passing tests. Its earlier reference to a
+164-test HEAD described the pre-Day-4 commit, not the current HEAD
+`a0d1b68ebcef079e33137be77a53b8f7fb4386a9`. After the uncommitted Day-5
+changes, fresh `.venv/bin/python -m unittest discover -s tests -v` passed
+**316 tests** in 26.509 seconds on 24 September 2026; `git diff --check`
+also passed (shell-clock checkpoint 11:46:29 IST). Regenerate ignored
+`results/*` paths locally rather than treating them as tracked evidence.
+
+## Day-05 provisional diagnostic + family (scheduled 23 September; execution 23-24 September 2026)
+
+Why: decision-time diagnostic aid only, not a detection claim. Provisional
+Pratyush support; not an Aman deliverable and not a real-scorer result.
+The independently checked start was 23 September 22:21:26 IST; the final
+experiment chain began 23:20:59 IST that day. Documentation and verification
+continued on 24 September. Each component's saved timestamp has its own scope.
+
+- Method (`src/reliable_alerting/diagnostics.py`,
+  `diagnostic_id: trailing-median-gap-v1`, `diagnostics-v1`): one setting
+  only — current-inclusive median of the last 3 replay scores minus the
+  frozen calibration-score median, in score units with `normalize: false`.
+  Config `configs/day05-diagnostic.json` (`trailing_window: 3`,
+  `warmup_count: 2`, `reference: calibration/median/calibration_scores`,
+  `time_basis: sample_index`, `provisional: true`,
+  `provisional_owner: pratyush`). First 2 rows are null warmup with an
+  explicit `readiness_reason`; each call resets independently
+  (`reset: independent_call`, `inclusion: current_inclusive`); calibration
+  must strictly precede scores; no labels are read or accepted. Timed
+  region is validation recompute plus config check plus build plus
+  verification only; provenance capture and file writes are excluded
+  (`saved_run_validation_recompute_diagnostic_verification_excluding_output`).
+  `src/reliable_alerting/evidence.py` adds the diagnostic/family
+  comparison, table, and diagnostics-figure rendering from saved artifacts
+  only, with independent recompute of all 8 rows via fresh sorting
+  arithmetic (`verify_features`).
+- Saved final artifacts (ignored, regenerable):
+  `results/day05-20260923-final-source-a` / `-source-b`,
+  `results/day05-20260923-final-diagnostic-a` / `-diagnostic-b`,
+  `results/day05-20260923-final-family-a` / `-family-b`,
+  `results/day05-20260923-final-diagnostic-comparison.json`,
+  `results/day05-20260923-final-family-comparison.json`,
+  `results/day05-20260923-final-table-a.json` /
+  `-table-b.json`,
+  `results/day05-20260923-final-diagnostics-a.svg` /
+  `-diagnostics-b.svg`.
+  The preliminary Day-05 pair (`results/day05-20260923-source-a` / `-b`,
+  `-diagnostic-a` / `-b`, `-family-a` / `-b`, `-table-a/b.json`,
+  `-diagnostic-comparison.json`, `-family-comparison.json`,
+  `-diagnostics-a/b.svg`) is retained as preliminary history; the final
+  pair corrects the feature-magnitude figure, not the scores or metrics.
+  Final `created_at` 2026-09-23T17:50:59/17:51:00Z; diagnostic comparison
+  and family comparison both report `status: true`, `scientific_equal:
+  true`, git head `a0d1b68ebcef079e33137be77a53b8f7fb4386a9`.
+- Observed final values (synthetic fixture only, same scores as Day-04):
+  reference (calibration) median `0.5345219123968882`; high
+  `1.0690438247937764`, low `0.8 * high = 0.8552350598350211`. All 8
+  diagnostic rows independently recomputed and verified; 6 ready
+  (`replay:72:75` through `replay:92:95`) reported separately from the
+  full 8 policy decisions. Ready features: five rows
+  `0.5345219123968882`, final row `2.672609561984441` (trailing median
+  `3.2071314743813293`); warmup rows `null`. Both policies agree on this
+  trace: 8 windows, 3 alerts; episodes `[79, 83)`, `[91, 96)` vs events
+  `[72, 80)`, `[88, 96)`; recall 2/2, precision 2/2, false 0; delays 7
+  and 3 (mean 5), misses 0; total alert duration 9, non-event 3, warmup 3,
+  coverage 8/8, defer 0/8; episode rate 250 per 1000 decisions. The tie
+  (fixed vs hysteresis identical outputs here) is not a policy
+  improvement; this synthetic diagnostic has no real-stream selector result.
+  The table's `misleading_feature_example` (`replay:72:75`,
+  `feature 0.5345...` with `output_state normal`) is descriptive only.
+- Source-vs-family: source runs (`pipeline` on
+  `configs/day01-synthetic.json`) fix the scores and calibration; families
+  (`replay temporal-replay-v1` over the saved source plus the diagnostic
+  join in the table/figure) replay fixed and hysteresis over those
+  identical scores and evaluate offline. Identical score traces cannot
+  demonstrate a ranking-metric (e.g. VUS-PR) improvement.
+- Limits and gates: the diagnostic was not compared as a real-stream
+  selector. Authoritative operating points, held-out reservation, and
+  independent pre-held-out audit are absent. Real-stream association/candidate selection stays blocked:
+  no justified association rule or candidate sketch exists. Held-out
+  remains `not_reserved_or_evaluated`; the fixed quantile remains a
+  reproducibility convention, not a false-alarm or coverage guarantee.
+- Reproduce under fresh, ignored paths (do not reuse existing outputs):
+
+```sh
+.venv/bin/python -m reliable_alerting.pipeline --config configs/day01-synthetic.json --output results/day05-reproduce-source-a
+.venv/bin/python -m reliable_alerting.pipeline --config configs/day01-synthetic.json --output results/day05-reproduce-source-b
+.venv/bin/python -m reliable_alerting.diagnostics --run results/day05-reproduce-source-a --config configs/day05-diagnostic.json --output results/day05-reproduce-diagnostic-a
+.venv/bin/python -m reliable_alerting.diagnostics --run results/day05-reproduce-source-b --config configs/day05-diagnostic.json --output results/day05-reproduce-diagnostic-b
+.venv/bin/python -m reliable_alerting.replay --run results/day05-reproduce-source-a --protocol configs/day04-synthetic-family.json --evaluation-config configs/day02-evaluation.json --labels tests/fixtures/day02-synthetic-labels.json --output results/day05-reproduce-family-a
+.venv/bin/python -m reliable_alerting.replay --run results/day05-reproduce-source-b --protocol configs/day04-synthetic-family.json --evaluation-config configs/day02-evaluation.json --labels tests/fixtures/day02-synthetic-labels.json --output results/day05-reproduce-family-b
+.venv/bin/python -m reliable_alerting.evidence compare-diagnostics results/day05-reproduce-diagnostic-a results/day05-reproduce-diagnostic-b --output results/day05-reproduce-diagnostic-comparison.json
+.venv/bin/python -m reliable_alerting.evidence compare-families results/day05-reproduce-family-a results/day05-reproduce-family-b --output results/day05-reproduce-family-comparison.json
+.venv/bin/python -m reliable_alerting.evidence diagnostic-table --diagnostic results/day05-reproduce-diagnostic-a --family results/day05-reproduce-family-a --output results/day05-reproduce-table-a.json
+.venv/bin/python -m reliable_alerting.evidence diagnostic-table --diagnostic results/day05-reproduce-diagnostic-b --family results/day05-reproduce-family-b --output results/day05-reproduce-table-b.json
+.venv/bin/python -m reliable_alerting.evidence diagnostic-plot --diagnostic results/day05-reproduce-diagnostic-a --family results/day05-reproduce-family-a --output results/day05-reproduce-diagnostics-a.svg
+.venv/bin/python -m reliable_alerting.evidence diagnostic-plot --diagnostic results/day05-reproduce-diagnostic-b --family results/day05-reproduce-family-b --output results/day05-reproduce-diagnostics-b.svg
+```
+
+Check the exact CLI subcommand names in `evidence.py`/`diagnostics.py`
+before running; all writers refuse to overwrite, so each output needs a
+fresh `day05-reproduce-*` path. Figures plot actual saved feature
+magnitudes (score units) with ready/warmup separation; they are
+engineering checks, not quality claims.
+
+Independent arithmetic audit: `results/day05-20260924-independent-audit.json`
+records 16 checked rows across the two runs, using `sum - min - max` for
+each three-score median and a separate calibration median calculation.
+It also verifies table scientific fields, SVG XML/geometry and historical
+Day-4 evaluation equality. Rendered-image inspection was not performed.
+The recorded environment launcher was executed with only its output path
+changed to `results/day05-20260924-launcher-diagnostic`; scientific equality
+held despite documentation hash drift. It used the **source** directory
+`results/day05-20260923-final-source-a`, not a family directory.
+The exact known Day-4 29-file provenance schema remains compatible alongside
+the current 33-file schema; scientific replay/evaluation checks remain strict
+and old metadata was not rewritten. The beginner working reference is
+`../DAY-05-PRATYUSH-GUIDE.md` outside this repository. Teammate audit is pending.
 
 ## Optional tooling
 

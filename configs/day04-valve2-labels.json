@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "time_basis": "sample_index",
+  "coverage": [562, 1125],
+  "events": [
+    {
+      "event_id": "valve2-anomaly-0",
+      "start": 562,
+      "stop": 956
+    }
+  ]
+}
