@@ -101,17 +101,29 @@ def load_predictions_generic(path):
             header = next(reader)
         except StopIteration as e:
             raise ValueError("predictions.csv must not be empty") from e
-        if tuple(header) != tuple(PREDICTIONS_COLUMNS):
-            raise ValueError(f"predictions header must be exactly {PREDICTIONS_COLUMNS}")
+        # Accept the base 8-column schema, or that schema plus a trailing
+        # optional "features" column emitted by the multi-policy pipeline.
+        # This generic loader already allows defer states and varying
+        # thresholds and imposes no score/threshold consistency assumption;
+        # only the base columns are consumed here.
+        base_cols = tuple(PREDICTIONS_COLUMNS)
+        if tuple(header) == base_cols:
+            n_expected = len(base_cols)
+        elif tuple(header) == base_cols + ("features",):
+            n_expected = len(base_cols) + 1
+        else:
+            raise ValueError(
+                f"predictions header must be exactly {PREDICTIONS_COLUMNS} "
+                f"(optionally followed by 'features')")
         rows = []
         seen = set()
         prev_end = None
         config_id = None
         run_id = None
         for lineno, parts in enumerate(reader, start=2):
-            if len(parts) != len(PREDICTIONS_COLUMNS):
-                raise ValueError(f"row {lineno} must have exactly {len(PREDICTIONS_COLUMNS)} fields")
-            d = dict(zip(PREDICTIONS_COLUMNS, parts))
+            if len(parts) != n_expected:
+                raise ValueError(f"row {lineno} must have exactly {n_expected} fields")
+            d = dict(zip(base_cols, parts))
             window_id = _require_id(d["window_id"], "window_id")
             start = _parse_int(d["start_index"], "start_index")
             end = _parse_int(d["end_index"], "end_index")

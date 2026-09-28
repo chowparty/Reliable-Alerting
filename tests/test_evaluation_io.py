@@ -209,6 +209,58 @@ class GenericLoaderTest(unittest.TestCase):
             with self.assertRaises((TypeError, ValueError)):
                 evidence.load_predictions_csv(p)
 
+    def test_both_loaders_accept_optional_features_column(self):
+        """Real multi-policy predictions carry a trailing 'features' column.
+        Both the generic evaluation loader and the strict recompute loader
+        must accept the base 8 columns OR those 8 plus 'features', and parse
+        the base fields identically either way."""
+        from reliable_alerting import evaluation_io, evidence
+        base = ["window_id", "start_index", "end_index", "score",
+                "output_state", "threshold", "config_id", "run_id"]
+        with tempfile.TemporaryDirectory(dir=str(REPO)) as tmp:
+            # 8-column (existing) format
+            p8 = str(Path(tmp) / "p8.csv")
+            with open(p8, "w", newline="") as fh:
+                w = csv.writer(fh)
+                w.writerow(base)
+                w.writerow(["w:0", 0, 1, 0.1, "normal", 1.0, "c", "r"])
+                w.writerow(["w:1", 2, 3, 2.5, "alert", 1.0, "c", "r"])
+            # 9-column (features) format, same substantive values
+            p9 = str(Path(tmp) / "p9.csv")
+            with open(p9, "w", newline="") as fh:
+                w = csv.writer(fh)
+                w.writerow(base + ["features"])
+                w.writerow(["w:0", 0, 1, 0.1, "normal", 1.0, "c", "r", "[0.1, 0.0]"])
+                w.writerow(["w:1", 2, 3, 2.5, "alert", 1.0, "c", "r", "[0.3, 0.2]"])
+            for loader in (evaluation_io.load_predictions_generic,
+                           evidence.load_predictions_csv):
+                r8 = loader(p8)
+                r9 = loader(p9)
+                self.assertEqual(len(r8), 2)
+                self.assertEqual(len(r9), 2)
+                # base fields identical across the two formats
+                keys = ("window_id", "start_index", "end_index", "score",
+                        "output_state", "threshold", "config_id", "run_id")
+                self.assertEqual([{k: r[k] for k in keys} for r in r8],
+                                 [{k: r[k] for k in keys} for r in r9])
+
+    def test_both_loaders_reject_unknown_extra_column(self):
+        """The relaxation is scoped to 'features' only; any other extra column
+        is still rejected by both loaders."""
+        from reliable_alerting import evaluation_io, evidence
+        base = ["window_id", "start_index", "end_index", "score",
+                "output_state", "threshold", "config_id", "run_id"]
+        with tempfile.TemporaryDirectory(dir=str(REPO)) as tmp:
+            pbad = str(Path(tmp) / "pbad.csv")
+            with open(pbad, "w", newline="") as fh:
+                w = csv.writer(fh)
+                w.writerow(base + ["surprise"])
+                w.writerow(["w:0", 0, 1, 0.1, "normal", 1.0, "c", "r", "x"])
+            for loader in (evaluation_io.load_predictions_generic,
+                           evidence.load_predictions_csv):
+                with self.assertRaises(ValueError):
+                    loader(pbad)
+
 
 class StrictJsonTest(unittest.TestCase):
     def test_rejects_nan_infinity_duplicate_keys(self):

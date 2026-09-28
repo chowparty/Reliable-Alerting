@@ -1,0 +1,316 @@
+{
+  "config": {
+    "decision_stride": 4,
+    "first_decision": 577,
+    "horizon": [
+      574,
+      1148
+    ],
+    "schema_version": 1,
+    "time_basis": "sample_index",
+    "window_length": 4
+  },
+  "diagnostics": {
+    "clipped_count": 0,
+    "clipped_event_count": 1,
+    "decision_count": 143,
+    "duration_unit": "sample_index",
+    "episode_count": 27,
+    "excluded_event_count": 0,
+    "excluded_rows": 0,
+    "horizon": [
+      574,
+      1148
+    ],
+    "horizon_length": 574,
+    "horizon_length_unit": "sample_index",
+    "invalid_rows": 0,
+    "missing_policy": "reject",
+    "missing_rows": 0,
+    "warmup_duration": 3,
+    "warmup_duration_unit": "sample_index"
+  },
+  "episodes": [
+    {
+      "episode_id": "episode-0",
+      "start": 585,
+      "stop": 593
+    },
+    {
+      "episode_id": "episode-1",
+      "start": 597,
+      "stop": 601
+    },
+    {
+      "episode_id": "episode-2",
+      "start": 613,
+      "stop": 637
+    },
+    {
+      "episode_id": "episode-3",
+      "start": 645,
+      "stop": 657
+    },
+    {
+      "episode_id": "episode-4",
+      "start": 661,
+      "stop": 677
+    },
+    {
+      "episode_id": "episode-5",
+      "start": 685,
+      "stop": 689
+    },
+    {
+      "episode_id": "episode-6",
+      "start": 697,
+      "stop": 701
+    },
+    {
+      "episode_id": "episode-7",
+      "start": 709,
+      "stop": 729
+    },
+    {
+      "episode_id": "episode-8",
+      "start": 737,
+      "stop": 741
+    },
+    {
+      "episode_id": "episode-9",
+      "start": 745,
+      "stop": 773
+    },
+    {
+      "episode_id": "episode-10",
+      "start": 777,
+      "stop": 789
+    },
+    {
+      "episode_id": "episode-11",
+      "start": 801,
+      "stop": 837
+    },
+    {
+      "episode_id": "episode-12",
+      "start": 841,
+      "stop": 865
+    },
+    {
+      "episode_id": "episode-13",
+      "start": 869,
+      "stop": 873
+    },
+    {
+      "episode_id": "episode-14",
+      "start": 877,
+      "stop": 913
+    },
+    {
+      "episode_id": "episode-15",
+      "start": 921,
+      "stop": 929
+    },
+    {
+      "episode_id": "episode-16",
+      "start": 933,
+      "stop": 961
+    },
+    {
+      "episode_id": "episode-17",
+      "start": 965,
+      "stop": 969
+    },
+    {
+      "episode_id": "episode-18",
+      "start": 973,
+      "stop": 997
+    },
+    {
+      "episode_id": "episode-19",
+      "start": 1001,
+      "stop": 1005
+    },
+    {
+      "episode_id": "episode-20",
+      "start": 1009,
+      "stop": 1013
+    },
+    {
+      "episode_id": "episode-21",
+      "start": 1021,
+      "stop": 1025
+    },
+    {
+      "episode_id": "episode-22",
+      "start": 1029,
+      "stop": 1041
+    },
+    {
+      "episode_id": "episode-23",
+      "start": 1057,
+      "stop": 1061
+    },
+    {
+      "episode_id": "episode-24",
+      "start": 1065,
+      "stop": 1089
+    },
+    {
+      "episode_id": "episode-25",
+      "start": 1097,
+      "stop": 1105
+    },
+    {
+      "episode_id": "episode-26",
+      "start": 1121,
+      "stop": 1148
+    }
+  ],
+  "events": {
+    "clipped": [
+      {
+        "event_id": "valve1-anomaly-0",
+        "start": 574,
+        "stop": 975
+      }
+    ],
+    "clipped_count": 0,
+    "excluded_count": 0,
+    "original": [
+      {
+        "event_id": "valve1-anomaly-0",
+        "start": 574,
+        "stop": 975
+      }
+    ]
+  },
+  "matches": [
+    {
+      "clipped_start": 574,
+      "clipped_stop": 975,
+      "delay": 11,
+      "event_id": "valve1-anomaly-0",
+      "matching_episode_ids": [
+        "episode-0",
+        "episode-1",
+        "episode-2",
+        "episode-3",
+        "episode-4",
+        "episode-5",
+        "episode-6",
+        "episode-7",
+        "episode-8",
+        "episode-9",
+        "episode-10",
+        "episode-11",
+        "episode-12",
+        "episode-13",
+        "episode-14",
+        "episode-15",
+        "episode-16",
+        "episode-17",
+        "episode-18"
+      ],
+      "original_start": 574,
+      "original_stop": 975,
+      "recalled": true
+    }
+  ],
+  "metric_definition_id": "offline-alert-evaluation-v1",
+  "metrics": {
+    "alert_episode_rate": {
+      "denominator": 574,
+      "numerator": 27,
+      "unit": "episodes_per_sample_index",
+      "value": 0.047038327526132406
+    },
+    "alert_episode_rate_per_1000_decisions": {
+      "denominator": 143,
+      "numerator": 27,
+      "unit": "episodes_per_1000_decisions",
+      "value": 188.8111888111888
+    },
+    "alerted_window_fraction": {
+      "denominator": 143,
+      "numerator": 97,
+      "value": 0.6783216783216783
+    },
+    "clipped_event_count": 0,
+    "decision_count": 143,
+    "decision_coverage": {
+      "denominator": 143,
+      "numerator": 143,
+      "value": 1.0
+    },
+    "deferral_rate": {
+      "denominator": 143,
+      "numerator": 0,
+      "value": 0.0
+    },
+    "deferred_duration": {
+      "unit": "sample_index",
+      "value": 0
+    },
+    "delay": {
+      "max": 11,
+      "mean": 11.0,
+      "median": 11.0,
+      "min": 11,
+      "missed_count": 0,
+      "per_event": [
+        {
+          "delay": 11,
+          "event_id": "valve1-anomaly-0",
+          "matching_episode_ids": [
+            "episode-0",
+            "episode-1",
+            "episode-2",
+            "episode-3",
+            "episode-4",
+            "episode-5",
+            "episode-6",
+            "episode-7",
+            "episode-8",
+            "episode-9",
+            "episode-10",
+            "episode-11",
+            "episode-12",
+            "episode-13",
+            "episode-14",
+            "episode-15",
+            "episode-16",
+            "episode-17",
+            "episode-18"
+          ]
+        }
+      ],
+      "recalled_count": 1,
+      "unit": "sample_index"
+    },
+    "episode_precision": {
+      "denominator": 27,
+      "numerator": 19,
+      "value": 0.7037037037037037
+    },
+    "event_recall": {
+      "denominator": 1,
+      "numerator": 1,
+      "value": 1.0
+    },
+    "excluded_event_count": 0,
+    "false_alert_episodes": 8,
+    "non_event_alert_duration": {
+      "unit": "sample_index",
+      "value": 109
+    },
+    "total_alert_duration": {
+      "unit": "sample_index",
+      "value": 387
+    },
+    "warmup_duration": {
+      "unit": "sample_index",
+      "value": 3
+    }
+  }
+}

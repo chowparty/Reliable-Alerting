@@ -414,7 +414,18 @@ class TamperMalformedTest(unittest.TestCase):
                                   str(LABELS), str(Path(tmp) / "fam"))
             self.assertFalse((Path(tmp) / "fam").exists())
 
-    def test_strict_fixed_validator_still_rejects_threshold_equality_alert(self):
+    def test_evaluation_loader_accepts_state_threshold_mismatch(self):
+        """Updated contract (2026-09-27): the evaluation-path loader no longer
+        imposes a score/threshold -> output_state consistency assumption. That
+        invariant holds only for the stateless fixed-threshold policy;
+        k_consecutive/m_of_n/hysteresis and the adaptive rolling threshold
+        legitimately emit a state that is not a pure function of the current
+        score vs threshold. A row with score == threshold and state 'alert'
+        (previously rejected) must now load; trace integrity is guarded by
+        recompute verification, not by this per-row assumption.
+
+        The loader still rejects genuinely malformed rows (see
+        test_evaluation_loader_still_rejects_malformed)."""
         from reliable_alerting import evidence
         with tempfile.TemporaryDirectory(dir=str(RESULTS)) as tmp:
             p = str(Path(tmp) / "pred.csv")
@@ -423,8 +434,36 @@ class TamperMalformedTest(unittest.TestCase):
                 w.writerow(["window_id", "start_index", "end_index", "score",
                             "output_state", "threshold", "config_id", "run_id"])
                 w.writerow(["w:0", 0, 1, 1.5, "alert", 1.5, "c", "r"])
+            rows = evidence.load_predictions_csv(p)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["output_state"], "alert")
+            self.assertEqual(rows[0]["score"], 1.5)
+            self.assertEqual(rows[0]["threshold"], 1.5)
+
+    def test_evaluation_loader_still_rejects_malformed(self):
+        """The relaxation is scoped: only the consistency assumption is gone.
+        Genuinely malformed rows are still rejected."""
+        from reliable_alerting import evidence
+        with tempfile.TemporaryDirectory(dir=str(RESULTS)) as tmp:
+            # bad state domain
+            p1 = str(Path(tmp) / "bad_state.csv")
+            with open(p1, "w", newline="") as fh:
+                w = csv.writer(fh)
+                w.writerow(["window_id", "start_index", "end_index", "score",
+                            "output_state", "threshold", "config_id", "run_id"])
+                w.writerow(["w:0", 0, 1, 1.5, "bogus", 1.5, "c", "r"])
             with self.assertRaises(ValueError):
-                evidence.load_predictions_csv(p)
+                evidence.load_predictions_csv(p1)
+            # unknown extra column (not the allowed optional 'features')
+            p2 = str(Path(tmp) / "bad_hdr.csv")
+            with open(p2, "w", newline="") as fh:
+                w = csv.writer(fh)
+                w.writerow(["window_id", "start_index", "end_index", "score",
+                            "output_state", "threshold", "config_id", "run_id",
+                            "surprise"])
+                w.writerow(["w:0", 0, 1, 0.1, "normal", 1.5, "c", "r", "x"])
+            with self.assertRaises(ValueError):
+                evidence.load_predictions_csv(p2)
 
     def test_no_overwrite(self):
         from reliable_alerting import replay

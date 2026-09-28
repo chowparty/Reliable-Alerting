@@ -1,0 +1,140 @@
+{
+  "config": {
+    "decision_stride": 4,
+    "first_decision": 577,
+    "horizon": [
+      574,
+      1148
+    ],
+    "schema_version": 1,
+    "time_basis": "sample_index",
+    "window_length": 4
+  },
+  "diagnostics": {
+    "clipped_count": 0,
+    "clipped_event_count": 1,
+    "decision_count": 143,
+    "duration_unit": "sample_index",
+    "episode_count": 0,
+    "excluded_event_count": 0,
+    "excluded_rows": 0,
+    "horizon": [
+      574,
+      1148
+    ],
+    "horizon_length": 574,
+    "horizon_length_unit": "sample_index",
+    "invalid_rows": 0,
+    "missing_policy": "reject",
+    "missing_rows": 0,
+    "warmup_duration": 3,
+    "warmup_duration_unit": "sample_index"
+  },
+  "episodes": [],
+  "events": {
+    "clipped": [
+      {
+        "event_id": "valve1-anomaly-0",
+        "start": 574,
+        "stop": 975
+      }
+    ],
+    "clipped_count": 0,
+    "excluded_count": 0,
+    "original": [
+      {
+        "event_id": "valve1-anomaly-0",
+        "start": 574,
+        "stop": 975
+      }
+    ]
+  },
+  "matches": [
+    {
+      "clipped_start": 574,
+      "clipped_stop": 975,
+      "delay": null,
+      "event_id": "valve1-anomaly-0",
+      "matching_episode_ids": [],
+      "original_start": 574,
+      "original_stop": 975,
+      "recalled": false
+    }
+  ],
+  "metric_definition_id": "offline-alert-evaluation-v1",
+  "metrics": {
+    "alert_episode_rate": {
+      "denominator": 574,
+      "numerator": 0,
+      "unit": "episodes_per_sample_index",
+      "value": 0.0
+    },
+    "alert_episode_rate_per_1000_decisions": {
+      "denominator": 143,
+      "numerator": 0,
+      "unit": "episodes_per_1000_decisions",
+      "value": 0.0
+    },
+    "alerted_window_fraction": {
+      "denominator": 143,
+      "numerator": 0,
+      "value": 0.0
+    },
+    "clipped_event_count": 0,
+    "decision_count": 143,
+    "decision_coverage": {
+      "denominator": 143,
+      "numerator": 143,
+      "value": 1.0
+    },
+    "deferral_rate": {
+      "denominator": 143,
+      "numerator": 0,
+      "value": 0.0
+    },
+    "deferred_duration": {
+      "unit": "sample_index",
+      "value": 0
+    },
+    "delay": {
+      "max": null,
+      "mean": null,
+      "median": null,
+      "min": null,
+      "missed_count": 1,
+      "per_event": [
+        {
+          "delay": null,
+          "event_id": "valve1-anomaly-0",
+          "matching_episode_ids": []
+        }
+      ],
+      "recalled_count": 0,
+      "unit": "sample_index"
+    },
+    "episode_precision": {
+      "denominator": 0,
+      "numerator": 0,
+      "value": null
+    },
+    "event_recall": {
+      "denominator": 1,
+      "numerator": 0,
+      "value": 0.0
+    },
+    "excluded_event_count": 0,
+    "false_alert_episodes": 0,
+    "non_event_alert_duration": {
+      "unit": "sample_index",
+      "value": 0
+    },
+    "total_alert_duration": {
+      "unit": "sample_index",
+      "value": 0
+    },
+    "warmup_duration": {
+      "unit": "sample_index",
+      "value": 3
+    }
+  }
+}
