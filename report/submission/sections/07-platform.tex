@@ -1,0 +1,23 @@
+% Guideline item 8: Simulation Platform and Requirements.
+\section{Simulation Platform and Requirements}\label{sec:platform}
+
+\paragraph{Software.}
+The platform is a Python 3.12 package that uses only the standard library, with
+\texttt{unittest} for its tests. It provides reusable loaders, chronological splits, a
+scoring interface, fixed-quantile calibration, the policy arms and an offline
+evaluator. Runs save per-window predictions and an action log, and every reported row
+is recomputed by an independent script (\texttt{recompute\_evaluations.py}) before it
+enters this report. Execution is deterministic: scoring and policies use no randomness,
+and the one randomized property test seeds its own generator. No GPU is needed; each
+run records its elapsed time and peak Python memory as its resource scope. The report
+and its figures build with a basic \TeX\ Live 2026 installation.
+
+\paragraph{Data.}\Smeasured{}
+The development data are two SKAB streams, \texttt{valve1/0.csv} and
+\texttt{valve2/0.csv}~\citep{skab2020}, scored on the single \texttt{Current} channel.
+Each contains exactly one labelled event (valve1 $[574,975)$, valve2 $[562,956)$), so
+recall is measured over one event per stream. Origin and licence are not independently
+verified (valve1's acquisition URL is unknown; valve2's provenance comes from an earlier
+manifest), so all results are development-only. The stream
+\texttt{SKAB/other/21.csv} is named as reserved in the manifest, but the authority and
+recipe for that reservation are disputed; it was never opened and no claim rests on it.

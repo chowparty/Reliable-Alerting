@@ -1,0 +1,59 @@
+% Guideline item 6: Problem Statement.
+\section{Problem Statement}\label{sec:problem}
+
+\paragraph{Setting.}
+A fixed scorer, fit on source data only, emits one score $s_t$ per window at window
+end $t=1,2,\dots$ (window length 4, stride 4, incomplete windows dropped). Every decision
+at time $t$ may use only scores up to $t$. Labels are never read at runtime; they are
+joined offline after all predictions are saved. The notation is:
+
+\begin{itemize}[leftmargin=1.6em, itemsep=1pt, topsep=2pt]
+  \item $s_t$: the score of the window ending at $t$; the sequence is the \emph{score trace}.
+  \item $\theta_t$: the threshold in force at $t$; an alert is raised if $s_t > \theta_t$.
+  \item $\theta_0$: the calibration threshold, the nearest-rank $0.95$ quantile of the
+    calibration-window scores. It is frozen and serves as the \emph{anchor}.
+  \item $R$: a buffer of recent scores; $q(R)$ is its nearest-rank $0.95$ quantile (the
+    $\lceil 0.95\,|R|\rceil$-th smallest) and $\mathrm{med}(R)$ its median.
+\end{itemize}
+
+\paragraph{What we measure.}
+For each stream and policy (an \emph{arm}) we count \emph{alert windows} and
+\emph{alert episodes} (runs of consecutive alerts), \emph{false episodes} (episodes that
+touch no labelled event), \emph{event recall} (events touched by at least one alert),
+\emph{non-event alert duration} (alerted samples outside events, our main measure of
+false-alert workload) and the \emph{in-event alerted fraction}. \emph{Decision
+coverage} is the share of windows that received an alert-capable decision rather than a
+\textsc{defer}. The full tables also give episode precision, mean delay and episodes per
+1{,}000 decisions. Every value shows its denominator, and durations and delays are in
+sample-index units. Because all arms replay the same trace, ranking metrics such as
+VUS-PR are identical by construction and are not reported per arm.
+
+\paragraph{The self-referential ratchet.}
+The rolling baseline admits a score to $R$ only when the current threshold judged it
+normal, then sets the threshold to $q(R)$. We claim this threshold can never rise.
+
+\begin{proposition}[Self-referential admission ratchets]\label{prop:ratchet}
+Update a threshold as follows: admit the current score $s$ to a buffer of capacity
+$L \ge 1$ only if $s \le \theta$, drop the oldest element when over capacity, and set
+the new threshold to the nearest-rank $q$-quantile of the buffer, $q \in (0,1]$. Then
+for every score sequence, $\theta_{t+1} \le \theta_t$ for all $t$.
+\end{proposition}
+
+\begin{proof}
+Let $n=|R|$ and $k=\lceil qn \rceil$, so $\theta_t$ is the $k$-th smallest element of
+$R$ and at least $k$ elements of $R$ are $\le \theta_t$. If $s$ is not admitted, $R$ is
+unchanged and $\theta_{t+1}=\theta_t$. If $s$ is admitted, then $s \le \theta_t$, and
+there are two cases. \emph{Buffer not full:} the new buffer has $n+1$ elements, at
+least $k+1$ of them $\le \theta_t$, and its rank is
+$k'=\lceil q(n+1)\rceil \le k+1$, so its $k'$-th smallest element is $\le \theta_t$.
+\emph{Buffer full:} the oldest element is dropped, the size and rank stay $n$ and $k$,
+and at least $(k+1)-1=k$ elements $\le \theta_t$ remain, so the $k$-th smallest is
+$\le \theta_t$. From an empty buffer the first admitted score satisfies
+$s \le \theta_0$ and sets $\theta = s$. In every case $\theta_{t+1} \le \theta_t$.
+\end{proof}
+
+The proposition explains the rolling baseline's alert volume without looking at any
+data. Admitting every score has no such bound and follows whatever arrives, including a
+sustained fault. The problem is therefore to design an admission rule that is
+\emph{separated} from the threshold's own decisions and \emph{anchored} to $\theta_0$,
+and to measure what it costs in coverage and delay.

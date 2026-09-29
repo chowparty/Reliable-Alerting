@@ -1,0 +1,25 @@
+% Guideline item 9: Conclusion, with the predeclared next experiment.
+\section{Conclusion}\label{sec:conclusion}
+
+We proved that a quantile threshold which learns only from windows it judged normal can
+never rise, and measured the cost on two SKAB streams: the same single event at
+$16.2\times$ and $3.9\times$ the fixed threshold's alert windows. We implemented
+recalibration as a guarded decision-time action and compared it with seven baselines
+and three ablations on identical score traces. On SKAB it behaves exactly like the fixed
+threshold, which passes the no-harm check and shows nothing more. Under synthetic stress
+it works where designed and fails where any label-free rule must. Whether it helps on
+\emph{real} benign regime changes is proposed, not claimed, and is settled by the
+following experiment.
+
+\paragraph{The falsifiable next experiment.}\Sproposed{}
+Replay all arms on common traces for the SKAB streams admitted by a label-independent
+rule (every \texttt{valve1/*.csv} and \texttt{valve2/*.csv} other than the two
+development files, with calibration ending at the declared first labelled row), plus one
+public stream family with labelled \emph{benign} regime changes. The direction is
+\textbf{refuted}, and that becomes the reported result, if any of these holds:
+\begin{enumerate}[label=(\alph*), leftmargin=2em, itemsep=1pt, topsep=2pt]
+  \item on streams where the label-free elevation test fires, the controller does not
+    reduce non-event alert duration versus fixed at equal event recall;
+  \item it loses event recall on any stream where fixed has it;
+  \item Sun et al.'s abstention matches it at equal coverage.
+\end{enumerate}

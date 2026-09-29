@@ -1,0 +1,32 @@
+% Guideline item 3: Introduction.
+\section{Introduction}\label{sec:introduction}
+
+An anomaly-alerting system has two parts. A \emph{scorer} turns each window of a
+sensor signal into a number, the anomaly score; a \emph{policy} turns that score into
+a decision. The simplest policy raises an alert whenever the score exceeds a fixed
+threshold $\theta_0$ set on a calibration period. On a signal whose normal level drifts,
+a fixed threshold goes out of date, so a common remedy is to let the threshold learn
+from recent scores. This report studies one question inside that remedy:
+
+\begin{quote}
+\emph{When should an alert threshold learn, and from which data, if that data may be
+chosen neither by the threshold's own decisions nor unconditionally?}
+\end{quote}
+
+We keep the scorer fixed and study the policy only. At every window end our policy
+chooses one of four actions: \textsc{alert}, \textsc{hold} (no alert),
+\textsc{defer} (withhold a decision, which lowers decision coverage) or
+\textsc{recalibrate} (move the threshold). Recalibration is guarded: it uses a buffer of
+recent scores that is filled without looking at the threshold's decisions, and it may
+only move the threshold within $[\theta_0, 4\theta_0]$. All policies replay the
+identical score trace, so any difference between them is caused by the decision rule
+and not by a different scorer.
+
+This is a Phase-I report. Its evidence is a development comparison on two SKAB
+streams~\citep{skab2020} and a deterministic synthetic family, not a held-out result.
+We therefore claim a proved mechanism and honestly scoped measurements, not that any
+policy wins. Section~\ref{sec:motivation} motivates the question with a worked example;
+Section~\ref{sec:literature} positions it against the closest work;
+Sections~\ref{sec:problem}--\ref{sec:platform} define the problem, method and platform;
+Section~\ref{sec:results} tests the claims; Sections~\ref{sec:limitations}
+and~\ref{sec:conclusion} give the strongest case against us and the next experiment.

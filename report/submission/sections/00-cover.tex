@@ -1,0 +1,50 @@
+% Cover page (guideline item 1: title, supervisor, students, NSUT logo).
+\begin{titlepage}
+  \thispagestyle{empty}
+  \centering
+  \vspace*{6mm}
+  {\large\bfseries NETAJI SUBHAS UNIVERSITY OF TECHNOLOGY (NSUT)\par}
+  \vspace{1mm}
+  {\small Department of Computer Science and Engineering\par}
+  {\small Main Campus, New Delhi\par}
+  \vspace{9mm}
+  % The NSUT logo reuse rights are unresolved; the logo is NOT committed. build.sh
+  % copies it in when present, and this guard lets the source compile without it.
+  % NO_LOGO=1 sh build.sh defines \ReportNoLogo for the public repository copy.
+  \newcommand{\logomark}{\fbox{\parbox[c][22mm][c]{32mm}{\centering\footnotesize
+    NSUT\\[1pt]logo}}\par}
+  \ifdefined\ReportNoLogo \logomark \else
+  \IfFileExists{nsut-logo.png}{%
+    \includegraphics[width=32mm]{nsut-logo.png}\par}{\logomark}\fi
+  \vspace{10mm}
+  {\LARGE\bfseries When Should an Alert Threshold Learn?\par}
+  \vspace{3mm}
+  {\large Admission-Separated Recalibration as a Decision-Time Action\\
+   for Time-Series Anomaly Alerting\par}
+  \vspace{10mm}
+  {\large B.Tech Project-I (Phase-I) Mid-Semester Report\par}
+  \vspace{2mm}
+  {\normalsize 7th Semester, September 2026\par}
+  \vfill
+  {\normalsize\bfseries Submitted by\par}
+  \vspace{2mm}
+  \begin{tabular}{ll}
+    Nakul Somani      & 2023UCS1592\\
+    Aman Pandey       & 2023UCS1595\\
+    Pratyush Chaudhary & 2023UCS1616\\
+  \end{tabular}\par
+  \vspace{9mm}
+  {\normalsize\bfseries Supervisor\par}
+  \vspace{1mm}
+  {\normalsize Dr.\ Vijay Kumar Bohat\\
+   Assistant Professor, Department of Computer Science and Engineering\par}
+  \vspace{12mm}
+  \begin{flushright}
+  \begin{minipage}{60mm}
+    \centering
+    \rule{55mm}{0.4pt}\\[1mm]
+    {\footnotesize Supervisor's signature}
+  \end{minipage}
+  \end{flushright}
+  \vspace*{6mm}
+\end{titlepage}

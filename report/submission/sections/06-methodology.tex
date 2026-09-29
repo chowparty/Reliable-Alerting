@@ -1,0 +1,167 @@
+% Guideline item 7: Objective and Methodology.
+\section{Objective and Methodology}\label{sec:methodology}
+
+\paragraph{Objective.}
+Test whether separating a threshold's recalibration data from that threshold's own
+decisions, under an anchored guard with explicit deferral, avoids both the ratchet and
+fault absorption, and measure what it costs in coverage and delay, on one common score
+trace against every baseline.
+
+\paragraph{Pipeline.}
+Each stream is split in time order into source-fit, calibration and replay segments
+(Figure~\ref{fig:flow}). The scorer is fit on the source segment and frozen,
+calibration gives $\theta_0$, and replay gives the one score trace that every arm
+receives. Labels are joined offline, after predictions are saved.
+
+\begin{figure}[H]
+  \centering
+  \aifigure{fig-flow}{\input{figures/fig-flow.tex}}
+  \caption{Chronological split and causal data flow. One frozen scorer produces one
+  score trace, which every policy arm receives unchanged; outputs are saved before
+  labels are joined offline. The reserved stream is never opened.}
+  \label{fig:flow}
+\end{figure}
+
+\claim{4}{\Simplemented}{We implement recalibration as one guarded action among four.}
+The proposed controller (class \texttt{AnchoredRecalibrationPolicy}) keeps a threshold
+$\theta$ starting at $\theta_0$, a mode (\textsc{normal}, \textsc{suspect} or
+\textsc{escalated}), a defer counter $c$, and a buffer $R$ of the last $L$ scores of
+\emph{every} window, so admission never depends on a decision. Listing~\ref{lst:ctrl}
+is the frozen rule and Table~\ref{tab:actions} summarises it.
+
+\begin{lstlisting}[style=ctrl, caption={The frozen controller, transcribed exactly from the protocol. \texttt{quantile} is nearest rank; \texttt{median} is the ordinary median.}, label={lst:ctrl}, captionpos=b]
+append s to R (drop oldest beyond L)
+full     = |R| == L
+elevated = full and median(R) > theta
+if mode == escalated:
+    if elevated: return ALERT if s > theta else HOLD    # stay escalated, no recalibration
+    mode = normal                                       # elevation over; fall through
+if elevated:
+    cand   = quantile(R)
+    stable = max(R) <= rho * median(R)
+    if stable and cand <= kappa * theta0:
+        theta = max(theta0, cand); mode = normal; c = 0 # action RECALIBRATE (up)
+        return (ALERT if s > theta else normal), action=RECALIBRATE
+    if c < D: c += 1; mode = suspect; return DEFER      # guard failed: withhold
+    mode = escalated; c = 0; return ALERT if s > theta else HOLD
+# not elevated
+if mode == suspect: mode = normal; c = 0
+if full and theta > theta0 and quantile(R) < theta:
+    theta = max(theta0, quantile(R))                    # action RECALIBRATE (return to anchor)
+return ALERT if s > theta else HOLD
+\end{lstlisting}
+
+\begin{table}[H]
+  \centering
+  \caption{When the controller takes each action. ``Sustained rise'' means $R$ is full
+  and $\mathrm{med}(R) > \theta$.}
+  \label{tab:actions}
+  \footnotesize
+  \begin{tabular}{@{}p{0.52\linewidth}p{0.42\linewidth}@{}}
+    \toprule
+    Situation at a window end & Action and mode \\
+    \midrule
+    No sustained rise & \textsc{hold}, or \textsc{alert} if $s > \theta$; mode normal \\
+    Sustained rise, stable ($\max R \le \rho\,\mathrm{med}(R)$) and $q(R) \le \kappa\theta_0$
+      & \textsc{recalibrate} to $\max(\theta_0, q(R))$; mode normal \\
+    Sustained rise, guard fails, fewer than $D$ deferrals so far & \textsc{defer}; mode suspect \\
+    Sustained rise, guard still failing after $D$ deferrals
+      & escalate: \textsc{alert} if $s>\theta$ else \textsc{hold}; no recalibration while
+      the rise lasts \\
+    Rise over, $\theta > \theta_0$ and $q(R) < \theta$ & \textsc{recalibrate} back to
+      $\max(\theta_0, q(R))$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Parameters were fixed before any outcome was seen.}
+$L=10$ and $q=0.95$ are the existing rolling baseline's values, and the defer limit is
+$D=L=10$. The cap $\kappa=4$ declares the largest benign rise an operator accepts (four
+times $\theta_0$), and the stability bound $\rho=2$ declares that no window in a buffer
+may exceed twice its median. Both are operating assumptions, not estimates; on the SKAB
+streams the guard is never reached, so no SKAB outcome could have informed them.
+Figure~\ref{fig:concept} contrasts the three admission rules schematically.
+
+\begin{figure}[H]
+  \centering
+  \aifigure{fig-concept}{\resizebox{0.62\linewidth}{!}{\input{figures/fig-concept.tex}}}
+  \caption{Schematic, not data. Self-referential admission ratchets the threshold down;
+  unconditional admission follows a sustained fault up; anchored, separated admission
+  stays in $[\theta_0, \kappa\theta_0]$ and defers through an unstable transition.}
+  \label{fig:concept}
+\end{figure}
+
+\paragraph{Policy arms.}
+Table~\ref{tab:arms} lists the eleven arms. The five previously audited arms reproduce
+their corrected baseline rows exactly, which serves as a regression gate.
+
+\begin{table}[H]
+  \centering
+  \caption{Policy arms. Every arm replays the identical score trace of its stream.}
+  \label{tab:arms}
+  \small
+  \begin{tabularx}{\linewidth}{@{}lX@{}}
+    \toprule
+    Arm & Role\\
+    \midrule
+    \texttt{fixed\_threshold} & anchor only (existing)\\
+    \texttt{rolling\_threshold} (normal-only) & self-referential admission, $L{=}10$, $q{=}0.95$ (existing)\\
+    \texttt{rolling\_threshold\_all} & admits every window, no guard (existing)\\
+    \texttt{k\_consecutive} ($k{=}3$), \texttt{m\_of\_n} (3/5), \texttt{hysteresis} & persistence and latch rules (existing)\\
+    \texttt{anchored\_recalibration} & proposed controller (new)\\
+    \texttt{anchored\_no\_cap} / \texttt{no\_stability} / \texttt{no\_defer} & ablations: $\kappa{=}\infty$ / $\rho{=}\infty$ / $D{=}0$\\
+    \texttt{sun\_confidence\_sequence} & Sun et al.\ (ICML 2024) Algorithm~1, re-implemented\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Synthetic stress family.}
+Table~\ref{tab:synthetic-family} defines seven deterministic stress cases on a period-16
+signal of length 1600 (input \texttt{synthetic\_\allowbreak periodic\_\allowbreak v1}),
+using the same windows, scorer, calibration and arms. Offsets apply over half-open
+ranges; a spiky fault adds $+6.0$ on alternating 4-sample windows. These cases test the
+mechanism; they are not evidence of real-world benefit.
+
+\begin{table}[H]
+  \centering
+  \caption{Synthetic stress family: what each case adds and what it tests.}
+  \label{tab:synthetic-family}
+  \small
+  \begin{tabularx}{\linewidth}{@{}llX@{}}
+    \toprule
+    ID & Offsets / fault & Tests\\
+    \midrule
+    Y1 & $+2.0$ on $[800,1600)$; no event & adapting to a new normal\\
+    Y2 & $+0.25$ at each of $800,810,\dots,870$ up to $+2.0$; no event & an unstable transition (defer)\\
+    Y3 & Y1 plus a spiky fault on $[1200,1300)$ & catching a fault after adapting\\
+    Y4 & $+2.0$ on $[800,1600)$, labelled as an event & the declared limit (H4)\\
+    Y5 & spiky fault on $[800,900)$ & onset alert, then the cost of deferring\\
+    Y6 & $+5.0$ on $[800,1600)$; no event & the cost of the cap $\kappa$\\
+    Y7 & $+2.0$ on $[800,1100)$; spiky fault on $[1300,1400)$ & returning to the anchor\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Hypotheses.}
+Table~\ref{tab:hyp} fixes each hypothesis and the result that would refute it. H2 is a
+no-harm check, not a test of benefit: before freezing we saw that no 10-window block of
+either SKAB stream has a median above $\theta_0$, so the controller was predicted to act
+exactly like the fixed threshold there. Benefit is tested only in H3 and in the next
+experiment (Section~\ref{sec:conclusion}).
+
+\begin{table}[H]
+  \centering
+  \caption{Hypotheses, fixed before the study ran. All tests use common score traces.}
+  \label{tab:hyp}
+  \small
+  \begin{tabularx}{\linewidth}{@{}lXX@{}}
+    \toprule
+    ID & Hypothesis & Refuted if\\
+    \midrule
+    H1 & Normal-only rolling recalibration is a one-way ratchet, and its SKAB alert volume is a result of that. & The normal-only rolling threshold ever increases.\\
+    H2 & The controller keeps event recall $1/1$ on valve1 and valve2 with false episodes $\le$ fixed (no harm). & Recall $<1/1$ on either stream, or more false episodes than fixed.\\
+    H3 & On benign synthetic shifts the controller cuts non-event alert duration versus fixed and normal-only rolling, and still alerts on spiky faults after a shift. & No cut on Y1/Y2, or the Y3/Y7 faults are missed.\\
+    H4 & No label-free rule can separate a benign shift from a fault of identical shape, so the controller absorbs Y4 after onset. & Declared limit: reported either way, not a refutation target.\\
+    \bottomrule
+  \end{tabularx}
+\end{table}

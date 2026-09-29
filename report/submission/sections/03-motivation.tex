@@ -1,0 +1,52 @@
+% Guideline item 4: Motivation.
+\section{Motivation}\label{sec:motivation}
+
+\paragraph{A worked example: the one-way ratchet.}
+Take a threshold that keeps the last $L=3$ admitted scores, sets itself to the largest
+of them, and admits a new score \emph{only if it judged that score normal}
+($s \le \theta$). It starts at $\theta=10$ with an empty buffer.
+Table~\ref{tab:ratchet-example} follows six scores.
+
+\begin{table}[H]
+  \centering
+  \caption{Six steps of a self-referential threshold ($L=3$, threshold = buffer
+  maximum). A score of 9 is normal at step 1 and an alert at step 6.}
+  \label{tab:ratchet-example}
+  \small
+  \begin{tabular}{@{}cccccc@{}}
+    \toprule
+    Step & Score $s$ & Judged against & Decision & Buffer after & Threshold after\\
+    \midrule
+    1 & 9  & 10 & normal, admitted  & \{9\}      & 9\\
+    2 & 12 & 9  & alert, rejected   & \{9\}      & 9\\
+    3 & 8  & 9  & normal, admitted  & \{9, 8\}   & 9\\
+    4 & 7  & 9  & normal, admitted  & \{9, 8, 7\} & 9\\
+    5 & 6  & 9  & normal, admitted  & \{8, 7, 6\} & 8\\
+    6 & 9  & 8  & \textbf{alert}, rejected & \{8, 7, 6\} & 8\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Every admitted score is at most the current threshold, so the buffer maximum can only
+stay the same or fall. Over a long run the threshold sinks toward the bottom of the
+normal band, and ordinary fluctuations above it become alerts. The alert flood says
+nothing about the signal; it is produced by a threshold that learns only from what it
+already called normal. Section~\ref{sec:problem} proves this for any score sequence,
+buffer length and quantile (Proposition~\ref{prop:ratchet}).
+
+\paragraph{The opposite reflex fails too.}
+Admitting \emph{every} score removes the ratchet but creates the reverse failure. When a
+sustained fault arrives, its scores fill the buffer, the threshold rises to meet them,
+and the fault becomes the new normal. One reflex cannot rise; the other cannot tell a
+fault from a new normal. Our question sits between them.
+
+\paragraph{Why this is not already solved.}
+Drift-adaptive detectors retrain the \emph{model} when drift is
+detected~\citep{yang2026ddade, li2026adapts, xu2024cddia}, abstention methods withhold
+decisions statistically~\citep{sun2024online, perini2023rejection}, and FITNESS already
+reports that discarding self-declared anomalies can fail~\citep{sankararaman2022fitness}.
+None of the nine closest papers we checked treats the threshold's choice of training
+data as an explicit action and compares that action with its alternatives on one fixed
+score trace, with alert workload and decision coverage reported apart. Without that
+common trace a reported gain can come from a better scorer rather than a better
+decision, which is the attribution problem this study is built to avoid.

@@ -1,0 +1,83 @@
+% Guideline item 5: Literature Survey (and the closest-work defence).
+\section{Literature Survey}\label{sec:literature}
+
+We organise prior work around the five ingredients of our study, because these are
+what an objector will test one by one: (A) a four-action policy (\textsc{alert},
+\textsc{hold}, \textsc{defer}, \textsc{recalibrate}); (B) one frozen score trace shared by
+all policies; (C) workload and coverage reported beside recall and delay; (D) a
+chronological source-fit / calibration / replay split; (E) a label-free runtime with
+labels joined offline. All primary citations come from the seven allowlisted
+publication platforms.
+
+\paragraph{Drift-adaptive detection.}
+DDADE monitors drift and triggers incremental learning or threshold
+adjustment~\citep{yang2026ddade}; ADAPTS classifies the drift type and reuses models
+from a bounded pool~\citep{li2026adapts}; CDDIA interprets drift in normal data and
+retrains the detector~\citep{xu2024cddia}. All three change the \emph{model}. We freeze
+the scorer and change only the action taken at a window end.
+
+\paragraph{Abstention and rejection.}
+Sun et al.\ output $\{0,1,\text{abstain}\}$ on piecewise-stationary streams with
+confidence-sequence guarantees~\citep{sun2024online}, the strongest threat to our
+\textsc{defer}. Perini \& Davis reject uncertain points with a constant threshold on a
+stability metric~\citep{perini2023rejection}. Both abstain as a statistical decision. Our
+\textsc{defer} is an operational action whose cost is charged to decision coverage and
+reported beside workload. We re-implemented Sun et al.'s Algorithm~1 as a baseline, so
+this comparison is measured rather than argued.
+
+\paragraph{Label-free selection and workload-based evaluation.}
+SEAD selects among detectors online and emits a new combined
+score~\citep{shah2025sead}, the opposite of ingredient (B); it could sit upstream as our
+scorer. Hu makes alert episodes and workload the object of
+evaluation~\citep{hu2026workload} (in press); we adopt that frame and add a controller
+to it. Dynamic-XY learns alert suppression from historical
+\emph{alerts}~\citep{bhukar2024dynamicxy}, not from a score trace with explicit actions.
+
+\paragraph{The failure mode is already published.}
+FITNESS states that ``MEMSTREAM discards a sample if it is predicted as an anomaly at
+the time of scoring \ldots\ such techniques can fail to distinguish between anomalies
+and abrupt changes''~\citep{sankararaman2022fitness}. We therefore \emph{do not} claim
+the phenomenon. We claim only the deterministic monotone-ratchet statement for
+nearest-rank quantile thresholds with decision-gated admission (Proposition~\ref{prop:ratchet}).
+VUS and TSB-AD show that ranking metrics are functions of the score trace
+alone~\citep{boniol2025vus, liu2024elephant}, which is why policies on one trace are
+compared by alert behaviour, not by ranking metrics. Conformal and change-point
+thresholding are adjacent context~\citep{xu2026conformalized, hennhofer2026nonconform}.
+
+\paragraph{Where the gap is.}
+Table~\ref{tab:occupation} maps the ingredients to the nine closest papers. Every
+action in (A), and ingredients (C) and (E), are already occupied; \textsc{defer} is
+occupied as a concept by Sun et al.\ and Perini \& Davis. The only open cell is (B): no
+checked method holds the score fixed and compares \emph{action policies} on it.
+
+\begin{table}[H]
+  \centering
+  \caption{Component-occupation matrix: \ding{51} occupies, \emph{p} partial
+  (adjacent), --- not found in the nine checked papers. Threats: 1~DDADE, 2~ADAPTS,
+  3~CDDIA, 4~Sun 2024, 5~Perini \& Davis, 6~SEAD, 7~Dynamic-XY, 8~Hu, 9~FITNESS.}
+  \label{tab:occupation}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}lccccccccc@{}}
+    \toprule
+    Our component & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9\\
+    \midrule
+    A. alert action                         & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51}\\
+    A. hold / suppress action               & \emph{p}  & \ding{51} & \emph{p}  & ---       & ---       & ---       & \ding{51} & ---       & ---\\
+    A. defer / abstain action               & ---       & ---       & ---       & \ding{51} & \ding{51} & ---       & ---       & ---       & ---\\
+    A. recalibrate action                   & \ding{51} & \ding{51} & \ding{51} & \emph{p}  & ---       & ---       & ---       & \ding{51} & \ding{51}\\
+    B. common frozen trace across policies  & ---       & ---       & ---       & ---       & ---       & ---       & ---       & ---       & ---\\
+    C. workload + coverage reporting        & ---       & ---       & ---       & ---       & \emph{p}  & ---       & \ding{51} & \ding{51} & ---\\
+    D. chrono.\ source/calib/replay split   & ---       & ---       & \emph{p}  & ---       & ---       & ---       & ---       & \ding{51} & ---\\
+    E. label-free runtime (labels offline)  & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & ---       & \ding{51}\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Honest scope.}
+What we did not find is recalibration treated as a guarded decision-time action whose
+data is chosen neither by the threshold being updated nor unconditionally, compared
+with its alternatives on one fixed score trace with workload, coverage, delay and
+recall reported separately. This is a bounded search over nine papers, not a claim
+that no such method exists. If the direction holds, that combination and its clean
+attribution are our contribution.

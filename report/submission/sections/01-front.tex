@@ -1,0 +1,66 @@
+% Page 2: abstract, contents and the seven claims (the reader's entry point).
+\pagenumbering{arabic}
+\setcounter{page}{2}
+
+\begin{center}
+  \begin{minipage}{0.92\linewidth}
+  \small
+  \textbf{Abstract.}
+  Alert thresholds on non-stationary signals are often allowed to learn from recent
+  data. This report asks \emph{what} they should learn from. A threshold that admits
+  only the windows it already judged normal can only fall, and the falling threshold
+  floods the operator with alerts; admitting every window instead absorbs sustained
+  faults into the new normal. We treat recalibration as an explicit decision-time
+  action, chosen alongside \textsc{alert}, \textsc{hold} and \textsc{defer}, whose
+  training data is selected independently of the threshold's own decisions and kept
+  within a band anchored to the calibration threshold. Eleven policies are replayed on
+  one common score trace per stream, and alert workload, decision coverage, delay and
+  event recall are reported separately. On two SKAB valve streams and seven synthetic
+  stress cases we prove the failure, measure its cost, and find the new controller no
+  worse than a fixed threshold on SKAB but not yet shown to be better on real data. We
+  state the experiment that would confirm or refute the direction.
+  \end{minipage}
+\end{center}
+
+% Compact two-column contents: section level only, no paragraph gaps.
+{\hypersetup{linkcolor=ink}\setcounter{tocdepth}{1}\setlength{\parskip}{0pt}%
+ \makeatletter\renewcommand\tableofcontents{\@starttoc{toc}}%
+ \renewcommand*\l@section[2]{\@dottedtocline{1}{0pt}{1.6em}{\small #1}{\small #2}\vspace{1pt}}\makeatother
+ \noindent\textbf{Contents}\par\vspace{2pt}
+ \begin{multicols}{2}\tableofcontents\end{multicols}}
+
+\glancebox{%
+  \textbf{Our research direction and its seven claims}\par\smallskip
+  \emph{Recalibrating an alert threshold should be a guarded decision-time action whose
+  training data is chosen neither by that same threshold nor unconditionally, and every
+  alternative should be judged on one common score trace.}
+  Tags say how each claim is supported: \Sproved{} by proof, \Smeasured{} on saved
+  results, \Simplemented{} in tested code, \Sproposed{} not yet tested.
+  \begin{enumerate}[label=\textbf{C\arabic*}, leftmargin=2.2em, itemsep=2pt, topsep=4pt]
+    \item \Sproved{} We prove that a threshold which learns only from windows it judged
+      normal can never rise (Proposition~\ref{prop:ratchet}).
+    \item \Smeasured{} We measure the cost on two SKAB streams: the same single event is
+      detected as with the fixed threshold, at $16.2\times$ (valve1) and $3.9\times$
+      (valve2) the alert windows.
+    \item \Smeasured{} We measure that the scorer, not the policy, limits detection:
+      only 6/100 and 13/98 in-event windows exceed the calibration threshold.
+    \item \Simplemented{} We implement recalibration as one of four actions, bounded to
+      $[\theta_0, 4\theta_0]$, and compare it with seven baselines and three ablations on
+      the identical trace.
+    \item \Smeasured{} On SKAB the controller is identical to the fixed threshold on both
+      streams: a no-harm check, not evidence of benefit.
+    \item \Smeasured{} Under synthetic stress it cuts false-alert time on a benign step
+      (16 vs 597) and still catches later faults, but fails on a benign ramp and on a
+      fault shaped like a step, as declared in advance.
+    \item \Sproposed{} We propose, and do not claim, a benefit on real benign regime
+      changes; a predeclared experiment with three kill criteria decides it
+      (Section~\ref{sec:conclusion}).
+  \end{enumerate}
+  \textbf{Closest prior work.} Each ingredient is already published: the failure in
+  FITNESS~\citep{sankararaman2022fitness}, abstention in Sun et
+  al.~\citep{sun2024online} and Perini \& Davis~\citep{perini2023rejection},
+  workload-based evaluation in Hu~\citep{hu2026workload}. What we did not find in the
+  nine closest papers is their combination on one fixed score trace
+  (Table~\ref{tab:occupation}). The strongest case against us is in
+  Section~\ref{sec:limitations}.
+}

@@ -1,0 +1,151 @@
+% Results and Analysis, organised by claim (C1-C6 from page 2).
+\section{Results and Analysis}\label{sec:results}
+
+All numbers come from the saved study \texttt{20260929-policy-study-v2}, which an
+independent script recomputes with zero mismatches over 99 runs. Within a stream every
+arm replays a byte-identical score trace, so differences come from decision rules alone.
+Durations and delays are in sample-index units.
+
+\subsection{The ratchet and its cost (C1, C2; H1)}\label{sec:results-ratchet}
+\claim{1}{\Sproved\,\Smeasured}{We prove the ratchet and observe it in the saved
+traces.}
+The normal-only rolling threshold records 0 increases in 143 (valve1) and 140 (valve2)
+replay steps. It falls from $1.309$ to $0.258$ on valve1 and from $1.126$ to $0.406$ on
+valve2, below the median replay score (Figure~\ref{fig:ratchet}), exactly as
+Proposition~\ref{prop:ratchet} predicts.
+
+\claim{2}{\Smeasured}{We measure what the ratchet costs.}
+Rolling (normal-only) detects the same single event as the fixed threshold, but with
+$16.2\times$ the alert windows on valve1 (97 vs 6) and $3.9\times$ on valve2 (70 vs 18)
+(Table~\ref{tab:baseline}). The extra alerts come from the falling threshold, not from
+extra anomalies.
+
+\begin{figure}[tbp]
+  \centering
+  \resizebox{0.9\linewidth}{!}{\input{figures/fig-ratchet.tex}}
+  \caption{Replay score (grey, $\log_{10}$) on valve1 (left) and valve2 (right), with
+  the fixed threshold $\theta_0$ (black), the normal-only rolling threshold (red dashed)
+  and the admit-all rolling threshold (blue dotted); the labelled event is shaded. Start
+  and end threshold values are printed inside each panel. The normal-only threshold only
+  ever falls.}
+  \label{fig:ratchet}
+\end{figure}
+
+\subsection{The scorer, not the policy, limits detection (C3)}\label{sec:results-scorer}
+\claim{3}{\Smeasured}{We measure that no alert rule can recover what the scorer does
+not separate.}
+Inside the labelled event only $6/100$ (valve1) and $13/98$ (valve2) replay windows
+exceed $\theta_0$, and the longest run above it is 2 windows on both streams
+(Figure~\ref{fig:scorer-limit}). Persistence rules therefore fall short of their own
+requirement: \texttt{k\_consecutive} ($k=3$) misses both events and \texttt{m\_of\_n}
+(3/5) misses valve1. Each event also covers about 70\% of the replay decisions, so a
+single alert anywhere inside it scores full recall. On SKAB, recall of $1/1$ carries
+little information; workload, false episodes and the in-event alerted fraction carry it.
+
+\begin{figure}[tbp]
+  \centering
+  \resizebox{0.88\linewidth}{!}{\input{figures/fig-scorer-limit.tex}}
+  \caption{Scores sorted within each set, as a ratio to $\theta_0$: in-event windows (red
+  solid), out-of-event windows (blue dotted), $\theta_0$ at ratio 1 (black dotted). Few
+  in-event windows cross the line. The $y$ axis is clipped at $3\theta_0$; 2 (valve1) and
+  3 (valve2) windows lie above the clip.}
+  \label{fig:scorer-limit}
+\end{figure}
+
+\subsection{No harm on SKAB, and no evidence of benefit (C5; H2)}\label{sec:results-baseline}
+\claim{5}{\Smeasured}{We measure that the controller is identical to the fixed
+threshold on both SKAB streams.}
+On valve1 both give 6 alert windows, 4 episodes, 0 false episodes and recall $1/1$; on
+valve2 both give 18 windows, 12 episodes, 3 false episodes and recall $1/1$. The
+controller makes 0 deferrals and 0 recalibrations, because its guard is never reached.
+H2 therefore holds as a no-harm check; it says nothing about benefit. Fixed and
+hysteresis detect each event at low alert volume. The Sun et al.\ arm decides on only
+$54/143$ (valve1) and $57/140$ (valve2) windows and reaches its low workload by
+abstaining; it is the only arm that defers on SKAB.
+
+\begin{table}[tbp]
+  \centering
+  \caption{All 11 arms on the two SKAB development streams, one common score trace per
+  stream. Recall and coverage are shown as num/den. Calibration threshold $\theta_0$:
+  valve1 $1.309$ (43 windows), valve2 $1.126$ (40 windows). ``In-ev.\ alert'' is the
+  in-event alerted fraction; ``--'' marks an undefined value (mean delay when an arm
+  raises no in-event alert).}
+  \label{tab:baseline}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \input{tables/tab-skab.tex}
+\end{table}
+
+\subsection{Mechanism and declared failures under synthetic stress (C6; H3, H4)}\label{sec:results-synthetic}
+\claim{6}{\Smeasured}{We measure where the mechanism works and where it fails.}
+Table~\ref{tab:synth} and Figure~\ref{fig:synthetic-map} give the synthetic family.
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=1pt]
+  \item \emph{Works on a benign step (Y1).} Non-event alert duration is $16$, against
+    $597$ for fixed and $917$ for normal-only rolling, at full coverage $260/260$, with
+    one recalibration and no deferral.
+  \item \emph{Still catches later faults (Y3, Y7).} After adapting, it alerts the spiky
+    fault with recall $1/1$ and in-event alerted fraction $0.29$ on both.
+  \item \emph{Fails on a benign ramp (Y2).} It recalibrates once during the ramp and then
+    locks into periodic single-window alerts: $204$ over $50$ episodes at coverage
+    $257/260$ (3 deferrals), against $577$ for fixed.
+  \item \emph{Absorbs a fault shaped like a step (Y4), as declared.} Its in-event alerted
+    fraction is $0.020$ against $0.746$ for fixed. No label-free rule can separate a
+    benign shift from a fault of the same shape (H4).
+\end{itemize}
+
+\begin{table}[tbp]
+  \centering
+  \caption{Synthetic cases Y1--Y7, five arms (fixed, admit-all rolling, anchored,
+  no-cap, Sun). ``Non-ev.\ dur.'' is non-event alert duration; ``In-ev.\ alert'' is the
+  in-event alerted fraction; ``Def./Rec.'' is deferrals/recalibrations; ``--'' marks a
+  value undefined because the case has no labelled event.}
+  \label{tab:synth}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \input{tables/tab-synthetic-compact.tex}
+\end{table}
+
+\begin{figure}[tbp]
+  \centering
+  \resizebox{0.78\linewidth}{!}{\input{figures/fig-synthetic-map.tex}}
+  \caption{Synthetic cases Y1--Y7: replay score (grey), fixed $\theta_0$ (black),
+  admit-all rolling threshold (blue dotted) and the controller's threshold (green
+  dashed), with its deferrals (red ticks), recalibrations (green dots) and labelled
+  faults (shaded).}
+  \label{fig:synthetic-map}
+\end{figure}
+
+\paragraph{Which guard component matters.}
+Table~\ref{tab:ablation} removes one guard component at a time, on the same trace. The
+cap $\kappa$ matters most on Y6, a step larger than the cap: the full controller cannot
+follow it, so it defers 10 times, escalates, and keeps alerting (non-event alert
+duration $757$); without the cap it follows the step and the duration falls to $16$.
+Removing deferral costs most on the Y2 ramp, where non-event alert duration rises by
+$373$. These are measured effects of fixed components, not tuning.
+
+\begin{table}[tbp]
+  \centering
+  \caption{Change in each synthetic outcome when one guard component (cap $\kappa$,
+  stability $\rho$ or deferral $D$) is removed, relative to the full controller. Only
+  non-zero changes are shown.}
+  \label{tab:ablation}
+  \small
+  \input{tables/tab-ablation.tex}
+\end{table}
+
+\subsection{Workload against coverage}\label{sec:results-tradeoff}
+\Smeasured{} Figure~\ref{fig:tradeoff} places every arm by decision coverage and
+non-event alert duration. On SKAB nearly all arms sit at full coverage, so only the
+vertical spread of workload separates them. On the benign cases the Sun arm is quiet
+only because it decides on $22/260$ (Y1) and $23/260$ (Y2) windows. Section~\ref{sec:limitations}
+reads this trade-off against us.
+
+\begin{figure}[tbp]
+  \centering
+  \resizebox{0.78\linewidth}{!}{\input{figures/fig-tradeoff.tex}}
+  \caption{Decision coverage ($x$) against non-event alert duration in samples ($y$),
+  one numbered marker per arm (key at right; coincident arms share a label). Arms to the
+  bottom right are quiet \emph{and} decide on every window. Y1 and Y2 contain no fault
+  event.}
+  \label{fig:tradeoff}
+\end{figure}

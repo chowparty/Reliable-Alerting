@@ -1,0 +1,30 @@
+% Limitations, threats to validity and the strongest case against our direction.
+\section{Limitations and Threats to Validity}\label{sec:limitations}
+
+\paragraph{Threats.}
+\emph{One event per stream:} each SKAB stream has a single labelled event covering
+about 70\% of replay, so recall saturates (Section~\ref{sec:results-scorer}).
+\emph{Scorer limit:} few in-event windows exceed $\theta_0$, which bounds every policy.
+\emph{Univariate scope:} only the \texttt{Current} channel is scored.
+\emph{Provenance:} dataset origin and licence are not independently verified, so every
+result is development-only. \emph{Synthetic family:} the stress cases are engineered to
+test the mechanism and say nothing about real-world benefit.
+
+\paragraph{The strongest opposing conclusion.}
+The strongest honest reading is that these results do \emph{not} establish a useful
+controller.
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=1pt]
+  \item \emph{A simpler rule is quieter.} On the benign cases, admitting every window
+    gives \emph{lower} non-event alert duration than the controller: $12$ vs $16$ on Y1
+    and $28$ vs $204$ on Y2.
+  \item \emph{The controller's case rests on fault retention alone.} On Y3 its in-event
+    alerted fraction is $0.29$ against admit-all's $0.04$, at recall $1/1$ for both;
+    fixed alerts $1.000$ of the event but at non-event alert duration $521$.
+  \item \emph{SKAB gives no evidence for it.} Its rows are identical to fixed on valve1
+    and valve2.
+  \item \emph{Abstention buys quiet with coverage.} Sun et al.'s arm decides on only
+    $54/143$ and $57/140$ SKAB windows.
+\end{itemize}
+We accept this reading as the Phase-I result: a proved mechanism, a reproducible
+negative-to-inconclusive development finding, and a predeclared experiment that can
+discriminate. We do not claim that any policy is superior.

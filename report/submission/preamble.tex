@@ -1,0 +1,139 @@
+% Preamble for report.tex (packages, layout, macros).
+
+% ===========================================================================
+% When Should an Alert Threshold Learn?  Phase-I mid-semester report (final).
+% Numbers verified against research/results/20260929-policy-study-v2/summary.json.
+% Data figures/tables are generated fragments (generate/); never hand-edited.
+% Packages restricted to the TeX Live 2026 *basic* set actually present.
+% ===========================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=20mm,includeheadfoot]{geometry}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{pifont}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+
+\definecolor{ink}{HTML}{17365D}
+\hypersetup{
+  colorlinks=true, linkcolor=ink, citecolor=ink, urlcolor=ink,
+  pdftitle={When Should an Alert Threshold Learn?},
+  pdfauthor={Somani, Pandey, Chaudhary}
+}
+
+\setlength{\parindent}{0pt}
+% Paper-style readability: 11pt body, open line spacing, a visible gap between
+% paragraphs instead of indentation.
+\setlength{\parskip}{0.5em plus 0.1em minus 0.1em}
+\linespread{1.0}
+\setlength{\emergencystretch}{2em}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+
+% Let a page carry more float area (default limits flush big floats onto near-empty
+% pages). These affect placement only, never font size.
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+% Tighten float/caption spacing so the many figures and tables fit the page
+% budget without shrinking body text (11pt) or table text (>= footnotesize).
+\captionsetup{font=small,skip=4pt}
+\setlength{\textfloatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{4pt}
+
+% Tighten section / subsection heading spacing (no titlesec in the basic install).
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-2.2ex \@plus -0.6ex \@minus -.2ex}{1.0ex \@plus.2ex}%
+  {\normalfont\Large\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-1.8ex\@plus -0.5ex \@minus -.2ex}{0.7ex \@plus .2ex}%
+  {\normalfont\large\bfseries}}
+% Let long DOIs / URLs in references break instead of overflowing the line.
+\g@addto@macro\UrlBreaks{\do\/\do\-\do\.\do\_\do\?\do\=}
+\makeatother
+
+% Evidence tags. Every claim carries exactly one, so a reader can tell at a glance
+% whether a statement is proved, measured on saved results, implemented in code, or
+% only proposed. Shaded label chips stay legible in grayscale print.
+\newcommand{\evtag}[1]{{\setlength{\fboxsep}{1.2pt}\colorbox{ink!12}{%
+  \textcolor{ink}{\textsf{\scriptsize\bfseries\strut #1}}}}}
+\newcommand{\Sproved}{\evtag{PROVED}}
+\newcommand{\Smeasured}{\evtag{MEASURED}}
+\newcommand{\Simplemented}{\evtag{IMPLEMENTED}}
+\newcommand{\Sproposed}{\evtag{PROPOSED}}
+% A numbered claim: \claim{1}{\Sproved}{We prove that ...}
+\newcommand{\claim}[3]{\par\noindent\textbf{C#1}\enspace #2\enspace\emph{#3}\par}
+
+\newtheorem{proposition}{Proposition}
+
+% Controller pseudocode / code listing style (no algorithm2e in basic install).
+\lstdefinestyle{ctrl}{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true, columns=fullflexible, keepspaces=true,
+  frame=single, framesep=4pt, rulecolor=\color{gray!55},
+  backgroundcolor=\color{gray!4}, xleftmargin=2pt, aboveskip=6pt, belowskip=4pt,
+}
+
+% "At a glance" box.
+\newcommand{\glancebox}[1]{%
+  \begin{center}
+  \fcolorbox{ink}{gray!5}{%
+    \begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule-3pt\relax}
+      \small\sloppy\vspace{2pt}#1\vspace{2pt}
+    \end{minipage}}
+  \end{center}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize When Should an Alert Threshold Learn?}
+\fancyhead[R]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+
+% --- AI-image placeholders --------------------------------------------------
+% A schematic (never a data figure) may later be replaced by a generated image.
+% Its prompt is plain text in figures/ai/<name>.prompt.txt, the single source.
+% \aifigure{<name>}{<fallback>} uses figures/ai/<name>.png when that file exists and
+% the hand-drawn TikZ fallback otherwise. Building with AI_PLACEHOLDERS=1 also prints
+% the embedded prompt under the figure, so the draft shows what to generate.
+\lstdefinestyle{aiprompt}{
+  basicstyle=\ttfamily\scriptsize, breaklines=true, columns=fullflexible,
+  keepspaces=true, frame=single, rulecolor=\color{gray!60},
+  backgroundcolor=\color{gray!4}, aboveskip=4pt, belowskip=2pt,
+  extendedchars=true, literate={θ}{{$\theta$}}1 {κ}{{$\kappa$}}1,
+}
+\newcommand{\aifigure}[2]{%
+  \IfFileExists{figures/ai/#1.png}%
+    {\includegraphics[width=\linewidth]{figures/ai/#1.png}}{#2}%
+  \ifdefined\ReportAIPrompts
+    \par\smallskip
+    \lstinputlisting[style=aiprompt,
+      title={\scriptsize\sffamily\bfseries AI-image placeholder: generation prompt
+      (figures/ai/#1.prompt.txt)}]{figures/ai/#1.prompt.txt}%
+  \fi}
