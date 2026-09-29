@@ -24,12 +24,23 @@ fi
 rm -f build/report.aux build/report.bbl build/report.blg \
       build/report.log build/report.out build/report.pdf build/report.toc
 
+# Build switches (environment variables, both off by default):
+#   NO_LOGO=1          cover shows a plain "NSUT logo" mark (public repository copy)
+#   AI_PLACEHOLDERS=1  print each schematic's AI-image generation prompt under it
+flags=""
+[ "${NO_LOGO:-0}" = 1 ] && flags="$flags\\def\\ReportNoLogo{}"
+[ "${AI_PLACEHOLDERS:-0}" = 1 ] && flags="$flags\\def\\ReportAIPrompts{}"
+
 # bibtex needs the .bib and the figure/table fragments reachable from build/.
 # Fragments are \input by relative path from report.tex; run pdflatex with the
 # source directory as the working dir and build/ as the output directory.
-pdflatex -interaction=nonstopmode -halt-on-error -output-directory=build report.tex
+latex() {
+  pdflatex -interaction=nonstopmode -halt-on-error -output-directory=build \
+    -jobname=report "$flags\\input{report.tex}"
+}
+latex
 ( cd build && BIBINPUTS="$sub_dir:" bibtex report )
-pdflatex -interaction=nonstopmode -halt-on-error -output-directory=build report.tex
-pdflatex -interaction=nonstopmode -halt-on-error -output-directory=build report.tex
+latex
+latex
 
 echo "built $sub_dir/build/report.pdf"

@@ -1,0 +1,22 @@
+Create a clean, flat vector-style SCHEMATIC LINE CHART for an academic report. It is a
+conceptual illustration, not data: no numbers on the axes, no grid, no data points.
+Canvas: landscape, aspect ratio 2:1, white background, 3000 px wide, legible when
+printed 11 cm wide. One sans-serif font, black and grey lines only, no 3D, no shadows,
+no gradients, no icons, no watermark. Render every label EXACTLY as written below and
+add no other words.
+
+Axes: x axis labelled "window index (time)", y axis labelled "threshold θ". Two
+horizontal dashed grey reference lines: a lower one labelled "θ0 (anchor)" at about 30%
+of the height, an upper one labelled "κθ0 (cap)" at about 80% of the height. A thin
+vertical grey line at 40% of the width, labelled vertically "sustained shift onset".
+Three curves all start at the left on the "θ0 (anchor)" line:
+1. Thin solid black curve that only ever goes DOWN, falling steadily from the anchor
+   line to near the x axis at the right; label it "self-referential (ratchets down)".
+2. Dashed black curve that stays flat until the onset line, then climbs steeply and
+   keeps rising ABOVE the cap line by the right edge; label it
+   "unconditional (absorbs fault)".
+3. Thick solid black curve that stays flat on the anchor line until just after the
+   onset, rises to a level just below the cap line, then stays flat to the right edge,
+   never crossing the cap; label it "anchored/separated". Mark the short rising part
+   with a small grey bracket labelled "defer".
+Top right corner: a small rounded grey badge reading "SCHEMATIC - not data".

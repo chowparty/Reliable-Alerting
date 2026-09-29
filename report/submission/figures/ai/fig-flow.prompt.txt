@@ -1,0 +1,29 @@
+Create a clean, flat vector-style PIPELINE DIAGRAM for an academic research report.
+Canvas: landscape, aspect ratio 3:2, white background, 3000 px wide, legible when
+printed 14 cm wide. Style: thin dark-grey outlines, light-grey box fills, rounded
+corners, straight orthogonal arrows with solid arrowheads, one sans-serif font, one
+accent colour only (dark navy #17365D) used for the "Proposed controller" box outline.
+No 3D, no shadows, no gradients, no people, no decorative icons, no watermark, no title.
+Render every label EXACTLY as written below, spelled correctly, and add no other words.
+
+Layout, top to bottom:
+Row 1: a thin grey arrow across the top labelled "chronological order (time)". Under it,
+three equal boxes left to right, joined by arrows pointing right:
+  "Source-fit segment" -> "Calibration segment" -> "Replay segment".
+Row 2: one wide box spanning the middle and right columns:
+  "Mean-distance scorer, frozen after fitting".
+  An L-shaped arrow runs from "Source-fit segment" down and right into this box,
+  labelled "fit on source only". Short arrows point down into it from
+  "Calibration segment" and from "Replay segment".
+Row 3: two boxes: "Fixed threshold θ0" (under the calibration column) and
+  "One score trace s_t" (under the replay column), each fed by an arrow from the scorer.
+  A small grey note at the left: "every policy arm receives the same s_t and the same θ0".
+Row 4: a horizontal bus line fed by both Row 3 boxes, with arrows down into four equal
+  boxes: "Threshold arms", "Persistence arms", "Proposed controller" (navy outline),
+  "Literature baseline (Sun et al.)".
+Row 5: one full-width box: "Saved before any label is read: predictions and action log
+  (alert / hold / defer / recalibrate)", with one arrow from each Row 4 box into it.
+Row 6, left to right: a box "Offline evaluation" fed by an arrow from Row 5; a box
+  "Labels (joined offline only)" with a DASHED arrow pointing LEFT into
+  "Offline evaluation"; at the far right a dashed-outline, greyed-out box with a small
+  padlock symbol: "Reserved stream: never opened".
