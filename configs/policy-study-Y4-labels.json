@@ -1,0 +1,15 @@
+{
+  "coverage": [
+    560,
+    1600
+  ],
+  "events": [
+    {
+      "event_id": "Y4-fault-0",
+      "start": 800,
+      "stop": 1600
+    }
+  ],
+  "schema_version": 1,
+  "time_basis": "sample_index"
+}

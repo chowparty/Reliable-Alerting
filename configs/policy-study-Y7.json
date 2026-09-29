@@ -1,0 +1,139 @@
+{
+  "calibration": {
+    "kind": "fixed_quantile",
+    "method": "nearest_rank",
+    "min_samples": 2,
+    "quantile": 0.95,
+    "score_segment": "calibration"
+  },
+  "held_out": "not_reserved_or_evaluated",
+  "input": {
+    "kind": "synthetic_periodic_v1",
+    "length": 1600,
+    "offsets": [
+      {
+        "offset": 2.0,
+        "start": 800,
+        "stop": 1100
+      },
+      {
+        "offset": 6.0,
+        "start": 1300,
+        "stop": 1304
+      },
+      {
+        "offset": 6.0,
+        "start": 1308,
+        "stop": 1312
+      },
+      {
+        "offset": 6.0,
+        "start": 1316,
+        "stop": 1320
+      },
+      {
+        "offset": 6.0,
+        "start": 1324,
+        "stop": 1328
+      },
+      {
+        "offset": 6.0,
+        "start": 1332,
+        "stop": 1336
+      },
+      {
+        "offset": 6.0,
+        "start": 1340,
+        "stop": 1344
+      },
+      {
+        "offset": 6.0,
+        "start": 1348,
+        "stop": 1352
+      },
+      {
+        "offset": 6.0,
+        "start": 1356,
+        "stop": 1360
+      },
+      {
+        "offset": 6.0,
+        "start": 1364,
+        "stop": 1368
+      },
+      {
+        "offset": 6.0,
+        "start": 1372,
+        "stop": 1376
+      },
+      {
+        "offset": 6.0,
+        "start": 1380,
+        "stop": 1384
+      },
+      {
+        "offset": 6.0,
+        "start": 1388,
+        "stop": 1392
+      },
+      {
+        "offset": 6.0,
+        "start": 1396,
+        "stop": 1400
+      }
+    ],
+    "pattern": [
+      9.0,
+      10.0,
+      11.0,
+      10.0,
+      10.0,
+      11.0,
+      12.0,
+      11.0,
+      8.0,
+      9.0,
+      10.0,
+      9.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0
+    ]
+  },
+  "missing_policy": "reject",
+  "policy": {
+    "comparison": "strict_greater",
+    "kind": "fixed_threshold"
+  },
+  "schema_version": 1,
+  "scoring": {
+    "epsilon": 1e-06,
+    "fit_scope": "source_fit",
+    "kind": "mean_distance",
+    "standard_deviation": "population"
+  },
+  "segments": {
+    "calibration": [
+      400,
+      560
+    ],
+    "replay": [
+      560,
+      1600
+    ],
+    "source_fit": [
+      0,
+      400
+    ]
+  },
+  "source_label_use": "none",
+  "time_basis": "sample_index",
+  "window": {
+    "anchor": "segment_start",
+    "edge_policy": "drop_incomplete",
+    "end_index": "inclusive",
+    "length": 4,
+    "stride": 4
+  }
+}
