@@ -14,16 +14,19 @@ implemented / proposed are tagged and kept distinct.
 - `report.tex` — the report.
 - `figures/`
   - `fig-flow.tex`, `fig-controller.tex`, `fig-concept.tex` — hand-authored TikZ diagrams
-    (data flow, controller state machine, admission-regime schematic).
+    (data flow, controller state machine, admission-regime schematic). The report does not
+    include `fig-controller.tex`: at page width its labels printed at about 4 pt, so Table 2
+    (the four actions) plus Listing 1 carry the controller instead. The file is kept as the
+    diagram source for a future, larger layout.
   - `fig-ratchet.tex`, `fig-scorer-limit.tex`, `fig-synthetic-map.tex`, `fig-tradeoff.tex` —
     **generated** data figures (see `generate/`); never hand-edit.
   - `figures-manifest.json` — provenance (inputs + SHA-256, caption, labels) for the generated figures.
 - `tables/`
-  - `tab-skab.tex` — 11-arm SKAB baseline (report Table 5, `tab:baseline`).
+  - `tab-skab.tex` — 11-arm SKAB baseline (report Table 6, `tab:baseline`).
   - `tab-synthetic.tex` — full 8-arm synthetic family; `tab-synthetic-compact.tex` — the
-    5-arm view actually shown (Table 6), for the page budget. Both are generated and carry
+    5-arm view actually shown (Table 7), for the page budget. Both are generated and carry
     identical values under the same summary-equals test.
-  - `tab-ablation.tex` — guard-component ablation map (Table 7).
+  - `tab-ablation.tex` — guard-component ablation map (Table 8).
   - `tables-manifest.json` — provenance for the generated tables.
 - `references.bib` — bibliography; only allowlisted-platform papers are primary citations;
   SKAB is a dataset; Hu is in press.

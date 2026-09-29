@@ -466,7 +466,7 @@ action log are saved; labels are joined offline to form episodes. The reserved l
 
 \begin{figure}[H]
   \centering
-  \resizebox{0.68\linewidth}{!}{\input{figures/fig-flow.tex}}
+  \resizebox{0.75\linewidth}{!}{\input{figures/fig-flow.tex}}
   \caption{Chronological split and causal data flow. The scorer is fit on the
   source segment only; a single score trace fans out to all policy arms; predictions
   and the label-free action log are saved before any label join; labels are joined
@@ -481,7 +481,7 @@ a threshold $\theta$ (starting at $\theta_0$), a mode (\textsc{normal},
 \textsc{suspect} or \textsc{escalated}), a defer counter $c$, and
 a buffer $R$ of the last $L$ scores of \emph{every} window (untruncated --- admission
 does not depend on any decision). Listing~\ref{lst:ctrl} transcribes the frozen
-controller exactly. Figure~\ref{fig:controller} is its state machine.
+controller exactly, and Table~\ref{tab:actions} summarises when it takes each action.
 
 \begin{lstlisting}[style=ctrl, caption={The frozen controller, transcribed exactly from the protocol. \texttt{quantile} is nearest rank; \texttt{median} is the ordinary median.}, label={lst:ctrl}, captionpos=b]
 append s to R (drop oldest beyond L)
@@ -505,14 +505,28 @@ if full and theta > theta0 and quantile(R) < theta:
 return ALERT if s > theta else HOLD
 \end{lstlisting}
 
-\begin{figure}[H]
+\begin{table}[H]
   \centering
-  \resizebox{0.72\linewidth}{!}{\input{figures/fig-controller.tex}}
-  \caption{The four-action state machine over modes normal / suspect /
-  escalated, with the hold, alert, defer and recalibrate edges and their guard
-  conditions. Transcribed from the frozen protocol.}
-  \label{fig:controller}
-\end{figure}
+  \caption{The four actions of Listing~\ref{lst:ctrl} (``sustained'': $R$ full and
+  $\mathrm{median}(R) > \theta$).}
+  \label{tab:actions}
+  \footnotesize
+  \begin{tabular}{@{}p{0.52\linewidth}p{0.42\linewidth}@{}}
+    \toprule
+    Situation at a window end & Action and mode \\
+    \midrule
+    No sustained rise & \textsc{hold}, or \textsc{alert} if $s > \theta$; mode normal \\
+    Sustained rise, stable ($\max R \le \rho\,\mathrm{median}(R)$) and $q(R) \le \kappa\theta_0$
+      & \textsc{recalibrate} to $\max(\theta_0, q(R))$; mode normal \\
+    Sustained rise, guard fails, fewer than $D$ deferrals so far & \textsc{defer}; mode suspect \\
+    Sustained rise, guard still failing after $D$ deferrals
+      & escalate: \textsc{alert} if $s>\theta$ else \textsc{hold}; no recalibration while
+      the rise lasts \\
+    Rise over, $\theta > \theta_0$ and $q(R) < \theta$ & \textsc{recalibrate} back to
+      $\max(\theta_0, q(R))$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \paragraph{Parameter provenance (no tuning).}
 $L=10$ and $q=0.95$ are the existing rolling baseline's history length and quantile;
