@@ -213,8 +213,8 @@ class TestBudget(unittest.TestCase):
         subprocess.check_call([sys.executable, FIG, ROOT], stdout=subprocess.DEVNULL, timeout=GEN_TIMEOUT)
 
     def _measure(self):
-        scratch = os.environ.get("KIROCREW_SCRATCH") or tempfile.gettempdir()
-        workdir = tempfile.mkdtemp(prefix="p6budget-", dir=scratch)
+        # tempfile honours TMPDIR, so callers can point scratch files anywhere.
+        workdir = tempfile.mkdtemp(prefix="p6budget-")
         tex = [
             "\\documentclass[11pt]{article}",
             "\\usepackage[%s]{geometry}" % self.GEOMETRY,

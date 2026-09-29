@@ -39,7 +39,7 @@ Validate the bib parses (pdflatex + bibtex; on macOS TeX Live they live in
 
 ```sh
 export PATH="/Library/TeX/texbin:$PATH"     # if the tools are not already on PATH
-cd "$KIROCREW_SCRATCH"                        # or any scratch dir
+cd "$(mktemp -d)"                             # any scratch dir
 cp <lit>/references.bib .
 printf '\\documentclass{article}\\begin{document}\n' > bibstub.tex
 # \nocite{*} pulls in every key:

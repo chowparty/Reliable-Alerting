@@ -50,8 +50,8 @@ competes alert/hold/defer/recalibrate **policies** on it with coverage + workloa
 **This is saturation of the targeted query families on the allowlisted platforms, not a
 universal absence claim.**
 
-## MCP / tooling note
-`@kirocrew-computer` MCP server was declared by the agent spec but **not configured** in
-this session, so its tools were unavailable. All work used web_search/web_fetch, shell
+## Tooling note
+No browser-automation tool was available for this search. All work used web search and
+page fetches, shell
 (curl for DOI redirects + Crossref metadata + SHA-256 + pdftotext/pdflatex/bibtex from
 `/Library/TeX/texbin`), and file tools.
