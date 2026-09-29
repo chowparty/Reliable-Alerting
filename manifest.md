@@ -252,9 +252,14 @@ unchanged (valve1 mean 0.99395 / std 0.27955; scorer refit was not required).
 - New calibration pool [400,574): window length 4 / stride 4 gives 43 windows,
   **0 of which overlap the anomaly** — the calibration pool is now source-normal,
   as reference.md §3/§8 require.
-- New fixed threshold: valve1 1.3085423988586153 (was 1.3249013096528448);
-  valve2 1.1386923076923078 (was 1.2316165). Thresholds are now calibrated on
-  source-normal data only.
+- New fixed threshold: valve1 1.308542250880009 (was 1.3249013096528448);
+  valve2 1.1255423193543013 (was 1.2316165). Thresholds are now calibrated on
+  source-normal data only. (D01 correction 2026-09-29: these are the persisted
+  values in the saved diagnostics.json `quantile.threshold` for
+  `result/valve{1,2}/fixed_threshold` and the corrected audit-fresh run
+  `results/20260929-results-audit-fresh/valve{1,2}/fixed_threshold`; the earlier
+  narrative figures 1.3085423988586153 / 1.1386923076923078 were transcription
+  errors and never matched the saved artifacts.)
 - Applies identically to all five policies (shared source-fit/calibration/scores)
   and has been applied to the SKAB/other/21.csv frozen recipe below.
 - All 10 real-stream result directories (`result/valve{1,2}/{5 policies}`) were
@@ -406,6 +411,7 @@ did not change which rows entered the scorer. The run config carries
 | 2026-09-27 (Day 3) | Added evaluator hand cases 11-15 (reference.md sec 2 miss, sec 9 worked example recall 4/4 precision 4/5 1-false, two-episodes-one-event durations, always-alert volume, valve1 replay-start delay floor); all pass against the UNMODIFIED evaluator (no defect to route to Pratyush). | Nakul |
 | 2026-09-27 (Day 3) | Added research/audit.py + test_audit_code.py: static label-freedom check on scorer, all 5 policies, compute_trace, loader; loader reads only value_column. All pass. | Nakul |
 | 2026-09-27 (Day 3) | Added test_realstream_leakage.py: label-flip invariance and future-perturbation causality on FIXED and ROLLING (Day 3 pair) over valve1, plus rolling 'own-window value does not set its own cutoff'. Runs the real pipeline against temp copies outside both repos; writes nothing to result/ or results/. All pass. | Nakul |
+| 2026-09-29 (P5) | Implemented the frozen controller and ran the policy study (development only; no new SKAB stream opened; SKAB/other/21.csv untouched). Added AnchoredRecalibrationPolicy (protocol §4) and SunConfidenceSequencePolicy (protocol §5, re-implementation of Sun et al. ICML 2024 Algorithm 1 with eq. (1)); wired both plus rolling_threshold_all and the anchored ablations through validate_config/compute_trace; added a label-free per-decision action log (policy_actions.csv) and allowed the defer state end to end. Ran run_policy_study.py over 11 arms × 9 streams (valve1, valve2, Y1–Y7) into the gitignored results/20260929-policy-study; the five existing arms reproduce the ten corrected audit-fresh rows exactly (regression gate 0/10) and report-work/evidence/recompute_evaluations.py --all-arms recomputes all 99 rows with 0 mismatches (the pinned recompute-output.json on the audit root is byte-identical). D09 checksum test made line-ending robust; D01 narrative thresholds corrected above to the persisted 1.308542250880009 / 1.1255423193543013. Full suite green (504 tests). | P5 |
 | 2026-09-27 (Day 3) | Made test_audit threshold-consistency policy-aware: static policies (fixed/k_consecutive/m_of_n) check every row == calibration threshold; rolling checks first decision == calibration threshold; hysteresis exempt. Audit now passes against all 5 valve1 result dirs. | Nakul |
 | 2026-09-27 (Day 3) | Record-only corrections to stale window-10 stopgap lines (dev-replay window count, per-segment label counts, shift-description threshold) to the authoritative window-4 facts. No boundary/result change. | Nakul |
 | 2026-09-27 (Day 3) | DEFERRED (noted, not changed): valve2 calibration [400,574) still overlaps its anomaly (first anomalous row 562) - to verify/resolve at Day 6. 21.csv reserved recipe calibration [400,574) runs past its first anomaly (row 569) and cites window 10 / configs/day02-valve1.json which no longer exist - to resolve at Day 8. Neither is used in Day 3; boundaries/recipes/results left unchanged per instruction. | Nakul |
