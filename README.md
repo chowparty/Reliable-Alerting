@@ -1,5 +1,47 @@
 # Reliable Alerting for Time-Series Anomaly Detection
 
+## Start here
+
+**What this is.** A Phase-I study of whether simple decision-time information
+improves alerting under changing conditions, compared with fixed thresholds and
+established temporal rules. Development-only; no held-out result is claimed.
+
+- **Phase-I report.** Source is in [`report/submission/`](report/submission/)
+  (see its [`README.md`](report/submission/README.md)). Build the 15-page PDF with:
+
+  ```sh
+  sh report/submission/build.sh   # writes build/report.pdf (build/ is gitignored)
+  ```
+
+- **Reproduce the study, figures and tables.**
+  1. Set up the venv and install the package (see [Setup](#setup) below).
+  2. Run the policy study (documented in full under
+     [Policy study](#policy-study-29-september-2026); regenerate the synthetic
+     family with `configs/gen_synthetic_family.py`, then
+     `.venv/bin/python run_policy_study.py --output-root results/<fresh-path>`;
+     `results/` is gitignored and runners refuse an existing output dir).
+  3. Regenerate the report's figures and tables with the generators in
+     [`report/submission/generate/`](report/submission/generate/) and check them
+     with their test:
+
+     ```sh
+     .venv/bin/python report/submission/generate/test_generators.py
+     ```
+
+- **Evidence and literature.** The evidence index is
+  [`report/evidence-index.md`](report/evidence-index.md); the report source
+  outline is [`report/outline.md`](report/outline.md); local literature copies
+  live under `report/literature/` (fulltext copies are gitignored).
+
+- **Reserved-stream integrity.** `SKAB/other/21.csv` is named reserved in
+  [`manifest.md`](manifest.md); it was never opened and no claim is made on it.
+
+- **Historical material.** The dated implementation sections below (Day-1
+  through the Day-05 diagnostic) and the day-by-day plan in
+  [`plan/`](plan/) are historical: they record how the work developed and do
+  not govern current claims. Current claims are governed by the section below
+  and by [`manifest.md`](manifest.md).
+
 ## Current evidence for the Phase-I viva (28 September 2026)
 
 The two SKAB streams are **development only**. The corrected valve2 split
