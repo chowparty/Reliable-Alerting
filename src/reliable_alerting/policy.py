@@ -249,8 +249,8 @@ class AnchoredRecalibrationPolicy:
     def __init__(self, theta0, block_length=10, quantile=0.95, cap=4.0,
                  stability=2.0, defer_limit=10):
         self._theta0 = _check_threshold(theta0)
-        if self._theta0 <= 0:
-            raise ValueError("theta0 must be > 0")
+        if self._theta0 < 0:
+            raise ValueError("theta0 must be >= 0")
         if not isinstance(block_length, int) or isinstance(block_length, bool) \
                 or block_length < 1:
             raise ValueError("block_length must be a positive integer")

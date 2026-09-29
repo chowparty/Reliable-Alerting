@@ -17,6 +17,10 @@ PREDICTIONS_COLUMNS = (
 
 CALIBRATION_COLUMNS = ("window_id", "start_index", "end_index", "score")
 
+ACTION_LOG_COLUMNS = ("window_id", "end_index", "action", "threshold")
+
+_ACTION_VALUES = ("hold", "alert", "defer", "recalibrate")
+
 
 def _require_id(value, name: str) -> str:
     if not isinstance(value, str):
@@ -87,8 +91,8 @@ def _validate_trace_rows(rows) -> list[dict]:
         score = _require_finite(entry["score"], "score")
         threshold = _require_finite(entry["threshold"], "threshold")
         state = entry["output_state"]
-        if state not in ("normal", "alert"):
-            raise ValueError("output_state must be 'normal' or 'alert'")
+        if state not in ("normal", "alert", "defer"):
+            raise ValueError("output_state must be 'normal', 'alert' or 'defer'")
         cid = _require_id(entry["config_id"], "config_id")
         rid = _require_id(entry["run_id"], "run_id")
         if config_id is None:
@@ -138,15 +142,51 @@ def _validate_calibration_rows(rows) -> list[dict]:
     return items
 
 
+def _validate_action_rows(rows, trace) -> list[dict]:
+    """Validate the label-free per-decision action log against the trace rows.
+
+    One action row per prediction row, in the same order, keyed by window_id
+    and end_index. action is one of hold/alert/defer/recalibrate; threshold is
+    the finite threshold that judged the window.
+    """
+    if rows is None or isinstance(rows, (str, bytes, dict)):
+        raise TypeError("action_rows must be a sequence of dicts")
+    try:
+        items = list(rows)
+    except TypeError:
+        raise TypeError("action_rows must be a sequence of dicts")
+    if len(items) != len(trace):
+        raise ValueError("action_rows must have one row per prediction row")
+    expected = set(ACTION_LOG_COLUMNS)
+    out = []
+    for entry, prow in zip(items, trace):
+        if not isinstance(entry, dict):
+            raise TypeError("each action row must be a dict")
+        if set(entry.keys()) != expected:
+            raise ValueError(f"action row must have exactly {ACTION_LOG_COLUMNS}")
+        window_id = _require_id(entry["window_id"], "window_id")
+        end = _require_index(entry["end_index"], "end_index")
+        action = entry["action"]
+        if action not in _ACTION_VALUES:
+            raise ValueError(f"action must be one of {_ACTION_VALUES}")
+        threshold = _require_finite(entry["threshold"], "threshold")
+        if window_id != prow["window_id"] or end != prow["end_index"]:
+            raise ValueError("action row must align with the prediction row")
+        out.append({"window_id": window_id, "end_index": end,
+                    "action": action, "threshold": threshold})
+    return out
+
+
 def _validate_json_mapping(value, name: str) -> str:
     if not isinstance(value, dict):
         raise TypeError(f"{name} must be a dict")
     return json.dumps(value, sort_keys=True, indent=2, allow_nan=False)
 
 
-def write_run(output_dir, rows, config: dict, metadata: dict, diagnostics: dict, calibration_rows) -> None:
+def write_run(output_dir, rows, config: dict, metadata: dict, diagnostics: dict, calibration_rows, action_rows=None) -> None:
     trace = _validate_trace_rows(rows)
     calib = _validate_calibration_rows(calibration_rows)
+    actions = _validate_action_rows(action_rows, trace) if action_rows is not None else None
     config_text = _validate_json_mapping(config, "config")
     metadata_text = _validate_json_mapping(metadata, "metadata")
     diagnostics_text = _validate_json_mapping(diagnostics, "diagnostics")
@@ -199,3 +239,14 @@ def write_run(output_dir, rows, config: dict, metadata: dict, diagnostics: dict,
         fh.write(metadata_text + "\n")
     with open(out / "diagnostics.json", "w") as fh:
         fh.write(diagnostics_text + "\n")
+    if actions is not None:
+        with open(out / "policy_actions.csv", "w", newline="") as fh:
+            writer = csv.writer(fh)
+            writer.writerow(list(ACTION_LOG_COLUMNS))
+            for entry in actions:
+                writer.writerow([
+                    entry["window_id"],
+                    entry["end_index"],
+                    entry["action"],
+                    repr(float(entry["threshold"])),
+                ])

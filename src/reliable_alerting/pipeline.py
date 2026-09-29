@@ -189,8 +189,34 @@ def validate_config(config):
         f_r = _num(pol["low_ratio"], "low_ratio")
         if not 0 < f_r <= 1:
             raise ValueError("low_ratio must satisfy 0 < r <= 1")
+    elif po["kind"] == "anchored_recalibration":
+        pol = _exact(po, ["kind", "comparison", "history_length", "quantile",
+                          "kappa", "rho", "defer_limit"], "policy")
+        if not _is_int(pol["history_length"]) or pol["history_length"] < 1:
+            raise ValueError("history_length must be a positive int")
+        f_q = _num(pol["quantile"], "quantile")
+        if not 0 < f_q <= 1:
+            raise ValueError("quantile must satisfy 0 < q <= 1")
+        # kappa/rho: null means disabled (math.inf, for ablations); otherwise
+        # a finite positive number. JSON cannot carry inf, hence the null.
+        for rk in ("kappa", "rho"):
+            rv = pol[rk]
+            if rv is not None:
+                fr = _num(rv, rk)
+                if not fr > 0:
+                    raise ValueError(f"{rk} must be > 0 or null (disabled)")
+        if not _is_int(pol["defer_limit"]) or pol["defer_limit"] < 0:
+            raise ValueError("defer_limit must be a non-negative int")
+    elif po["kind"] == "sun_confidence_sequence":
+        pol = _exact(po, ["kind", "comparison", "p", "alpha"], "policy")
+        f_p = _num(pol["p"], "p")
+        if not 0 < f_p < 1:
+            raise ValueError("p must satisfy 0 < p < 1")
+        f_a = _num(pol["alpha"], "alpha")
+        if not 0 < f_a < 1:
+            raise ValueError("alpha must satisfy 0 < alpha < 1")
     else:
-        raise ValueError("policy.kind must be 'fixed_threshold' or 'rolling_threshold' or 'k_consecutive' or 'm_of_n' or 'hysteresis'")
+        raise ValueError("policy.kind must be 'fixed_threshold' or 'rolling_threshold' or 'k_consecutive' or 'm_of_n' or 'hysteresis' or 'anchored_recalibration' or 'sun_confidence_sequence'")
     
     if pol["comparison"] != "strict_greater":
         raise ValueError("policy.comparison must be 'strict_greater'")
@@ -220,7 +246,8 @@ def validate_config(config):
         "time_basis": "sample_index",
         "held_out": "not_reserved_or_evaluated",
     }
-    for pol_k in ("history_length", "admission_rule", "quantile", "k", "m", "n", "low_ratio"):
+    for pol_k in ("history_length", "admission_rule", "quantile", "k", "m", "n", "low_ratio",
+                  "kappa", "rho", "defer_limit", "p", "alpha"):
         if pol_k in pol:
             out_d["policy"][pol_k] = pol[pol_k]
 
@@ -313,6 +340,25 @@ def compute_trace(config, values=None):
     elif pol_conf["kind"] == "hysteresis":
         low = quant.threshold * pol_conf["low_ratio"]
         pol = policy.HysteresisPolicy(low=low, high=quant.threshold)
+    elif pol_conf["kind"] == "anchored_recalibration":
+        kappa = math.inf if pol_conf["kappa"] is None else float(pol_conf["kappa"])
+        rho = math.inf if pol_conf["rho"] is None else float(pol_conf["rho"])
+        pol = policy.AnchoredRecalibrationPolicy(
+            theta0=quant.threshold,
+            block_length=pol_conf["history_length"],
+            quantile=pol_conf["quantile"],
+            cap=kappa,
+            stability=rho,
+            defer_limit=pol_conf["defer_limit"],
+        )
+    elif pol_conf["kind"] == "sun_confidence_sequence":
+        # Sun's history seed is the calibration scores; theta0 is the controller
+        # anchor recorded for the (thresholdless) confidence-sequence policy.
+        pol = policy.SunConfidenceSequencePolicy(
+            calibration_scores=cal_scores,
+            p=pol_conf["p"],
+            alpha=pol_conf["alpha"],
+        )
     else:
         pol = policy.FixedThresholdPolicy(threshold=quant.threshold)
     cal_rows = [{"window_id": w.window_id, "start_index": w.start_index,
@@ -326,24 +372,47 @@ def compute_trace(config, values=None):
             feature_trackers.append(diagnostics_features.RollingSpreadFeature(f["length"]))
 
     rows = []
+    action_rows = []
+    pol_kind = pol_conf["kind"]
+    _state_to_action = {"alert": "alert", "normal": "hold", "defer": "defer"}
     for w in wins["replay"]:
         s = scorer.score(w.values)
-        
-        pol_threshold = getattr(pol, "threshold", quant.threshold)
-        
+
+        # Threshold recorded per window. For every existing arm this is the
+        # threshold BEFORE the decision (byte-identical with prior runs). For
+        # the anchored controller the protocol records the threshold that
+        # judged the window, i.e. AFTER any recalibration at this window, so it
+        # is read post-decision below.
+        pre_threshold = getattr(pol, "threshold", quant.threshold)
+        state = pol.decide(s)
+
+        if pol_kind == "anchored_recalibration":
+            rec_threshold = float(pol.threshold)
+            action = pol.last_action
+        elif pol_kind == "sun_confidence_sequence":
+            # Thresholdless policy: record the controller anchor theta0 for a
+            # uniform schema; it is not used by any metric.
+            rec_threshold = float(quant.threshold)
+            action = _state_to_action[state]
+        else:
+            rec_threshold = float(pre_threshold)
+            action = _state_to_action[state]
+
         row = {"window_id": w.window_id, "start_index": w.start_index,
                "end_index": w.end_index, "score": s,
-               "output_state": pol.decide(s),
-               "threshold": float(pol_threshold), "config_id": cid}
-        
+               "output_state": state,
+               "threshold": rec_threshold, "config_id": cid}
+
         feats = []
         for t in feature_trackers:
             feats.append(t.update(s))
-        
+
         if feats:
             row["features"] = feats
-            
+
         rows.append(row)
+        action_rows.append({"window_id": w.window_id, "end_index": w.end_index,
+                            "action": action, "threshold": rec_threshold})
     alerts = sum(1 for r in rows if r["output_state"] == "alert")
     if input_kind == "csv_stream":
         gen_spec = {"kind": "csv_stream", "length": n, "path": resolved["input"]["path"], "value_column": resolved["input"]["value_column"]}
@@ -379,6 +448,7 @@ def compute_trace(config, values=None):
                          "sample_count": quant.sample_count,
                          "method": quant.method},
             "rows": rows, "calibration_rows": cal_rows,
+            "action_rows": action_rows,
             "diagnostics": diagnostics}
 
 

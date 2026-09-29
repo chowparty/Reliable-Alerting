@@ -129,8 +129,8 @@ def load_predictions_csv(path):
             score = _parse_finite(d["score"], "score")
             threshold = _parse_finite(d["threshold"], "threshold")
             state = d["output_state"]
-            if state not in ("normal", "alert"):
-                raise ValueError("output_state must be 'normal' or 'alert'")
+            if state not in ("normal", "alert", "defer"):
+                raise ValueError("output_state must be 'normal', 'alert' or 'defer'")
             # NOTE: no score/threshold -> output_state consistency check here.
             # That invariant holds only for the stateless fixed-threshold policy;
             # stateful policies (k_consecutive, m_of_n, hysteresis) and the

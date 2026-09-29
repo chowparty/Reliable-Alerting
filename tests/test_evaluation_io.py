@@ -197,7 +197,10 @@ class GenericLoaderTest(unittest.TestCase):
             self.assertEqual(len(rows), 2)
             self.assertEqual(rows[0]["output_state"], "defer")
 
-    def test_fixed_validator_still_rejects_defer(self):
+    def test_recompute_loader_accepts_defer(self):
+        # The frozen protocol adds defer-bearing arms (anchored, sun), so the
+        # strict recompute loader must accept output_state 'defer' just like the
+        # generic evaluation loader does. (Was: defer rejected.)
         from reliable_alerting import evidence
         with tempfile.TemporaryDirectory(dir=str(REPO)) as tmp:
             p = str(Path(tmp) / "pred.csv")
@@ -206,8 +209,8 @@ class GenericLoaderTest(unittest.TestCase):
                 w.writerow(["window_id", "start_index", "end_index", "score",
                             "output_state", "threshold", "config_id", "run_id"])
                 w.writerow(["w:0", 0, 1, 0.1, "defer", 1.0, "c", "r"])
-            with self.assertRaises((TypeError, ValueError)):
-                evidence.load_predictions_csv(p)
+            loaded = evidence.load_predictions_csv(p)
+            self.assertEqual(loaded[0]["output_state"], "defer")
 
     def test_both_loaders_accept_optional_features_column(self):
         """Real multi-policy predictions carry a trailing 'features' column.

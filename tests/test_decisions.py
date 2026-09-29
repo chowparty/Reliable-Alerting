@@ -281,8 +281,12 @@ class WriteRunTest(unittest.TestCase):
         params = inspect.signature(writing.write_run).parameters
         self.assertEqual(
             list(params),
-            ["output_dir", "rows", "config", "metadata", "diagnostics", "calibration_rows"],
+            ["output_dir", "rows", "config", "metadata", "diagnostics",
+             "calibration_rows", "action_rows"],
         )
+        # action_rows is the optional label-free per-decision action log; it
+        # must default to None so existing callers are unaffected.
+        self.assertIsNone(params["action_rows"].default)
         self.assertNotIn("labels", params)
         self.assertNotIn("label", params)
 
