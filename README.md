@@ -2,9 +2,11 @@
 
 ## Start here
 
-**What this is.** A Phase-I study of whether simple decision-time information
-improves alerting under changing conditions, compared with fixed thresholds and
-established temporal rules. Development-only; no held-out result is claimed.
+**What this is.** A Phase-I study of *when an alert threshold should learn*:
+recalibration treated as one guarded decision-time action (alongside alert, hold
+and defer), with every policy compared on one common score trace and alert
+workload, decision coverage, delay and recall reported separately.
+Development-only; no held-out result is claimed.
 
 - **Phase-I report.** Source is in [`report/submission/`](report/submission/)
   (see its [`README.md`](report/submission/README.md)). Build the 15-page PDF with:
@@ -29,17 +31,19 @@ established temporal rules. Development-only; no held-out result is claimed.
      ```
 
 - **Evidence and literature.** The evidence index is
-  [`report/evidence-index.md`](report/evidence-index.md); the report source
-  outline is [`report/outline.md`](report/outline.md); local literature copies
-  live under `report/literature/` (fulltext copies are gitignored).
+  [`report/evidence-index.md`](report/evidence-index.md). The reviewed paper
+  ledger is [`report/literature/ledger.csv`](report/literature/ledger.csv), and the
+  closest-work analysis is
+  [`report/literature/closest-work.md`](report/literature/closest-work.md). No paper
+  PDFs are stored in the repository.
 
 - **Reserved-stream integrity.** `SKAB/other/21.csv` is named reserved in
   [`manifest.md`](manifest.md); it was never opened and no claim is made on it.
 
 - **Historical material.** The dated implementation sections below (Day-1
-  through the Day-05 diagnostic) and the day-by-day plan in
-  [`plan/`](plan/) are historical: they record how the work developed and do
-  not govern current claims. Current claims are governed by the section below
+  through the Day-05 diagnostic), the day-by-day plan in [`plan/`](plan/), and the
+  pre-study report outline [`report/outline.md`](report/outline.md) are historical.
+  They record how the work developed, but they do not govern current claims. Current claims are governed by the section below
   and by [`manifest.md`](manifest.md).
 
 ## Current evidence for the Phase-I viva (28 September 2026)
