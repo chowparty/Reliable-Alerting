@@ -11,6 +11,9 @@ images. Each has a prompt file here, and the prompt text is the single source.
 The data figures (ratchet, scorer limit, synthetic map, trade-off) are generated from
 the saved study results and must never be replaced by generated images.
 
+The two slide-only schematics (slides 2 and 3) keep their prompts beside their sources
+in `../../../slides/diagrams/ai/`, and follow the same rules.
+
 ## How it works
 
 `report.tex` places these figures with `\aifigure{<name>}{<fallback>}`:

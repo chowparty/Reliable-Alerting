@@ -46,24 +46,32 @@ implemented / proposed are tagged and kept distinct.
 ## Build
 
 ```sh
-export PATH=/Library/TeX/texbin:$PATH   # TeX Live 2026 basic
 sh build.sh                              # -> build/report.pdf
 NO_LOGO=1 sh build.sh                    # cover without the logo (public copy)
 AI_PLACEHOLDERS=1 sh build.sh            # draft: prints each schematic's image prompt
 ```
 
+`build.sh` adds `/Library/TeX/texbin` (where MacTeX and BasicTeX install) to `PATH`;
+on Linux `pdflatex` is already on it. To rebuild the report and the slides together,
+run every check and refresh `../../deliverables/`, use
+`bash scripts/build_deliverables.sh` from the repository root (see
+[`../README.md`](../README.md)).
+
 The reviewed, logo-free build is committed as `../../deliverables/Phase-I-Report.pdf`.
 
-The install is TeX Live *basic*; the report uses only packages present in it (no siunitx,
-cleveref, multirow, makecell, titlesec, standalone, pgfplots, tcolorbox, libertine).
+The report and slides build on BasicTeX (TeX Live's small scheme, which includes the
+LaTeX-recommended collection) plus `enumitem`; that is the installation they were
+built and checked on. They use no siunitx, cleveref, multirow, makecell, titlesec,
+standalone, pgfplots, tcolorbox or libertine.
 
 ### The NSUT logo
 
 The logo's reuse rights are unresolved and this repo is public, so the logo is **not
-committed** (`.gitignore` excludes `nsut-logo.png`). `build.sh` copies it in from
-`report-work/visuals/nsut-page1-000.png` when that file is present beside the checkout, and
-`report.tex` uses `\IfFileExists`, so the source still compiles without it (the cover then
-shows a plain text "NSUT logo" mark). The final submitted PDF includes the logo.
+committed** (`.gitignore` excludes `nsut-logo.png`). To build the printed copy with the
+logo, save it as `nsut-logo.png` in this folder. `build.sh` also copies it in from
+`report-work/visuals/nsut-page1-000.png` when that pack sits beside the checkout.
+`report.tex` uses `\IfFileExists`, so the source still compiles without it (the cover
+then shows a plain text "NSUT logo" mark). The final submitted PDF includes the logo.
 
 ## Reproducing the numbers from the repo alone
 

@@ -15,27 +15,31 @@ refute the direction. No held-out result is claimed.
 | File | What it is |
 |---|---|
 | [`deliverables/Phase-I-Report.pdf`](deliverables/Phase-I-Report.pdf) | The 15-page Phase-I report |
-| [`deliverables/Phase-I-Slides.pdf`](deliverables/Phase-I-Slides.pdf) | The 14-slide viva deck, for presenting |
+| [`deliverables/Phase-I-Slides.pdf`](deliverables/Phase-I-Slides.pdf) | The 15-slide viva deck, for presenting |
 | [`deliverables/Phase-I-Slides.pptx`](deliverables/Phase-I-Slides.pptx) | The same deck, editable, with speaker notes |
 | [`deliverables/SHA256SUMS`](deliverables/SHA256SUMS) | Checksums of the three files |
 
 The repository copies are built without the NSUT logo, whose reuse rights are
-unresolved; the printed submission carries it.
+unresolved; the printed submission carries it. **To change the report or the slides
+and re-render them, follow [`report/README.md`](report/README.md).**
 
 ### How to follow them
 
 1. **Read report page 2.** It states the direction and its seven claims C1–C7, each
    tagged PROVED, MEASURED, IMPLEMENTED or PROPOSED. Every later section points back
    to one of these claims.
-2. **Check the defence.** Section 3 of the report (Table 2) and slide 4 answer "isn't
-   this just X?" for the nine closest papers. Section 8 and slide 12 give the strongest
+2. **Check the defence.** Section 3 of the report (Table 2) and slide 6 answer "isn't
+   this just X?" for the nine closest papers. Section 8 and slide 14 give the strongest
    case against us.
 3. **Follow one number to its source.** Every table and data figure is generated from
    the saved study results by [`report/submission/generate/`](report/submission/generate/),
    and a test asserts each cell equals the saved value. The slide check
    ([`report/slides/check_numbers.py`](report/slides/check_numbers.py)) fails if a slide
    shows a number the report does not.
-4. **Present.** Slides carry 45–60 s of speaker notes each; the deck runs ten minutes.
+4. **Present.** Slides 2 and 3 give a listener new to the area what they need: how a
+   score, a threshold and an alert fit together, and why a threshold has to learn. The
+   speaker notes run 25–60 s per slide, about nine minutes in all at a calm pace, so
+   the deck fits the ten-minute slot.
    Slide titles state each slide's takeaway, so the titles alone tell the story.
 
 ## Reproduce everything
@@ -60,15 +64,15 @@ python3 scripts/recompute_evaluations.py --all-arms results/20260929-policy-stud
 python -m unittest discover -s tests -q
 python -m unittest report/submission/generate/test_generators.py
 
-# 5. Documents
-sh report/submission/build.sh        # report -> report/submission/build/report.pdf
-bash report/slides/build.sh          # slides -> report/slides/deck.pdf, deck.pptx
-python3 report/slides/check_numbers.py
+# 5. Documents: build the report and slides, run every check, refresh deliverables/
+bash scripts/build_deliverables.sh --check   # build and check only
+bash scripts/build_deliverables.sh           # also refresh deliverables/
 ```
 
-`NO_LOGO=1` builds either document without the logo. `AI_PLACEHOLDERS=1 sh
-report/submission/build.sh` prints, under each schematic figure, the prompt for an
-optional AI-generated replacement; see
+The document tools and the checks are described in
+[`report/README.md`](report/README.md). `NO_LOGO=0` builds a local copy with the logo.
+`AI_PLACEHOLDERS=1 sh report/submission/build.sh` prints, under each schematic figure,
+the prompt for an optional AI-generated replacement; see
 [`report/submission/figures/ai/README.md`](report/submission/figures/ai/README.md).
 Data figures are never replaced.
 
@@ -77,8 +81,9 @@ Data figures are never replaced.
 ```text
 deliverables/         final report and slides (built copies, checksummed)
 report/
+  README.md           how to change the report or slides and re-render them
   submission/         report source: sections/, figures/, tables/, generate/, build.sh
-  slides/             slide source: deck.md, theme, build.sh, check_numbers.py
+  slides/             slide source: deck.md, diagrams/, theme, build.sh, check_numbers.py
   literature/         paper ledger, search log, closest-work analysis
   evidence-index.md   where each piece of evidence lives
 src/reliable_alerting/  loaders, chronological splits, scorer, calibration,
@@ -86,7 +91,7 @@ src/reliable_alerting/  loaders, chronological splits, scorer, calibration,
 tests/                unittest suite
 configs/              run, label and evaluation configs; synthetic family generator
 research/             team audit, verification and plotting helpers (tested in tests/)
-scripts/              independent metric recompute
+scripts/              document build and checks; independent metric recompute
 run_policy_study.py   policy-study runner (all arms, all streams)
 run_real_streams.py   corrected baseline runner (valve1, valve2)
 run_tests.py          full test suite with a verbose log in test_results.log (ignored)
@@ -122,5 +127,6 @@ the commands above.
 - [`docs/history.md`](docs/history.md): dated development sections from 19–28
   September, with their exact commands. Historical; it does not govern current claims.
 - [`docs/tooling.md`](docs/tooling.md): the optional `opencode.json` tooling config.
-- [`report/submission/README.md`](report/submission/README.md) and
-  [`report/slides/README.md`](report/slides/README.md): document build details.
+- [`report/README.md`](report/README.md): changing the report or slides, the checks,
+  and the with-logo printed copy. [`report/submission/README.md`](report/submission/README.md)
+  and [`report/slides/README.md`](report/slides/README.md) give build internals.
