@@ -7,7 +7,8 @@ eq. (1). Semantics (binding):
   Qhat(p; y_1..n) = (y_(floor(p*n)) + y_(ceil(p*n))) / 2, 1-indexed order stats,
                     with y_(0) := y_(1)
   C = [ Qhat(max(p-2u,0)), Qhat(min(p+2u,1)) ]
-  history = calibration scores UNION replay scores seen so far (admit-all)
+  history = calibration scores UNION replay scores seen before S_t (admit-all);
+            the current score joins the history after the decision
   p = 0.95, alpha = 0.05
   decision: S > max(C) -> alert ; S in C -> defer ; else normal
 
@@ -76,15 +77,13 @@ class ConfidenceSetAndDecision(unittest.TestCase):
         self.assertEqual(sorted(pol.history), sorted(cal + [0.5, 9.0]))
 
     def test_decision_mapping(self):
-        # Derive the expected label from the eq. (1) reference for each score,
-        # rather than assuming one: when the current score becomes the new max
-        # and the upper bound clips to Qhat(1.0)=that score, the result is a
-        # boundary 'defer', which is correct behaviour.
+        # Derive the expected label from the eq. (1) reference built on the
+        # history before the current score, for each score.
         cal = [float(i) for i in range(1, 21)]  # 1..20
         for s in (1000.0, -1000.0, 10.0, 19.0, 21.0):
             pol = policy.SunConfidenceSequencePolicy(
                 calibration_scores=cal, p=0.95, alpha=0.05)
-            hist = sorted(cal + [s])
+            hist = sorted(cal)  # C is built from S_1:t-1 (Def. 2.4)
             n = len(hist)
             u = _expected_un(n, 0.05)
             c_lo = _qhat(hist, max(0.95 - 2 * u, 0.0))
@@ -97,7 +96,7 @@ class ConfidenceSetAndDecision(unittest.TestCase):
         pol = policy.SunConfidenceSequencePolicy(calibration_scores=cal, p=0.95, alpha=0.05)
         s = 25.0
         # Reproduce eq. (1) independently for the first replay decision.
-        hist = sorted(cal + [s])
+        hist = sorted(cal)  # C is built from S_1:t-1 (Def. 2.4)
         n = len(hist)
         u = _expected_un(n, 0.05)
         lo_p = max(0.95 - 2 * u, 0.0)
@@ -112,13 +111,20 @@ class ConfidenceSetAndDecision(unittest.TestCase):
         else:
             self.assertEqual(decision, "normal")
 
-    def test_history_includes_current_score_before_decision(self):
-        # Protocol: history = calibration scores UNION replay scores so far,
-        # and the current score is part of "so far".
-        cal = [1.0, 2.0, 3.0]
-        pol = policy.SunConfidenceSequencePolicy(calibration_scores=cal)
-        pol.decide(4.0)
-        self.assertIn(4.0, pol.history)
+    def test_confidence_set_excludes_current_score(self):
+        # Sun et al. Def. 2.4 / Algorithm 1: the decision for S_t uses the
+        # confidence set C(p, alpha, S_1:t-1), i.e. history BEFORE S_t. The
+        # current score is appended only after deciding.
+        cal = [float(i) for i in range(1, 21)]  # 1..20
+        pol = policy.SunConfidenceSequencePolicy(calibration_scores=cal, p=0.95, alpha=0.05)
+        # With n=20, p + 2u_n > 1, so the upper bound is Qhat(1.0) = max(history) = 20.
+        # A new record 1000 exceeds it and must alert; including the current
+        # score in the set would clip the bound to 1000 and wrongly defer.
+        self.assertGreater(0.95 + 2 * _expected_un(20), 1.0)
+        self.assertEqual(pol.decide(1000.0), "alert")
+        # After deciding, the score joins the history (admit-all).
+        self.assertIn(1000.0, pol.history)
+        self.assertEqual(len(pol.history), 21)
 
 
 class Docstring(unittest.TestCase):

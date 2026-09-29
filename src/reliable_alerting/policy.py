@@ -358,9 +358,10 @@ class SunConfidenceSequencePolicy:
 
     This is the closest-literature abstention baseline (frozen protocol
     section 5). It maintains a running history of scores (the calibration
-    scores plus every replay score seen so far -- admit-all, the
-    single-offline-dataset matched branch of the paper's Algorithm 4) and, at
-    each window, builds a confidence set for the p-quantile:
+    scores plus every replay score seen before the current one -- admit-all,
+    the single-offline-dataset matched branch of the paper's Algorithm 4) and,
+    at each window, builds a confidence set for the p-quantile from that
+    history S_1:t-1 (Def. 2.4), deciding before the current score is added:
 
         u_n(alpha) = 0.85 * sqrt((log log(e*n) + 0.8*log(1612/alpha)) / n)
         Qhat(p; y_1..n) = (y_(floor(p*n)) + y_(ceil(p*n))) / 2   (1-indexed
@@ -421,14 +422,20 @@ class SunConfidenceSequencePolicy:
 
     def decide(self, score) -> str:
         s = _check_score(score)
-        # history = calibration scores UNION replay scores so far, including s.
-        self._history.append(s)
+        # Sun et al. Def. 2.4 / Algorithm 1: the decision for S_t uses the
+        # confidence set built from S_1:t-1 (calibration scores plus replay
+        # scores seen BEFORE this one). The current score joins the history
+        # only after the decision (admit-all).
         n = len(self._history)
+        if n == 0:
+            self._history.append(s)
+            return "defer"  # no history yet: the confidence set is undefined
         u = self.u_n(n)
         lo_p = max(self._p - 2.0 * u, 0.0)
         hi_p = min(self._p + 2.0 * u, 1.0)
         c_lo = self.q_hat(self._history, lo_p)
         c_hi = self.q_hat(self._history, hi_p)
+        self._history.append(s)
         if s > c_hi:
             return "alert"
         if s >= c_lo:

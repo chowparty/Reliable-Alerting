@@ -509,14 +509,14 @@ identical score traces give identical ranking metrics by construction.
 
 # 2. Run all 11 arms on valve1, valve2 and Y1-Y7, then evaluate each.
 #    Refuses an existing output directory; results/ is gitignored.
-.venv/bin/python run_policy_study.py --output-root results/20260929-policy-study
+.venv/bin/python run_policy_study.py --output-root results/20260929-policy-study-v2
 
 # 3. Regression gate + independent recompute (from report-work/evidence/):
 #    - default root recompute keeps recompute-output.json byte-identical
 #      (pinned SHA b57e02c3...979bf740d694c008259cd0e8c03c343519147831b6ea126f97fb1d64)
 #    - --all-arms recomputes all 99 study rows into a separate file.
 python3 recompute_evaluations.py
-python3 recompute_evaluations.py --all-arms ../../research/results/20260929-policy-study
+python3 recompute_evaluations.py --all-arms ../../research/results/20260929-policy-study-v2
 
 # 4. Targeted tests, then the full suite.
 .venv/bin/python -m unittest tests.test_policy_anchored tests.test_policy_sun \
@@ -563,11 +563,21 @@ tolerance). `defer_limit` accepts `0`.
 ### No held-out data
 
 This study is development-only. It uses the two SKAB development streams
-(`valve1/0.csv`, `valve2/0.csv`) and the deterministic synthetic family. No
-held-out evaluation data was reserved, inspected, or evaluated;
-`SKAB/other/21.csv` was never opened. Predictions and the label-free action log
-are written before any label join, and episodes are formed from saved states
-before labels are consulted.
+(`valve1/0.csv`, `valve2/0.csv`) and the deterministic synthetic family.
+`SKAB/other/21.csv` is named as reserved in the manifest, but its reservation
+authority and recipe are disputed (see the manifest and the current-evidence
+section above); it was never opened, and no held-out result or claim exists.
+Predictions and the label-free action log are written before any label join,
+and episodes are formed from saved states before labels are consulted.
+
+### Which run is current
+
+`results/20260929-policy-study-v2/` is the current study output. The first run
+(`results/20260929-policy-study/`) is superseded: its Sun baseline built the
+confidence set from a history that already contained the score being judged,
+whereas Sun et al. (Def. 2.4, Algorithm 1) decide on `C(p, alpha, S_1:t-1)`.
+With that fix only the nine `sun_confidence_sequence` rows changed; the other
+90 rows are identical between the two runs.
 
 ## Optional tooling
 
