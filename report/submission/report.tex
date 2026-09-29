@@ -202,12 +202,13 @@
   Hu~\citep{hu2026workload}. We do not claim any single ingredient; our contribution,
   if it holds, is the policy-layer combination and its attribution on one fixed trace.
   \vspace{3pt}\par
-  \textbf{The falsifiable next experiment.} Replay all arms on the held-out SKAB
-  streams (every valve1 and valve2 file beyond the two development files) plus one
+  \textbf{The falsifiable next experiment.} Replay all arms on the SKAB streams
+  admitted by a label-independent rule (every other valve1 and valve2 file) plus one
   public family with labelled \emph{benign} regime
-  changes; \emph{kill criterion:} if, on streams where the label-free elevation test
-  fires, the controller does not reduce non-event alert duration versus fixed at
-  equal event recall, the direction is refuted and that becomes the result.
+  changes; \emph{first of three kill criteria (Section~\ref{sec:conclusion}):} if, on
+  streams where the label-free elevation test fires, the controller does not reduce
+  non-event alert duration versus fixed at equal event recall, the direction is
+  refuted and that becomes the result.
 }
 
 \vspace{3mm}
@@ -692,8 +693,8 @@ exercised only by the Sun arm here.
   \centering
   \caption{Recomputed development results on one common score trace per stream, all 11
   arms. Recall and coverage show num/den; all durations/delays in sample-index units.
-  Calibration threshold: valve1 $1.308542250880009$ (43 windows), valve2
-  $1.1255423193543013$ (40 windows). In-ev.\ alert is the in-event alerted fraction;
+  Calibration threshold $\theta_0$: valve1 $1.309$ (43 windows), valve2
+  $1.126$ (40 windows). In-ev.\ alert is the in-event alerted fraction;
   ``--'' marks an undefined value (mean delay when the arm raises no in-event alert,
   recall $0/d$).}
   \label{tab:baseline}
