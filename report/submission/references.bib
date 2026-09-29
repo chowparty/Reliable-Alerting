@@ -1,0 +1,344 @@
+% references.bib -- Phase-I literature for the decision-time action-policy work.
+% Only papers on the seven allowlisted platforms are article/inproceedings types.
+% Fields verified against the official record (see closest-work.md / *-rows.csv,
+% access date 2026-09-29). SKAB is a dataset, entered as a misc type. Do NOT add
+% arXiv/SSRN/author-page entries here as primary citations.
+
+% ---------------------------------------------------------------------------
+% Evaluation / metrics
+% ---------------------------------------------------------------------------
+@inproceedings{tatbul2018precision,
+  author    = {Tatbul, Nesime and Lee, Tae Jun and Zdonik, Stan and Alam, Mejbah and Gottschlich, Justin},
+  title     = {Precision and Recall for Time Series},
+  booktitle = {Advances in Neural Information Processing Systems 31 (NeurIPS 2018)},
+  year      = {2018},
+  url       = {https://proceedings.neurips.cc/paper/2018/hash/8f468c873a32bb0619eaeb2050ba45d1-Abstract.html},
+}
+
+@article{boniol2025vus,
+  author  = {Boniol, Paul and Krishna, Ashwin K. and Bruel, Marine and Liu, Qinghua and Huang, Mingyi and Palpanas, Themis and Tsay, Ruey S. and Elmore, Aaron and Franklin, Michael J. and Paparrizos, John},
+  title   = {{VUS}: effective and efficient accuracy measures for time-series anomaly detection},
+  journal = {The VLDB Journal},
+  volume  = {34},
+  number  = {3},
+  pages   = {32},
+  year    = {2025},
+  doi     = {10.1007/s00778-025-00907-x},
+  url     = {https://link.springer.com/article/10.1007/s00778-025-00907-x},
+}
+
+@inproceedings{liu2024elephant,
+  author    = {Liu, Qinghua and Paparrizos, John},
+  title     = {The Elephant in the Room: Towards A Reliable Time-Series Anomaly Detection Benchmark},
+  booktitle = {Advances in Neural Information Processing Systems 37 (NeurIPS 2024) Datasets and Benchmarks Track},
+  year      = {2024},
+  doi       = {10.52202/079017-3437},
+  url       = {https://proceedings.neurips.cc/paper_files/paper/2024/hash/c3f3c690b7a99fba16d0efd35cb83b2c-Abstract-Datasets_and_Benchmarks_Track.html},
+}
+
+@article{wu2023benchmarks,
+  author  = {Wu, Renjie and Keogh, Eamonn J.},
+  title   = {Current Time Series Anomaly Detection Benchmarks are Flawed and are Creating the Illusion of Progress},
+  journal = {IEEE Transactions on Knowledge and Data Engineering},
+  volume  = {35},
+  number  = {3},
+  pages   = {2421--2429},
+  year    = {2023},
+  doi     = {10.1109/TKDE.2021.3112126},
+  url     = {https://ieeexplore.ieee.org/document/9537291/},
+}
+
+% ---------------------------------------------------------------------------
+% Abstention / rejection / adaptive thresholding (closest threats)
+% ---------------------------------------------------------------------------
+@inproceedings{sun2024online,
+  author    = {Sun, Sophia Huiwen and Sankararaman, Abishek and Narayanaswamy, Balakrishnan Murali},
+  title     = {Online Adaptive Anomaly Thresholding with Confidence Sequences},
+  booktitle = {Proceedings of the 41st International Conference on Machine Learning},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {235},
+  pages     = {47105--47132},
+  year      = {2024},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v235/sun24h.html},
+}
+
+@inproceedings{perini2023rejection,
+  author    = {Perini, Lorenzo and Davis, Jesse},
+  title     = {Unsupervised Anomaly Detection with Rejection},
+  booktitle = {Advances in Neural Information Processing Systems 36 (NeurIPS 2023)},
+  year      = {2023},
+  doi       = {10.52202/075280-3052},
+  url       = {https://proceedings.neurips.cc/paper_files/paper/2023/hash/dc48c738d3ef8c81b6e968453a84a819-Abstract-Conference.html},
+}
+
+@inproceedings{shah2025sead,
+  author    = {Shah, Saumya Gaurang and Sankararaman, Abishek and Narayanaswamy, Balakrishnan Murali and Singh, Vikramank},
+  title     = {{SEAD}: Unsupervised Ensemble of Streaming Anomaly Detectors},
+  booktitle = {Proceedings of the 42nd International Conference on Machine Learning},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {267},
+  pages     = {54167--54185},
+  year      = {2025},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v267/shah25c.html},
+}
+
+@inproceedings{sankararaman2022fitness,
+  author    = {Sankararaman, Abishek and Shah, Saumya Gaurang and Narayanaswamy, Balakrishnan Murali and Singh, Vikramank},
+  title     = {Online Anomaly Detection in Streams with Drift and Outliers},
+  booktitle = {Proceedings of the 39th International Conference on Machine Learning},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {162},
+  pages     = {19153--19177},
+  year      = {2022},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v162/sankararaman22a.html},
+}
+
+@inproceedings{bhatia2022memstream,
+  author    = {Bhatia, Siddharth and Jain, Arjit and Srivastava, Shivin and Kawaguchi, Kenji and Hooi, Bryan},
+  title     = {MemStream: Memory-Based Streaming Anomaly Detection},
+  booktitle = {Proceedings of the ACM Web Conference 2022},
+  pages     = {610--621},
+  year      = {2022},
+  publisher = {ACM},
+  doi       = {10.1145/3485447.3512221},
+  url       = {https://dl.acm.org/doi/10.1145/3485447.3512221},
+}
+
+@inproceedings{rebjock2021fdrc,
+  author    = {Rebjock, Quentin and Kurt, Baris and Januschowski, Tim and Callot, Laurent},
+  title     = {Online False Discovery Rate Control for Anomaly Detection in Time Series},
+  booktitle = {Advances in Neural Information Processing Systems 34 (NeurIPS 2021)},
+  year      = {2021},
+  url       = {https://proceedings.neurips.cc/paper/2021/hash/def130d0b67eb38b7a8f4e7121ed432c-Abstract.html},
+}
+
+@inproceedings{nguyen2025d3m,
+  author    = {Nguyen, Viet and Shui, Changjian and Giri, Vijay and Arya, Siddarth and Verma, Amol and Razak, Fahad and Krishnan, Rahul G.},
+  title     = {Reliably Detecting Model Failures in Deployment Without Labels},
+  booktitle = {Advances in Neural Information Processing Systems 38 (NeurIPS 2025)},
+  year      = {2025},
+  doi       = {10.52202/085713-0269},
+  url       = {https://proceedings.neurips.cc/paper_files/paper/2025/hash/0bb251eba663f0345c0929f5bbbfb6dc-Abstract-Conference.html},
+}
+
+% ---------------------------------------------------------------------------
+% Conformal / calibration / change detection
+% ---------------------------------------------------------------------------
+@inproceedings{xu2026conformalized,
+  author    = {Xu, Nancy and Bostr{\"o}m, Henrik},
+  title     = {Conformalized Time Series Anomaly Thresholding with Latent Space Features},
+  booktitle = {Proceedings of the Symposium on Conformal and Probabilistic Prediction with Applications},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {329},
+  pages     = {676--688},
+  year      = {2026},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v329/xu26a.html},
+}
+
+@inproceedings{hennhofer2026nonconform,
+  author    = {Hennh{\"o}fer, Oliver and Kirsch, Maximilian and Preisach, Christine},
+  title     = {Conformal Anomaly Detection in Python: Moving Beyond Heuristic Thresholds with nonconform},
+  booktitle = {Proceedings of the Fifteenth Symposium on Conformal and Probabilistic Prediction with Applications},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {329},
+  pages     = {613--632},
+  year      = {2026},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v329/hennhofer26a.html},
+}
+
+@inproceedings{gibbs2021aci,
+  author    = {Gibbs, Isaac and Cand{\`e}s, Emmanuel J.},
+  title     = {Adaptive Conformal Inference Under Distribution Shift},
+  booktitle = {Advances in Neural Information Processing Systems 34 (NeurIPS 2021)},
+  year      = {2021},
+  url       = {https://proceedings.neurips.cc/paper/2021/hash/0d441de75945e5acbc865406fc9a2559-Abstract.html},
+}
+
+@inproceedings{tibshirani2019covariate,
+  author    = {Tibshirani, Ryan J. and Foygel Barber, Rina and Cand{\`e}s, Emmanuel J. and Ramdas, Aaditya},
+  title     = {Conformal Prediction Under Covariate Shift},
+  booktitle = {Advances in Neural Information Processing Systems 32 (NeurIPS 2019)},
+  year      = {2019},
+  url       = {https://proceedings.neurips.cc/paper/2019/hash/8fb21ee7a2207526da55a679f0332de2-Abstract.html},
+}
+
+@inproceedings{volkhonskiy2017icm,
+  author    = {Volkhonskiy, Denis and Burnaev, Evgeny and Nouretdinov, Ilia and Gammerman, Alexander and Vovk, Vladimir},
+  title     = {Inductive Conformal Martingales for Change-Point Detection},
+  booktitle = {Proceedings of the Sixth Workshop on Conformal and Probabilistic Prediction and Applications},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {60},
+  pages     = {132--153},
+  year      = {2017},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v60/volkhonskiy17a.html},
+}
+
+@inproceedings{chen2024ctssf,
+  author    = {Chen, Baiting and Ren, Zhimei and Cheng, Lu},
+  title     = {Conformalized Time Series with Semantic Features},
+  booktitle = {Advances in Neural Information Processing Systems 37 (NeurIPS 2024)},
+  year      = {2024},
+  doi       = {10.52202/079017-3859},
+  url       = {https://proceedings.neurips.cc/paper_files/paper/2024/hash/dbfb7b1443583fc7ab87e8b1b4f48c9c-Abstract-Conference.html},
+}
+
+@inproceedings{navarro2023metalearning,
+  author    = {Navarro, Jose Manuel and Huet, Alexis and Rossi, Dario},
+  title     = {Meta-Learning for Fast Model Recommendation in Unsupervised Multivariate Time Series Anomaly Detection},
+  booktitle = {Proceedings of the Second International Conference on Automated Machine Learning},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {224},
+  pages     = {381--398},
+  year      = {2023},
+  publisher = {PMLR},
+  note      = {Official landing/BibTeX name the method Hydra; the proceedings PDF body names it Orthus (version conflict, see base-notes.md)},
+  url       = {https://proceedings.mlr.press/v224/navarro23a.html},
+}
+
+% ---------------------------------------------------------------------------
+% Drift-gated adaptation / OOD (publisher closest threats)
+% ---------------------------------------------------------------------------
+@article{yang2026ddade,
+  author  = {Yang, Licheng and Yao, Yu and Yang, Daoqing and Yang, Wei and Hao, Yuming},
+  title   = {A generalizable anomaly detection framework with dynamic concept drift suppression for non-stationary time series},
+  journal = {Knowledge-Based Systems},
+  volume  = {337},
+  pages   = {115380},
+  year    = {2026},
+  doi     = {10.1016/j.knosys.2026.115380},
+  url     = {https://www.sciencedirect.com/science/article/pii/S0950705126001231},
+}
+
+@article{li2026adapts,
+  author  = {Li, Danlei and Fan, Mingyu and Nair, Nirmal-Kumar C. and Wang, Kevin I-Kai},
+  title   = {Adaptive drift aware continual learning with pool-based model reuse for time series applications},
+  journal = {Knowledge-Based Systems},
+  volume  = {350},
+  pages   = {116530},
+  year    = {2026},
+  doi     = {10.1016/j.knosys.2026.116530},
+  url     = {https://www.sciencedirect.com/science/article/pii/S0950705126012566},
+}
+
+@article{xu2024cddia,
+  author  = {Xu, Han and Zhao, Li and Yu and Chen},
+  title   = {Addressing Concept Drift in {IoT} Anomaly Detection: Drift Detection, Interpretation, and Adaptation},
+  journal = {IEEE Transactions on Sustainable Computing},
+  volume  = {9},
+  number  = {6},
+  pages   = {913--924},
+  year    = {2024},
+  doi     = {10.1109/TSUSC.2024.3386667},
+  note    = {Author list not fully verified against the official record; confirm before final citation},
+  url     = {https://ieeexplore.ieee.org/document/10509631/},
+}
+
+@inproceedings{bhukar2024dynamicxy,
+  author    = {Bhukar, Karan and Kumar, Harshit and Mahindru, Ruchi and Paradkar, Amit},
+  title     = {Dynamic Alert Suppression Policy for Noise Reduction in {AIOps}},
+  booktitle = {Proceedings of the 46th IEEE/ACM International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP)},
+  year      = {2024},
+  doi       = {10.1145/3639477.3639752},
+  note      = {Author given names not fully verified against the official record; confirm before final citation},
+  url       = {https://ieeexplore.ieee.org/document/10554731/},
+}
+
+@article{hu2026workload,
+  author  = {Hu, Minxuan},
+  title   = {A deployment-oriented framework for evaluating streaming integrity alerting under workload constraints},
+  journal = {Expert Systems with Applications},
+  volume  = {333},
+  pages   = {134305},
+  year    = {2026},
+  doi     = {10.1016/j.eswa.2026.134305},
+  note    = {In-press / online-first at 2026-09-29 (DOI year 2026, print issue 2027-01); resolve final pagination and status before citing},
+  url     = {https://www.sciencedirect.com/science/article/pii/S0957417426032112},
+}
+
+@article{liu2023anomalychange,
+  author  = {Liu, Jiayi and Yang, Donghua and Zhang, Kaiqi and Gao, Hong and Li, Jianzhong},
+  title   = {Anomaly and change point detection for time series with concept drift},
+  journal = {World Wide Web},
+  volume  = {26},
+  number  = {5},
+  pages   = {3229--3252},
+  year    = {2023},
+  doi     = {10.1007/s11280-023-01181-z},
+  url     = {https://link.springer.com/article/10.1007/s11280-023-01181-z},
+}
+
+@article{hu2024asod,
+  author  = {Hu, Zhaoyu and Yu, Guang and Liu, Jianpeng and Zhang, Sheng and Yu, Shui},
+  title   = {{ASOD}: an adaptive stream outlier detection method using online strategy},
+  journal = {Journal of Cloud Computing},
+  volume  = {13},
+  number  = {1},
+  pages   = {120},
+  year    = {2024},
+  doi     = {10.1186/s13677-024-00682-0},
+  note    = {Author given names not fully verified against the official record; confirm before final citation},
+  url     = {https://link.springer.com/article/10.1186/s13677-024-00682-0},
+}
+
+@inproceedings{kaur2023codit,
+  author    = {Kaur, Ramneet and Sridhar, Kaustubh and Park, Sangdon and Yang, Yahan and Jha, Susmit and Roy, Anirban and Sokolsky, Oleg and Lee, Insup},
+  title     = {{CODiT}: Conformal Out-of-Distribution Detection in Time-Series Data for Cyber-Physical Systems},
+  booktitle = {Proceedings of the ACM/IEEE 14th International Conference on Cyber-Physical Systems (ICCPS 2023)},
+  pages     = {120--131},
+  year      = {2023},
+  doi       = {10.1145/3576841.3585931},
+  note      = {ACM record was 403 in this runtime; metadata Crossref-verified. NOT ``Sethi 2023''},
+  url       = {https://dl.acm.org/doi/10.1145/3576841.3585931},
+}
+
+@article{kaur2024coditjournal,
+  author  = {Kaur, Ramneet and Yang, Yahan and Sokolsky, Oleg and Lee, Insup},
+  title   = {Out-of-distribution Detection in Dependent Data for Cyber-physical Systems with Conformal Guarantees},
+  journal = {ACM Transactions on Cyber-Physical Systems},
+  volume  = {8},
+  number  = {4},
+  pages   = {1--27},
+  year    = {2024},
+  doi     = {10.1145/3648005},
+  note    = {ACM record was 403 in this runtime; metadata Crossref-verified. Section detail seen only via non-official preview},
+  url     = {https://dl.acm.org/doi/10.1145/3648005},
+}
+
+% ---------------------------------------------------------------------------
+% Temporal-shift protocol / background
+% ---------------------------------------------------------------------------
+@inproceedings{yao2022wildtime,
+  author    = {Yao, Huaxiu and Choi, Caroline and Cao, Bochuan and Lee, Yoonho and Koh, Pang Wei W. and Finn, Chelsea},
+  title     = {Wild-Time: A Benchmark of in-the-Wild Distribution Shift over Time},
+  booktitle = {Advances in Neural Information Processing Systems 35 (NeurIPS 2022) Datasets and Benchmarks Track},
+  year      = {2022},
+  doi       = {10.52202/068431-0749},
+  url       = {https://proceedings.neurips.cc/paper_files/paper/2022/hash/43119db5d59f07cc08fca7ba6820179a-Abstract-Datasets_and_Benchmarks.html},
+}
+
+@inproceedings{yang2026timera,
+  author    = {Yang, Yiyuan and others},
+  title     = {Time-RA: Towards Time Series Reasoning for Anomaly Diagnosis with {LLM} Feedback},
+  booktitle = {Findings of the Association for Computational Linguistics: ACL 2026},
+  pages     = {11591--11616},
+  year      = {2026},
+  doi       = {10.18653/v1/2026.findings-acl.562},
+  url       = {https://aclanthology.org/2026.findings-acl.562/},
+}
+
+% ---------------------------------------------------------------------------
+% Dataset (NOT academic evidence)
+% ---------------------------------------------------------------------------
+@misc{skab2020,
+  author       = {Katser, Iurii D. and Kozitsin, Vyacheslav O.},
+  title        = {{SKAB} --- Skoltech Anomaly Benchmark},
+  year         = {2020},
+  howpublished = {Dataset},
+  note         = {Development streams valve1/0.csv and valve2/0.csv used as the data source; cited as a dataset, not as academic evidence},
+}

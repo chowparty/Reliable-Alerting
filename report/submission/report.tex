@@ -1,0 +1,898 @@
+\documentclass[a4paper,11pt]{article}
+
+% ===========================================================================
+% When Should an Alert Threshold Learn?  Phase-I mid-semester report (final).
+% Numbers verified against research/results/20260929-policy-study-v2/summary.json.
+% Data figures/tables are generated fragments (generate/); never hand-edited.
+% Packages restricted to the TeX Live 2026 *basic* set actually present.
+% ===========================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=20mm,includeheadfoot]{geometry}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{pifont}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+
+\definecolor{ink}{HTML}{17365D}
+\hypersetup{
+  colorlinks=true, linkcolor=ink, citecolor=ink, urlcolor=ink,
+  pdftitle={When Should an Alert Threshold Learn?},
+  pdfauthor={Somani, Pandey, Chaudhary}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.15em}
+\linespread{0.95}
+\setlength{\emergencystretch}{2em}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+
+% Let a page carry more float area (default limits flush big floats onto near-empty
+% pages). These affect placement only, never font size.
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+% Tighten float/caption spacing so the many figures and tables fit the page
+% budget without shrinking body text (11pt) or table text (>= footnotesize).
+\captionsetup{font=small,skip=4pt}
+\setlength{\textfloatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{4pt}
+
+% Tighten section / subsection heading spacing (no titlesec in the basic install).
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-2.2ex \@plus -0.6ex \@minus -.2ex}{1.0ex \@plus.2ex}%
+  {\normalfont\Large\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-1.8ex\@plus -0.5ex \@minus -.2ex}{0.7ex \@plus .2ex}%
+  {\normalfont\large\bfseries}}
+% Let long DOIs / URLs in references break instead of overflowing the line.
+\g@addto@macro\UrlBreaks{\do\/\do\-\do\.\do\_\do\?\do\=}
+\makeatother
+
+% Status tags so measured / proved / proposed are visibly distinct.
+\newcommand{\Sproved}{\textcolor{ink}{\textsf{\footnotesize[PROVED]}}}
+\newcommand{\Smeasured}{\textcolor{ink}{\textsf{\footnotesize[MEASURED]}}}
+\newcommand{\Simplemented}{\textcolor{ink}{\textsf{\footnotesize[IMPLEMENTED]}}}
+\newcommand{\Sproposed}{\textcolor{ink}{\textsf{\footnotesize[PROPOSED]}}}
+
+\newtheorem{proposition}{Proposition}
+
+% Controller pseudocode / code listing style (no algorithm2e in basic install).
+\lstdefinestyle{ctrl}{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true, columns=fullflexible, keepspaces=true,
+  frame=single, framesep=4pt, rulecolor=\color{gray!55},
+  backgroundcolor=\color{gray!4}, xleftmargin=2pt, aboveskip=6pt, belowskip=4pt,
+}
+
+% "At a glance" box.
+\newcommand{\glancebox}[1]{%
+  \begin{center}
+  \fcolorbox{ink}{gray!5}{%
+    \begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule-3pt\relax}
+      \small\sloppy\vspace{2pt}#1\vspace{2pt}
+    \end{minipage}}
+  \end{center}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize When Should an Alert Threshold Learn?}
+\fancyhead[R]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+% ===========================================================================
+% PAGE 1 -- COVER
+% ===========================================================================
+\begin{titlepage}
+  \thispagestyle{empty}
+  \centering
+  \vspace*{6mm}
+  {\large\bfseries NETAJI SUBHAS UNIVERSITY OF TECHNOLOGY (NSUT)\par}
+  \vspace{1mm}
+  {\small Department of Computer Science and Engineering\par}
+  {\small Main Campus, New Delhi\par}
+  \vspace{9mm}
+  % The NSUT logo reuse rights are unresolved; the logo is NOT committed. build.sh
+  % copies it in when present, and this guard lets the source compile without it.
+  \IfFileExists{nsut-logo.png}{%
+    \includegraphics[width=32mm]{nsut-logo.png}\par}{%
+    \fbox{\parbox[c][22mm][c]{32mm}{\centering\footnotesize NSUT\\[1pt]logo}}\par}
+  \vspace{10mm}
+  {\LARGE\bfseries When Should an Alert Threshold Learn?\par}
+  \vspace{3mm}
+  {\large Admission-Separated Recalibration as a Decision-Time Action\\
+   for Time-Series Anomaly Alerting\par}
+  \vspace{10mm}
+  {\large B.Tech Project-I (Phase-I) Mid-Semester Report\par}
+  \vspace{2mm}
+  {\normalsize 7th Semester, September 2026\par}
+  \vfill
+  {\normalsize\bfseries Submitted by\par}
+  \vspace{2mm}
+  \begin{tabular}{ll}
+    Nakul Somani      & 2023UCS1592\\
+    Aman Pandey       & 2023UCS1595\\
+    Pratyush Chaudhary & 2023UCS1616\\
+  \end{tabular}\par
+  \vspace{9mm}
+  {\normalsize\bfseries Supervisor\par}
+  \vspace{1mm}
+  {\normalsize Dr.\ Vijay Kumar Bohat\\
+   Assistant Professor, Department of Computer Science and Engineering\par}
+  \vspace{12mm}
+  \begin{flushright}
+  \begin{minipage}{60mm}
+    \centering
+    \rule{55mm}{0.4pt}\\[1mm]
+    {\footnotesize Supervisor's signature}
+  \end{minipage}
+  \end{flushright}
+  \vspace*{6mm}
+\end{titlepage}
+
+% ===========================================================================
+% PAGE 2 -- CONTENTS + AT-A-GLANCE BOX
+% ===========================================================================
+\pagenumbering{arabic}
+\setcounter{page}{2}
+
+{\hypersetup{linkcolor=ink}\tableofcontents}
+
+\vspace{4mm}
+\glancebox{%
+  \textbf{Research direction at a glance}\par\vspace{2pt}
+  Treat recalibration as an explicit, guarded decision-time action: the data an
+  alert threshold learns from must be chosen \emph{neither by that same threshold}
+  (which provably ratchets it downward) \emph{nor unconditionally} (which absorbs
+  sustained faults), and every alternative is compared with every baseline on
+  \emph{one common score trace}, with alert workload, decision coverage, delay and
+  event recall reported separately.
+  \vspace{4pt}
+  \begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=2pt]
+    \item \textbf{What is proved.} \Sproved{} Normal-only rolling recalibration of a
+      nearest-rank quantile threshold is monotone non-increasing --- a one-way
+      ratchet (Proposition~\ref{prop:ratchet}).
+    \item \textbf{What is measured on SKAB.} \Smeasured{} The controller is
+      \emph{identical to the fixed threshold} on both SKAB development streams
+      (valve1 and valve2): the recalibration guard is never reached, so this is a
+      no-harm check, not evidence of benefit.
+    \item \textbf{What is measured under synthetic stress.} \Smeasured{} On the
+      benign step Y1 the controller holds non-event alert duration to 16 against the
+      fixed threshold's 597, both at full coverage 260/260; its declared failures are
+      recorded too --- the Y2 ramp locks into periodic alerts (non-event duration
+      204 over 50 episodes) and the Y4 fault, shaped like a benign step, is absorbed
+      after onset.
+    \item \textbf{What is proposed.} \Sproposed{} Any benefit on real benign regime
+      changes is under test, not claimed.
+  \end{itemize}
+  \vspace{2pt}
+  \textbf{Closest prior work and how we differ.} The self-referential-admission
+  failure is already published in FITNESS~\citep{sankararaman2022fitness}; adaptive
+  abstention in Sun et al.~\citep{sun2024online}; static rejection in Perini \&
+  Davis~\citep{perini2023rejection}; workload-constrained evaluation in
+  Hu~\citep{hu2026workload}. We do not claim any single ingredient; our contribution,
+  if it holds, is the policy-layer combination and its attribution on one fixed trace.
+  \vspace{3pt}\par
+  \textbf{The falsifiable next experiment.} Replay all arms on the held-out SKAB
+  streams (every valve1 and valve2 file beyond the two development files) plus one
+  public family with labelled \emph{benign} regime
+  changes; \emph{kill criterion:} if, on streams where the label-free elevation test
+  fires, the controller does not reduce non-event alert duration versus fixed at
+  equal event recall, the direction is refuted and that becomes the result.
+}
+
+\vspace{3mm}
+
+% ===========================================================================
+% INTRODUCTION + MOTIVATION
+% ===========================================================================
+\section{Introduction and Motivation}\label{sec:introduction}
+
+An alert threshold decides, at each moment, whether an anomaly score is high enough
+to raise an alert. On a non-stationary signal a fixed threshold eventually drifts out
+of calibration, so a natural instinct is to let the threshold \emph{learn} from recent
+data. This report is about a specific hazard in that instinct, and about making the
+choice of what the threshold learns from an explicit, auditable decision.
+
+\paragraph{A plain worked example: the one-way ratchet.}
+Consider a threshold that recalibrates itself from a short buffer of recent scores but
+--- crucially --- only admits a score when the \emph{current} threshold judged it
+\emph{normal}. Take buffer length $L=3$ and use the largest buffered score as the next
+threshold (a nearest-rank high quantile), starting at $\theta=10$. Every admitted score
+is by construction at most the current threshold, so the buffer maximum, and hence the
+next threshold, can only stay the same or fall --- never rise. The threshold therefore
+\textbf{never increases}: over a long run it grinds downward toward the low end of the
+normal band, and every small fluctuation above the sinking line becomes an alert. The
+flood of alerts is not evidence of more anomalies; it is an artefact of a threshold that
+learns
+only from windows it already called normal.
+
+\paragraph{Why this matters.}
+The failure is structural, not statistical: it holds for \emph{any} score sequence,
+buffer length and quantile, and we prove it in Section~\ref{sec:problem}
+(Proposition~\ref{prop:ratchet}). The opposite reflex --- admit \emph{every} score
+unconditionally --- fails the other way: a sustained fault is absorbed into the buffer
+and quietly becomes the new normal, so the threshold rises to meet the fault and stops
+alerting. The two reflexes bracket the real question of this project:
+
+\begin{quote}
+\emph{When should an alert threshold learn, and from which data --- when the data are
+chosen neither by the threshold's own decisions nor unconditionally?}
+\end{quote}
+
+\paragraph{Our stance.}
+We keep one fixed anomaly scorer and treat recalibration as one \emph{action} in a
+small decision-time policy that, at each window end, chooses exactly one of four
+actions --- \textsc{alert}, \textsc{hold}, \textsc{defer}, \textsc{recalibrate} ---
+using only information available at that time. Recalibration is guarded: it fires only
+from label-free evidence admitted independently of the threshold's own decisions, and
+only within a band anchored to the frozen calibration threshold. Every policy is replayed
+on the \emph{identical} score trace, so any measured difference is attributable to the
+policy, not to a change of scorer. We keep \emph{proved} (the ratchet), \emph{measured}
+(the full arm set on two development streams and a synthetic family) and \emph{proposed}
+(the controller's benefit on real benign regime changes) visibly apart throughout.
+
+\paragraph{Scope of Phase-I.}
+The measured evidence is a development comparison on two SKAB streams (one labelled
+event each) plus a deterministic engineering family; it is not a held-out result, a
+generalization claim, or a statement that any policy wins. The controller is implemented
+here; its evaluation on real benign regime changes, and the falsifiable experiment that
+could kill the direction, are predeclared in Section~\ref{sec:conclusion}.
+
+% ===========================================================================
+% LITERATURE SURVEY + CLOSEST-WORK DEFENSE
+% ===========================================================================
+\section{Literature Survey}\label{sec:literature}
+
+Our object of study is a \emph{decision-time action policy on a common score trace}.
+One fixed, source-fit scorer produces one score per window on the SKAB development
+streams; at each window end a policy chooses \textsc{alert}, \textsc{hold},
+\textsc{defer} (charged to decision coverage) or \textsc{recalibrate} (refresh the
+threshold from recent label-free data) using only causal information. We organize the
+survey around five ingredients an objector will attack: (A) the four-action policy;
+(B) the single common frozen score trace shared by all policies; (C) workload and
+coverage reporting alongside event recall and delay; (D) the chronological
+source-fit / calibration / replay split; (E) label-free runtime with labels joined
+offline only.
+
+\paragraph{Adaptive thresholds and drift-gated recalibration.}
+A large body of work adapts the detector or threshold when it detects drift. DDADE
+combines real-time drift monitoring with a generative branch and triggers incremental
+learning or dynamic threshold adjustment~\citep{yang2026ddade}; ADAPTS classifies
+drift type and reuses models from a bounded pool~\citep{li2026adapts}; CDDIA detects
+drift in normal data, interprets it, and retrains the detector to cut false
+positives~\citep{xu2024cddia}. These adapt \emph{model or detector state}. We freeze
+one scorer and change only the \emph{action} at window end, so the recalibrate action
+is one option among four rather than a detector update.
+
+\paragraph{Abstention and rejection.}
+Sun et al.\ model scores as piecewise-stationary streams and output
+$\{0,1,\text{abstain}\}$ with confidence-sequence guarantees on false-positive and
+false-negative rates~\citep{sun2024online}; this is the strongest single threat to a
+\textsc{defer} action. Perini \& Davis reject uncertain points with a \emph{constant}
+threshold on a stability metric and bound the rejection rate and expected
+cost~\citep{perini2023rejection}. Sun abstains from a statistical decision about the
+quantile on an assumed-i.i.d.\ stream; Perini \& Davis reject statically. Our
+\textsc{defer} is an \emph{operational} action charged to decision coverage and
+reported alongside episode workload and delay under drift. We implement Sun's
+stationary Algorithm~1 as a literature baseline on our trace so the comparison is
+measured, not argued.
+
+\paragraph{Label-free selection and workload-constrained evaluation.}
+SEAD selects among base detectors online without labels and emits its own combined
+score~\citep{shah2025sead} --- so it changes the score, the opposite of ingredient (B).
+Hu makes alert episodes and workload contracts the object of
+evaluation~\citep{hu2026workload} (in press). We borrow the evaluation frame from Hu
+but bring a \emph{controller}, not a new scoreboard; SEAD, if used, would sit upstream
+as a scorer, with our policies applied to its frozen output. Dynamic alert suppression
+in AIOps~\citep{bhukar2024dynamicxy} learns a suppression policy from historical
+\emph{alerts}, not from a score trace with an explicit four-action set.
+
+\paragraph{The already-published failure mode.}
+The self-referential-admission failure our rolling baseline exhibits is stated in
+FITNESS~\citep{sankararaman2022fitness}: ``MEMSTREAM discards a sample if it is
+predicted as an anomaly at the time of scoring \ldots\ such techniques can fail to
+distinguish between anomalies and abrupt changes,'' with a formal buffer version in
+its Section~5.3. We therefore \emph{do not} claim the ratchet phenomenon or the
+adaptivity--robustness trade-off as ours; we cite FITNESS for the general failure mode
+and contribute the deterministic monotone-ratchet proposition specific to nearest-rank
+quantile thresholds with decision-gated admission. Metric behaviour that motivates the
+identical-trace design is established by VUS/TSB-AD, which show ranking metrics are
+functions of the score trace~\citep{boniol2025vus, liu2024elephant}; conformal and
+change-point thresholding provide adjacent context~\citep{xu2026conformalized,
+hennhofer2026nonconform}.
+
+\paragraph{Component occupation.}
+Table~\ref{tab:occupation} maps our five ingredients to the nine closest threats,
+using the symbols \ding{51} (occupies), \emph{partial} (adjacent), and --- (not found
+in the papers we checked). The reading is blunt: (A-alert), (A-hold), (A-recalibrate),
+(C) and (E) are each already occupied; (A-defer) is occupied as a concept by Sun and
+Perini \& Davis; the only cell open in the papers we checked is (B) --- no method holds
+one score fixed and competes \emph{action policies} on it.
+
+\begin{table}[H]
+  \centering
+  \caption{Component-occupation matrix. Cells are \ding{51} occupies / \emph{p}
+  partial (adjacent) / --- not found in the nine checked papers, exactly as
+  supported by the closest-work analysis. Threats: 1~DDADE, 2~ADAPTS, 3~CDDIA,
+  4~Sun 2024, 5~Perini \& Davis, 6~SEAD, 7~Dynamic-XY, 8~Hu, 9~FITNESS.}
+  \label{tab:occupation}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}lccccccccc@{}}
+    \toprule
+    Our component & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9\\
+    \midrule
+    A. alert action                         & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51}\\
+    A. hold / suppress action               & \emph{p}  & \ding{51} & \emph{p}  & ---       & ---       & ---       & \ding{51} & ---       & ---\\
+    A. defer / abstain action               & ---       & ---       & ---       & \ding{51} & \ding{51} & ---       & ---       & ---       & ---\\
+    A. recalibrate action                   & \ding{51} & \ding{51} & \ding{51} & \emph{p}  & ---       & ---       & ---       & \ding{51} & \ding{51}\\
+    B. common frozen trace across policies  & ---       & ---       & ---       & ---       & ---       & ---       & ---       & ---       & ---\\
+    C. workload + coverage reporting        & ---       & ---       & ---       & ---       & \emph{p}  & ---       & \ding{51} & \ding{51} & ---\\
+    D. chrono.\ source/calib/replay split   & ---       & ---       & \emph{p}  & ---       & ---       & ---       & ---       & \ding{51} & ---\\
+    E. label-free runtime (labels offline)  & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & \ding{51} & ---       & \ding{51}\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Honest scope (closest-work defense).}
+Among the nine closest methods we checked on the seven allowlisted platforms,
+abstention, drift-triggered recalibration, label-free selection, workload-matched
+evaluation and the failure of learning only from self-declared normal points
+(FITNESS) are each already published; what we did not find, in the papers we checked,
+is recalibration treated as a guarded decision-time action whose training data is
+chosen neither by the threshold being updated nor unconditionally, compared with
+alternatives on one fixed score trace with alert workload, decision coverage, delay
+and event recall reported separately --- a bounded search result, not a claim that no
+such method exists.
+
+% ===========================================================================
+% PROBLEM STATEMENT + PROPOSITION
+% ===========================================================================
+\section{Problem Statement}\label{sec:problem}
+
+\paragraph{Setting and information boundary.}
+A fixed, source-fit scorer emits one score $s_t$ per window at window end
+$t=1,2,\dots$ (window length 4, stride 4, segment-start anchor, incomplete windows
+dropped). All scoring and every decision are causal and use scores only; labels are
+never read at runtime and are joined offline after predictions are saved. We define
+symbols once and reuse them:
+
+\begin{itemize}[leftmargin=1.6em, itemsep=1pt, topsep=2pt]
+  \item $s_t$ --- the anomaly score of the window ending at $t$ (\emph{score trace}).
+  \item $\theta_t$ --- the alert threshold in force when window $t$ is judged; an
+    alert is raised iff $s_t > \theta_t$.
+  \item $\theta_0$ --- the frozen calibration threshold: the nearest-rank $0.95$
+    quantile of the calibration-window scores (\emph{anchor}).
+  \item $R$ --- a rolling buffer of the last $L$ scores; $q(R)$ is its nearest-rank
+    $0.95$ quantile ($\lceil 0.95\,|R|\rceil$-th smallest); $\mathrm{med}(R)$ its
+    ordinary median.
+  \item action set $\mathcal{A}=\{\textsc{alert},\textsc{hold},\textsc{defer},
+    \textsc{recalibrate}\}$; a \textsc{defer} is charged to \emph{decision coverage}.
+\end{itemize}
+
+\paragraph{What is measured.}
+Per stream $\times$ arm we report, with denominators shown: decisions; alert windows;
+alert episodes; event recall (num/den); episode precision; false episodes; mean delay
+(sample-index units); total and non-event alert duration; in-event alerted fraction
+(derived); episodes per 1{,}000 decisions; decision coverage (covered/total);
+deferrals; recalibration count; and resource scope. \emph{Coverage} is the fraction of
+windows given an alert-capable decision (not deferred); \emph{workload} is the alert
+volume (episodes per 1{,}000 decisions and alert duration). Because every policy
+replays the identical trace, ranking metrics are identical by construction and are not
+reported per policy.
+
+\paragraph{The self-referential ratchet.}
+The rolling baseline admits a score to $R$ only when the current threshold judged it
+normal, then sets the threshold to $q(R)$. We prove this can only fall.
+
+\begin{proposition}[Monotone non-increasing self-referential threshold]\label{prop:ratchet}
+Let a threshold be updated by: at each step, admit the current score $s$ to a buffer of
+capacity $L\ge 1$ \emph{only if} $s\le\theta$ (the current threshold), drop the oldest
+when over capacity, and set the new threshold to the nearest-rank $q$-quantile of the
+buffer, $q\in(0,1]$. Then for every score sequence the threshold is non-increasing:
+$\theta_{t+1}\le\theta_t$ for all $t$.
+\end{proposition}
+
+\begin{proof}
+Let $k=\lceil q\,|R|\rceil$ be the rank in use, so $\theta_t$ is the $k$-th smallest of
+the buffer. Two cases. \emph{(i) The score is not admitted:} the buffer is unchanged,
+so $\theta_{t+1}=\theta_t$. \emph{(ii) The score $s$ is admitted:} admission requires
+$s\le\theta_t$. Before insertion at least $k$ buffer elements are $\le\theta_t$
+(because $\theta_t$ is the $k$-th smallest). Adding $s\le\theta_t$ gives at least $k+1$
+elements $\le\theta_t$. Dropping the oldest element removes at most one, leaving at
+least $k$ elements $\le\theta_t$; a buffer that has grown by one raises the rank
+$k'=\lceil q\,|R'|\rceil$ by at most one, i.e.\ $k'\le k+1$. Hence among the (at least
+$k$) elements $\le\theta_t$ the $k'$-th smallest is $\le\theta_t$, so
+$\theta_{t+1}=q(R')\le\theta_t$. The empty-buffer start admits $s\le\theta_0$ and sets
+$\theta=s\le\theta_0$. In all cases $\theta_{t+1}\le\theta_t$. \qed
+\end{proof}
+
+The proposition is a \emph{mechanism} result: it explains, without appeal to the data,
+why the rolling baseline produces a large alert volume at the same event recall as the
+fixed baseline. The unconditional variant ($\text{admit all}$) has no such bound and
+tracks whatever arrives, including a sustained fault. Both motivate an admission rule
+that is \emph{separated} from the threshold's own decisions and \emph{anchored} to
+$\theta_0$.
+
+% ===========================================================================
+% OBJECTIVE AND METHODOLOGY
+% ===========================================================================
+\section{Objective and Methodology}\label{sec:methodology}
+
+\paragraph{Objective.}
+Determine whether separating a threshold's recalibration data from that threshold's own
+decisions, under an anchored guard with explicit deferral, avoids both self-referential
+collapse and unconditional fault absorption, and at what cost in coverage and delay ---
+measured on one common score trace against every baseline.
+
+\paragraph{Pipeline and chronological split.}
+Figure~\ref{fig:flow} shows the causal data flow. Each source stream is split
+chronologically into source-fit, calibration and replay; the scorer is fit on the
+source segment only; the fixed-quantile calibration produces $\theta_0$; one score
+trace is replayed identically through every policy arm; predictions and a label-free
+action log are saved; labels are joined offline to form episodes. The reserved lane
+(\texttt{SKAB/other/21.csv}) is drawn locked and unused.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{0.68\linewidth}{!}{\input{figures/fig-flow.tex}}
+  \caption{Chronological split and causal data flow. The scorer is fit on the
+  source segment only; a single score trace fans out to all policy arms; predictions
+  and the label-free action log are saved before any label join; labels are joined
+  offline only. The reserved stream is drawn locked and never opened.}
+  \label{fig:flow}
+\end{figure}
+
+\paragraph{The controller (implemented).}\Simplemented{}
+The proposed controller, the class \texttt{Anchored}\discretionary{}{}{}\texttt{Recalibration}\discretionary{}{}{}\texttt{Policy}, has frozen parameters
+$L=10$, $q=0.95$, cap $\kappa=4.0$, stability $\rho=2.0$, defer limit $D=10$. It keeps
+a threshold $\theta$ (starting at $\theta_0$), a mode (\textsc{normal},
+\textsc{suspect} or \textsc{escalated}), a defer counter $c$, and
+a buffer $R$ of the last $L$ scores of \emph{every} window (untruncated --- admission
+does not depend on any decision). Listing~\ref{lst:ctrl} transcribes the frozen
+controller exactly. Figure~\ref{fig:controller} is its state machine.
+
+\begin{lstlisting}[style=ctrl, caption={The frozen controller, transcribed exactly from the protocol. \texttt{quantile} is nearest rank; \texttt{median} is the ordinary median.}, label={lst:ctrl}, captionpos=b]
+append s to R (drop oldest beyond L)
+full     = |R| == L
+elevated = full and median(R) > theta
+if mode == escalated:
+    if elevated: return ALERT if s > theta else HOLD    # stay escalated, no recalibration
+    mode = normal                                       # elevation over; fall through
+if elevated:
+    cand   = quantile(R)
+    stable = max(R) <= rho * median(R)
+    if stable and cand <= kappa * theta0:
+        theta = max(theta0, cand); mode = normal; c = 0 # action RECALIBRATE (up)
+        return (ALERT if s > theta else normal), action=RECALIBRATE
+    if c < D: c += 1; mode = suspect; return DEFER      # guard failed: withhold
+    mode = escalated; c = 0; return ALERT if s > theta else HOLD
+# not elevated
+if mode == suspect: mode = normal; c = 0
+if full and theta > theta0 and quantile(R) < theta:
+    theta = max(theta0, quantile(R))                    # action RECALIBRATE (return to anchor)
+return ALERT if s > theta else HOLD
+\end{lstlisting}
+
+\begin{figure}[H]
+  \centering
+  \resizebox{0.72\linewidth}{!}{\input{figures/fig-controller.tex}}
+  \caption{The four-action state machine over modes normal / suspect /
+  escalated, with the hold, alert, defer and recalibrate edges and their guard
+  conditions. Transcribed from the frozen protocol.}
+  \label{fig:controller}
+\end{figure}
+
+\paragraph{Parameter provenance (no tuning).}
+$L=10$ and $q=0.95$ are the existing rolling baseline's history length and quantile;
+$D=L$. The cap $\kappa=4$ is an operator-declared maximum benign elevation (up to $4\times$
+the calibration threshold); the stability bound $\rho=2$ declares that no window in a
+block may exceed twice the block median. $\kappa$ and $\rho$ are operating assumptions,
+not estimates, and were not chosen by inspecting any SKAB outcome (on the development
+streams the guard is never reached). Figure~\ref{fig:concept} is a schematic contrast
+of the three admission regimes; it carries no data.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{0.62\linewidth}{!}{\input{figures/fig-concept.tex}}
+  \caption{Schematic (\emph{not data}): self-referential admission ratchets
+  the threshold down; unconditional admission absorbs a sustained fault upward past the
+  cap; anchored/separated admission stays within the bounded band $[\theta_0,
+  \kappa\theta_0]$, deferring through the unstable transition.}
+  \label{fig:concept}
+\end{figure}
+
+\paragraph{Arms.}
+Table~\ref{tab:arms} lists the arms; each replays the identical score trace of its
+stream. The five existing arms reproduce the corrected baseline rows exactly
+(a regression gate).
+
+\begin{table}[H]
+  \centering
+  \caption{Policy arms. Every arm replays the identical score trace of its stream.}
+  \label{tab:arms}
+  \small
+  \begin{tabularx}{\linewidth}{@{}lX@{}}
+    \toprule
+    Arm & Role\\
+    \midrule
+    \texttt{fixed\_threshold} & anchor-only baseline (existing)\\
+    \texttt{rolling\_threshold} (normal-only) & self-referential admission, $L{=}10,q{=}0.95$ (existing; H1)\\
+    \texttt{rolling\_threshold\_all} & untruncated admission, no guard (existing)\\
+    \texttt{k\_consecutive} ($k{=}3$), \texttt{m\_of\_n} (3/5), \texttt{hysteresis} & persistence / latch baselines (existing)\\
+    \texttt{anchored\_recalibration} & proposed controller (new; \S\ref{sec:methodology})\\
+    \texttt{anchored\_no\_cap} / \texttt{no\_stability} / \texttt{no\_defer} & ablations ($\kappa{=}\infty$ / $\rho{=}\infty$ / $D{=}0$)\\
+    \texttt{sun\_confidence\_sequence} & re-implementation of Sun et al.\ (ICML 2024) Alg.~1 as a baseline\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Synthetic stress family.}
+Table~\ref{tab:synthetic-family} is a deterministic engineering family (input
+\texttt{synthetic\_\allowbreak periodic\_\allowbreak v1}, period-16 pattern, length 1600, same window, scorer,
+calibration and arms). Offsets are added over half-open ranges; faults are spiky
+(+6.0 on alternating 4-sample windows); labels are written by construction and joined
+offline only. These are engineering checks, not evidence of real-world benefit.
+
+\begin{table}[H]
+  \centering
+  \caption{Deterministic synthetic stress family (mechanism and failure map).}
+  \label{tab:synthetic-family}
+  \small
+  \begin{tabularx}{\linewidth}{@{}llX@{}}
+    \toprule
+    ID & Offsets / fault & Purpose\\
+    \midrule
+    Y1 & $+2.0$ on $[800,1600)$; no events & adapt to a new normal\\
+    Y2 & $+0.25$ each of $800,810,\dots,870$ to $+2.0$; no events & unstable transition $\to$ defer\\
+    Y3 & Y1 $+$ spiky fault $[1200,1300)$ & detect a fault after adapting\\
+    Y4 & $+2.0$ on $[800,1600)$, labelled event & declared limit (H4)\\
+    Y5 & spiky fault $[800,900)$ & onset alert, then deferral cost\\
+    Y6 & $+5.0$ on $[800,1600)$; no events & cost of $\kappa$ (defer, then escalate)\\
+    Y7 & $+2.0$ on $[800,1100)$; spiky fault $[1300,1400)$ & return to anchor, stay sensitive\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Hypotheses.}
+Table~\ref{tab:hyp} states H1--H4 with their tests and refutation conditions. H2 is a
+declared no-harm / regression check, not a confirmation of benefit: the front desk
+inspected both development traces before freezing and no 10-window block of either
+stream has a median above the calibration threshold, so the controller is predicted to
+behave exactly like fixed on SKAB. The benefit claim lives only in H3 (synthetic,
+mechanism level) and in the next experiment (\S\ref{sec:conclusion}).
+
+\begin{table}[H]
+  \centering
+  \caption{Hypotheses. All tests run on common score traces.}
+  \label{tab:hyp}
+  \small
+  \begin{tabularx}{\linewidth}{@{}lXX@{}}
+    \toprule
+    ID & Hypothesis & Refuted if\\
+    \midrule
+    H1 & Normal-only rolling recalibration is a one-way ratchet; its SKAB alert volume is an artefact of that. & Any increase of the normal-only rolling threshold is observed.\\
+    H2 & The controller keeps event recall $1/1$ on valve1 and valve2 with false episodes $\le$ fixed (no-harm). & Recall $<1/1$ on either stream, or false episodes $>$ fixed.\\
+    H3 & On synthetic benign shifts the controller cuts non-event alert duration versus fixed and normal-only rolling, and still alerts on spiky faults after a shift. & It does not cut non-event duration on Y1/Y2, or misses the Y3/Y7 faults.\\
+    H4 & No label-free rule separates a benign shift from a fault of identical shape; the controller absorbs Y4 after onset. & (Declared limit, reported whatever happens --- not a refutation target.)\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% ===========================================================================
+% SIMULATION PLATFORM AND REQUIREMENTS
+% ===========================================================================
+\section{Simulation Platform and Requirements}\label{sec:platform}
+
+The platform is a Python 3.12 standard-library-only package: no third-party runtime
+dependency, deterministic execution, and \texttt{unittest} for the test suite. The
+pipeline exposes reusable loaders, chronological splits, a scoring interface, a
+fixed-quantile calibration, the policy arms, and an offline evaluator; results are
+saved as per-window predictions plus an action log, and every reported row is
+recomputed by \texttt{recompute\_evaluations.py} before it enters this report.
+Determinism is by construction (no randomness in scoring or the policies; the
+randomized property test for H1 seeds its own generator). No GPU or special hardware is
+required; the runs complete on a commodity CPU and the runner records elapsed seconds
+and peak Python allocation as the resource scope.
+
+\paragraph{Dataset and provenance limits.}\Smeasured{}
+The development data are two SKAB streams, \texttt{valve1/0.csv} and
+\texttt{valve2/0.csv}~\citep{skab2020}, scored univariately on the \texttt{Current}
+channel. Dataset origin and licence are \emph{not} independently verified: valve1's
+acquisition URL is unknown and its licence applicability is conditional, and valve2
+provenance is carried from an earlier manifest (claim C20). Results are therefore
+development-only. Each stream contains exactly one labelled event
+(valve1 $[574,975)$, valve2 $[562,956)$), so recall is measured over one event per
+stream. \texttt{SKAB/other/21.csv} is named as reserved in the manifest; its
+reservation authority and recipe are disputed; it was never opened and no claim is
+made.\footnote{\texttt{SKAB/other/21.csv} is named as reserved in the manifest; its
+reservation authority and recipe are disputed; it was never opened and no claim is
+made.}
+
+% ===========================================================================
+% RESULTS AND ANALYSIS
+% ===========================================================================
+\section{Results and Analysis}\label{sec:results}
+
+All numbers below are read from the recomputed study
+(\texttt{20260929-policy-study-v2}, independently recomputed at zero mismatches over 99
+runs); durations and delays are in sample-index units, and every row shows its
+denominator. Within each stream all arms share a byte-identical score trace, so
+differences reflect decision rules, not scoring, and ranking metrics cannot differ by
+policy choice.
+
+\subsection{The one-way ratchet (H1)}\label{sec:results-ratchet}
+\Sproved{}\,\Smeasured{} The normal-only rolling threshold never rises: it records 0
+increases in 143 (valve1) and 140 (valve2) replay steps and ends at $0.258$ (valve1,
+from $1.309$) and $0.406$ (valve2, from $1.126$), well below the replay median score.
+This is exactly what Proposition~\ref{prop:ratchet} predicts, and it mechanically
+explains the rolling arm's large alert volume at the same single-event recall as fixed.
+Figure~\ref{fig:ratchet} plots the two SKAB replay traces with the fixed anchor and both
+rolling thresholds.
+
+\begin{figure}[tbp]
+  \centering
+  \resizebox{0.9\linewidth}{!}{\input{figures/fig-ratchet.tex}}
+  \caption{valve1 (left) and valve2 (right) replay score (grey, log$_{10}$) over sample
+  index with the fixed calibration threshold $\theta_0$ (flat black), the normal-only
+  rolling threshold (red dashed) and the admit-all rolling threshold (blue dotted); the
+  labelled event span is shaded. Each panel's start and end threshold values are
+  labelled inside the frame. The normal-only threshold never rises (0 increases in 143
+  and 140 steps) and ends at 0.258 (valve1) and 0.406 (valve2), well below the replay
+  median score, which mechanically explains its large alert volume. Sample-index units.}
+  \label{fig:ratchet}
+\end{figure}
+
+\subsection{Measured baseline and full-arm table (H2 no-harm)}\label{sec:results-baseline}
+\Smeasured{} Table~\ref{tab:baseline} gives every arm on both SKAB streams, on one
+common trace each. The reading is narrow and holds without any policy-winner claim.
+Fixed and hysteresis recall the single event in each stream at low alert volume;
+\textbf{rolling (normal-only) recalls the same single event but at $16.2\times$ the
+alert windows on valve1 (97 vs 6) and $3.9\times$ on valve2 (70 vs 18)}, consistent with
+Proposition~\ref{prop:ratchet}; \texttt{k\_consecutive} misses both events and
+\texttt{m\_of\_n} misses valve1. The anchored controller is \emph{identical to fixed on
+both streams} (6 alert windows, 4 episodes, 0 false, recall $1/1$ on valve1; 18 windows,
+12 episodes, 3 false, recall $1/1$ on valve2), with 0 deferrals and 0 recalibrations ---
+the guard is never reached, so H2 holds as a no-harm check, not a benefit. The Sun arm
+resolves far fewer decisions (coverage $54/143$ and $57/140$), reaching low workload only
+by abstaining. All alert-capable arms keep full decision coverage; \textsc{defer} is
+exercised only by the Sun arm here.
+
+\begin{table}[tbp]
+  \centering
+  \caption{Recomputed development results on one common score trace per stream, all 11
+  arms. Recall and coverage show num/den; all durations/delays in sample-index units.
+  Calibration threshold: valve1 $1.308542250880009$ (43 windows), valve2
+  $1.1255423193543013$ (40 windows). In-ev.\ alert is the in-event alerted fraction;
+  ``--'' marks an undefined value (mean delay when the arm raises no in-event alert,
+  recall $0/d$).}
+  \label{tab:baseline}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \input{tables/tab-skab.tex}
+\end{table}
+
+\subsection{Synthetic stress map (H3) and the declared limit (H4)}\label{sec:results-synthetic}
+\Smeasured{} Table~\ref{tab:synth} and Figure~\ref{fig:synthetic-map} give the
+deterministic synthetic family. On the benign step Y1 the controller holds non-event
+alert duration to $16$ at full coverage $260/260$, against fixed $597$ and normal-only
+rolling $917$; it recalibrates once and defers not at all. On the benign ramp Y2 it
+recalibrates once during the transition and then \emph{locks into} periodic
+single-window alerts: non-event alert duration $204$ over $50$ episodes at coverage
+$257/260$ (3 deferrals), against fixed $577$ --- a deterministic engineering outcome, not
+real-world evidence. After adapting, it still alerts the post-shift spiky fault on Y3
+and Y7 (in-event alerted fraction $0.29$, recall $1/1$ on both). On Y4 --- a fault shaped
+exactly like a benign step --- the controller absorbs the event after onset (in-event
+alerted fraction $0.020$ vs fixed $0.746$): this is the predeclared limit H4, since no
+label-free rule can separate a benign shift from a fault of identical shape.
+
+\begin{table}[tbp]
+  \centering
+  \caption{Synthetic stress family Y1--Y7, compact 5-arm view (fixed, admit-all
+  rolling, anchored, no-cap, Sun). Non-ev.\ dur.\ is non-event alert duration; In-ev.\
+  alert is the in-event alerted fraction; Def./Rec.\ is deferrals/recalibrations. ``--''
+  marks an undefined value: recall $n/d$ and in-event alerted fraction where the
+  scenario has no labelled event ($d=0$). Sample-index units.}
+  \label{tab:synth}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \input{tables/tab-synthetic-compact.tex}
+\end{table}
+
+\begin{figure}[tbp]
+  \centering
+  \resizebox{0.78\linewidth}{!}{\input{figures/fig-synthetic-map.tex}}
+  \caption{Deterministic synthetic stress family Y1--Y7 (small multiples): replay score
+  (grey), fixed $\theta_0$ (black), admit-all rolling threshold (blue dotted) and the
+  anchored controller threshold (green, densely dashed), with defer windows (red ticks)
+  and recalibration events (green dots) from the controller action log and labelled
+  fault spans shaded. Y1 adapts; Y2 recalibrates during the ramp then emits periodic
+  single-window alerts (lock-in); Y3 and Y7 still alert the post-shift fault; Y4 is
+  absorbed after onset (declared limit); Y5 defers before escalating; Y6 exceeds the
+  cap, defers, then escalates. Sample-index units.}
+  \label{fig:synthetic-map}
+\end{figure}
+
+\paragraph{Which guard component is load-bearing.}
+Table~\ref{tab:ablation} reports the measured change in each synthetic outcome when a
+single guard component is removed. Removing the cap $\kappa$ matters most on Y6 (a step
+beyond the cap): the full controller cannot recalibrate past $\kappa$, so it defers then
+escalates and keeps alerting (non-event alert duration $757$, 10 deferrals), whereas
+without the cap the threshold tracks the step and non-event alert duration falls to
+$16$. Removing deferral $D$ costs the most on the Y2 ramp (non-event alert duration rises
+by $373$). These are measured effects on the same trace, not tuning.
+
+\begin{table}[tbp]
+  \centering
+  \caption{Ablation map: measured change in each synthetic outcome when one guard
+  component (cap $\kappa$, stability $\rho$, deferral $D$) is removed from the anchored
+  controller, relative to the full controller on the same trace. Only rows with a
+  non-zero measured change are shown. Sample-index units.}
+  \label{tab:ablation}
+  \small
+  \input{tables/tab-ablation.tex}
+\end{table}
+
+\subsection{The scorer limit, not a policy limit (E3)}\label{sec:results-scorer}
+\Smeasured{} Figure~\ref{fig:scorer-limit} shows why the persistence baselines miss the
+SKAB events: within the labelled event only $6/100$ (valve1) and $13/98$ (valve2) replay
+windows exceed the anchor $\theta_0$, and the longest exceedance run is 2 windows on both
+streams. A policy can redistribute alerts over time but cannot create separation the
+scorer does not provide, so \texttt{k\_consecutive} ($k=3$) and \texttt{m\_of\_n} (3/5)
+fall below their persistence requirement and raise no in-event alert.
+
+\begin{figure}[tbp]
+  \centering
+  \resizebox{0.88\linewidth}{!}{\input{figures/fig-scorer-limit.tex}}
+  \caption{Sorted within-set score profiles relative to the fixed anchor $\theta_0$ (the
+  tick marked 1 ($\theta_0$)) for valve1 and valve2: in-event windows (red solid) and
+  out-of-event windows (blue dotted), with $\theta_0$ shown as a black densely-dotted
+  reference at ratio $=1$. Only 6/100 (valve1) and 13/98 (valve2) in-event windows exceed
+  $\theta_0$ and the longest exceedance run is 2 windows, so persistence rules
+  (k-consecutive, m-of-n) miss the events and no threshold policy can add separation the
+  scorer does not provide (E3). The y axis is clipped at 3$\cdot\theta_0$; 2 (valve1) and
+  3 (valve2) windows exceed that clip. Sample-index units.}
+  \label{fig:scorer-limit}
+\end{figure}
+
+\subsection{Workload versus coverage across arms}\label{sec:results-tradeoff}
+\Smeasured{} Figure~\ref{fig:tradeoff} plots decision coverage against non-event alert
+duration per arm. On the two SKAB streams almost every arm sits at full coverage
+$1.00$, so the informative contrast there is the vertical spread of workload; the Sun
+arm reaches low workload only by abstaining (coverage $54/143$ and $57/140$). The benign
+synthetic cases Y1 and Y2 carry the direction's core trade-off, discussed with the
+strongest opposing reading in Section~\ref{sec:limitations}.
+
+\begin{figure}[tbp]
+  \centering
+  \resizebox{0.78\linewidth}{!}{\input{figures/fig-tradeoff.tex}}
+  \caption{Per-arm trade-off as a 2$\times$2 grid: decision coverage (x) against
+  non-event alert duration in samples (y), one marker per arm (numbered by the shared
+  key at right; coincident arms share one grouped label). On the two SKAB streams most
+  arms coincide at full coverage $=1.00$, so the informative contrast is the vertical
+  spread of workload; the Sun arm reaches low workload only by abstaining (coverage
+  54/143 and 57/140). On Y1 the anchored controller holds non-event alert duration to 16
+  at full coverage 260/260, against fixed 597 and admit-all rolling 12; on Y2 it holds
+  204 at coverage 257/260, against fixed 577; the Sun arm's low workload comes only from
+  abstaining (coverage 22/260 and 23/260). On valve1 and valve2, event recall is $1/1$
+  for every arm that alerts; Y1 and Y2 contain no fault event. Sample-index units.}
+  \label{fig:tradeoff}
+\end{figure}
+
+% ===========================================================================
+% LIMITATIONS / THREATS
+% ===========================================================================
+\section{Limitations and Threats to Validity}\label{sec:limitations}
+
+\textbf{One event per stream.} Each development stream has a single labelled event
+covering roughly 70\% of replay decisions and starting at the first replay decision, so
+``$1/1$ recall'' is nearly uninformative (E4) and \textbf{recall saturates} --- one
+alert anywhere inside the long event scores full recall; workload, false episodes,
+in-event alerted fraction, coverage and delay carry the information.
+\textbf{Scorer limit, not policy limit} (E3): inside the event only a small fraction of
+windows exceed the calibration threshold and exceedance runs never exceed two windows,
+which is why the persistence baselines miss events --- a policy redistributes alerts but
+cannot create separation the scorer lacks.
+\textbf{Univariate scope.} Scoring uses the single \texttt{Current} channel only.
+\textbf{Provenance} (C20): dataset origin and licence are not independently verified; all
+results are development-only.
+\textbf{Held-out boundary.} \texttt{SKAB/other/21.csv} is named as reserved in the
+manifest; its reservation authority and recipe are disputed; it was never opened and no
+claim is made.
+
+\paragraph{Strongest opposing conclusion.}
+The strongest honest reading is that these results do \emph{not} establish a useful
+controller. On the benign cases the admit-all rolling rule has \emph{lower} workload than
+the controller --- non-event alert duration $12$ vs $16$ on Y1 and $28$ vs $204$ on Y2 ---
+so on workload alone admit-all beats it. The controller's case rests only on fault
+retention: on Y3 its in-event alerted fraction is $0.29$ against admit-all's $0.04$ at
+recall $1/1$ for both (admit-all barely alerts the fault it has absorbed), while fixed
+alerts $1.000$ of the Y3 event at non-event alert duration $521$. On SKAB the controller is
+\emph{indistinguishable from fixed} (identical rows on valve1 and valve2), so SKAB provides
+no evidence for it; and Sun's abstention reaches low workload only by deciding on $54/143$
+and $57/140$ SKAB windows --- buying quiet with coverage, not a better decision. A credible
+Phase-I conclusion is therefore a reproducible negative / inconclusive development finding
+plus a proved mechanism and a predeclared discriminating experiment --- not the
+superiority of any policy.
+
+% ===========================================================================
+% CONCLUSION + NEXT EXPERIMENT
+% ===========================================================================
+\section{Conclusion}\label{sec:conclusion}
+
+We proved that normal-only rolling recalibration of a nearest-rank quantile threshold
+is monotone non-increasing --- a one-way ratchet (Proposition~\ref{prop:ratchet}) ---
+and measured its cost on two SKAB development streams: it recalls the same single event
+as the fixed threshold at $16.2\times$ (valve1) and $3.9\times$ (valve2) the alert
+windows. We implemented an admission-separated, anchored recalibration action with
+explicit deferral and compared it with seven baselines and three ablations on identical
+score traces. On both SKAB streams the controller behaves exactly like the fixed
+threshold (the guard is never reached), so the SKAB result is a no-harm / regression
+check that H2 passes with false episodes equal to fixed; no refutation condition fired
+on SKAB. Under deterministic synthetic stress the mechanism behaves as designed and
+fails exactly where any label-free rule must: it cuts non-event alert duration on the
+benign step Y1 (16 vs fixed 597) while still alerting the post-shift faults on Y3 and Y7
+(recall $1/1$), it locks into periodic alerts on the Y2 ramp, and it absorbs the Y4
+fault-shaped-like-a-step after onset (the declared limit H4). Any benefit on \emph{real}
+benign regime changes remains \emph{proposed} and under test; the synthetic family is an
+engineering check, and on those benign cases the admit-all rule already achieves lower
+workload than the controller (Section~\ref{sec:limitations}).
+
+\paragraph{The falsifiable next experiment (predeclared).}
+On SKAB streams admitted by a label-independent rule (every \texttt{valve1/*.csv} and
+\texttt{valve2/*.csv} other than the two development files, with calibration ending at
+the declared first labelled row), replay all arms on common traces, plus one public
+stream family with labelled \emph{benign} regime changes. \textbf{Kill criteria for the
+direction:} (a) on streams where the label-free elevation test fires, the controller
+does not reduce non-event alert duration versus fixed at equal event recall; or (b) it
+loses event recall on any stream where fixed has it; or (c) Sun's abstention matches it
+at equal coverage. Any of these kills the claim and becomes the reported result.
+
+% ===========================================================================
+% REFERENCES
+% ===========================================================================
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\begingroup
+\footnotesize
+\setlength{\bibsep}{0pt plus 1pt}
+\raggedright
+\sloppy
+\emergencystretch=3em
+\bibliographystyle{plainnat}
+\begin{multicols}{2}
+\bibliography{references}
+\end{multicols}
+\endgroup
+
+\end{document}

@@ -1,0 +1,41 @@
+% F-concept -- SCHEMATIC (not data) of three admission regimes.
+% self-referential ratchets down; unconditional absorbs a sustained fault;
+% anchored/separated stays in a bounded band [theta0, kappa*theta0].
+% Hand-drawn schematic curves only -- no measured values, no axis numbers.
+\begin{tikzpicture}[font=\footnotesize, x=1mm, y=1mm]
+
+  % axes
+  \draw[-{Latex[length=1.6mm]}] (0,0) -- (86,0) node[right] {\scriptsize window index (time)};
+  \draw[-{Latex[length=1.6mm]}] (0,0) -- (0,42) node[above] {\scriptsize threshold $\theta$};
+
+  % anchor and cap reference lines
+  \draw[gray!55, dashed] (0,12) -- (84,12) node[right, black] {\scriptsize $\theta_0$ (anchor)};
+  \draw[gray!55, dashed] (0,34) -- (84,34) node[right, black] {\scriptsize $\kappa\theta_0$ (cap)};
+
+  % onset of a sustained shift/fault marker
+  \draw[gray!45] (34,0) -- (34,40);
+  \node[gray!60, rotate=90, anchor=south, font=\scriptsize] at (33,20) {sustained shift onset};
+
+  % (1) self-referential: monotone non-increasing -- ratchets DOWN
+  \draw[thick]
+    (0,12) -- (14,10.5) -- (28,9) -- (40,7) -- (54,5.2) -- (68,4) -- (84,3.1);
+  \node[anchor=west, font=\scriptsize] at (52,6.6) {self-referential (ratchets down)};
+
+  % (2) unconditional: tracks whatever arrives -- absorbs the fault upward, unbounded past cap
+  \draw[thick, densely dashed]
+    (0,12) -- (30,12.5) -- (36,20) -- (44,29) -- (54,36) -- (68,40) -- (80,41.5);
+  \node[anchor=west, font=\scriptsize] at (46,40.5) {unconditional (absorbs fault)};
+
+  % (3) anchored / separated: stays within [theta0, kappa*theta0]
+  \draw[very thick]
+    (0,12) -- (30,12) -- (35,12) -- (40,26) -- (48,30) -- (60,30) -- (72,30) -- (84,30);
+  \node[anchor=west, font=\scriptsize] at (58,26.5) {anchored/separated};
+  % small "defer" bracket during the unstable transition
+  \draw[gray!60] (35,13) -- (40,25);
+  \node[gray!70, font=\scriptsize, anchor=south] at (37,15) {defer};
+
+  % schematic banner
+  \node[draw, rounded corners, fill=gray!10, font=\scriptsize\bfseries,
+        anchor=north east] at (84,42) {SCHEMATIC --- not data};
+
+\end{tikzpicture}

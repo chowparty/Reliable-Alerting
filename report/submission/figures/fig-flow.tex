@@ -1,0 +1,73 @@
+% F-flow -- chronological split + causal data flow.
+% Grayscale-safe (only black/white/gray fills). No invented numbers.
+% \input from report.tex; not a standalone document (standalone.sty absent).
+\begin{tikzpicture}[
+    font=\footnotesize,
+    node distance=6mm,
+    box/.style={draw, rounded corners=1.5pt, align=center, inner sep=3pt,
+                minimum height=7mm, fill=gray!5},
+    stage/.style={box, minimum width=26mm},
+    arm/.style={draw, rounded corners=1.5pt, align=center, inner sep=2pt,
+                minimum height=6mm, minimum width=30mm, fill=gray!12},
+    lane/.style={draw, dashed, rounded corners=2pt, align=center, inner sep=3pt,
+                 minimum height=8mm, minimum width=30mm, fill=gray!20},
+    flow/.style={-{Latex[length=2mm]}, thick},
+    thin flow/.style={-{Latex[length=1.6mm]}, gray!70},
+]
+
+% --- Row 1: chronological split of a single source stream ---
+\node[box, minimum width=22mm] (src) {Source-fit\\\scriptsize$[0,400)$};
+\node[box, minimum width=22mm, right=of src] (cal) {Calibration\\\scriptsize source-normal prefix};
+\node[box, minimum width=30mm, right=of cal] (rep) {Replay\\\scriptsize chronological, causal};
+\draw[flow] (src) -- (cal);
+\draw[flow] (cal) -- (rep);
+\node[above=1mm of cal, gray!70] {\scriptsize chronological order $\rightarrow$ time};
+
+% --- Row 2: scoring + calibration produce theta0 and one score trace ---
+\node[stage, below=9mm of src] (scorer) {Mean-distance scorer\\\scriptsize fit on \emph{source only}};
+\node[stage, below=9mm of cal] (thr) {Fixed-quantile\\\scriptsize $\theta_0$ (0.95, nearest rank)};
+\node[stage, below=9mm of rep] (trace) {One score trace\\\scriptsize $s_t$ per window (4/4)};
+
+\draw[flow] (src) -- (scorer);
+\draw[flow] (scorer) -- (thr) node[midway, above, gray!70] {\scriptsize source-fit params};
+\draw[flow] (cal) -- (thr);
+\draw[flow] (scorer.east) .. controls +(1.2,-0.2) and +(-1.2,0.2) .. (trace.west);
+\draw[flow] (rep) -- (trace);
+
+% --- Row 3: the single trace fans out to all policy arms ---
+\node[arm, below=11mm of trace, xshift=-52mm] (a1) {fixed / rolling / rolling-all};
+\node[arm, right=3mm of a1] (a2) {k-consec / m-of-n / hysteresis};
+\node[arm, right=3mm of a2] (a3) {anchored recalibration\\\scriptsize + ablations};
+\node[arm, right=3mm of a3] (a4) {Sun confidence sequence};
+
+\coordinate (fan) at ($(trace.south)+(0,-4mm)$);
+\draw[flow] (trace.south) -- (fan);
+\draw[thin flow] (fan) -| (a1.north);
+\draw[thin flow] (fan) -| (a2.north);
+\draw[thin flow] (fan) -| (a3.north);
+\draw[thin flow] (fan) -| (a4.north);
+\node[right=1mm of trace, gray!70, align=left] {\scriptsize identical trace\\\scriptsize to every arm};
+
+% --- Row 4: per-arm predictions + action log saved BEFORE labels ---
+\node[box, minimum width=52mm, below=9mm of a1, xshift=6mm] (saved)
+    {Predictions + label-free action log saved\\\scriptsize (alert / hold / defer / recalibrate)};
+\draw[thin flow] (a1.south) -- ([xshift=-30mm]saved.north);
+\draw[thin flow] (a2.south) -- ([xshift=-10mm]saved.north);
+\draw[thin flow] (a3.south) -- ([xshift=10mm]saved.north);
+\draw[thin flow] (a4.south) -- ([xshift=30mm]saved.north);
+
+% --- Row 5: labels joined offline only ---
+\node[box, minimum width=34mm, below=8mm of saved] (eval)
+    {Offline evaluation\\\scriptsize episodes formed from saved states};
+\node[box, minimum width=26mm, right=10mm of eval, fill=gray!18] (labels)
+    {Labels\\\scriptsize joined \emph{offline only}};
+\draw[flow] (saved) -- (eval);
+\draw[flow, dashed] (labels) -- (eval) node[midway, above, gray!70] {\scriptsize after predictions};
+
+% --- Reserved lane: drawn locked and unused ---
+\node[lane, below=8mm of eval] (reserved)
+    {\textbf{Reserved lane:} \texttt{SKAB/other/21.csv}\\[-1pt]
+     \scriptsize named reserved in manifest --- locked, never opened, no claim};
+\node[right=2mm of reserved] {\Large\textcolor{gray!60}{$\boxtimes$}};
+
+\end{tikzpicture}

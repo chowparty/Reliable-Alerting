@@ -1,0 +1,49 @@
+% F-controller -- the four-action state machine (normal / suspect / escalated).
+% Edges: hold, alert, defer, recalibrate with guard conditions.
+% Grayscale-safe. Transcribed from frozen-protocol.md section 4; no invented numbers.
+\begin{tikzpicture}[
+    font=\footnotesize,
+    node distance=34mm,
+    mode/.style={draw, circle, minimum size=17mm, align=center, fill=gray!8,
+                 inner sep=1pt},
+    edge lbl/.style={align=center, font=\scriptsize, fill=white, inner sep=1.5pt},
+    every edge/.style={draw, -{Latex[length=2mm]}, thick},
+]
+
+\node[mode] (normal) {normal};
+\node[mode, right=of normal] (suspect) {suspect};
+\node[mode, right=of suspect] (escal) {escalated};
+
+% self-loop on normal: not elevated -> hold/alert; return-to-anchor recalibrate
+\path (normal) edge[loop above, looseness=6]
+  node[edge lbl, above=1mm] {not elevated:\\ \textsc{hold} / \textsc{alert}$(s>\theta)$;\\ if $\theta>\theta_0,\;q(R)<\theta$: \textsc{recalibrate}$\downarrow$} (normal);
+
+% normal -> suspect: elevated & guard fails, defer counter < D
+\path (normal) edge[bend left=18]
+  node[edge lbl, above] {elevated $\wedge$ guard fails\\ $\wedge\;c<D$: \textsc{defer} ($c{+}{+}$)} (suspect);
+
+% suspect -> normal: elevation ends OR successful recalibrate
+\path (suspect) edge[bend left=18]
+  node[edge lbl, below] {not elevated, or\\ stable $\wedge\;q(R)\le\kappa\theta_0$:\\ \textsc{recalibrate}$\uparrow$, $c{=}0$} (normal);
+
+% suspect -> escalated: guard still fails after D defers
+\path (suspect) edge[bend left=14]
+  node[edge lbl, above] {guard fails\\ $\wedge\;c=D$:\\ escalate, $c{=}0$} (escal);
+
+% escalated self-loop: stay while elevated
+\path (escal) edge[loop above, looseness=6]
+  node[edge lbl, above=1mm] {elevated:\\ \textsc{alert}$(s>\theta)$ / \textsc{hold};\\ no recalibration} (escal);
+
+% escalated -> normal: elevation over
+\path (escal) edge[bend left=28]
+  node[edge lbl, below] {elevation over $\rightarrow$ normal} (normal);
+
+% invariant annotation
+\node[draw, rounded corners, fill=gray!4, align=left, below=15mm of suspect,
+      inner sep=4pt, font=\scriptsize] (inv)
+  {\textbf{Invariants (tested).} $\theta_0\le\theta\le\kappa\theta_0$ always;\quad
+   \textsc{defer} only when elevated and the guard fails;\quad
+   at most $D$ consecutive \textsc{defer}s before an alert-capable decision;\quad
+   score-only input, identical to every arm.};
+
+\end{tikzpicture}

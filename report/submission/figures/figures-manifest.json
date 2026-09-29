@@ -1,0 +1,288 @@
+{
+  "figures": {
+    "fig-ratchet": {
+      "caption": "valve1 (left) and valve2 (right) replay score (grey, log$_{10}$) over sample index with the fixed calibration threshold $\\theta_0$ (flat black), the normal-only rolling threshold (red dashed) and the admit-all rolling threshold (blue dotted); the labelled event span is shaded. Each panel's start and end threshold values are labelled outside the frame on the right. The normal-only threshold never rises (0 increases in 143 and 140 steps) and ends at 0.258 (valve1) and 0.406 (valve2), well below the replay median score, which mechanically explains its large alert volume. Sample-index units.",
+      "generator_command": "python3 research/report/submission/generate/make_figures.py /Users/pratyushchaudhary/Documents/learning/university_nsut/7th Semester/research/results/20260929-policy-study-v2",
+      "grayscale_check": "distinguishable by dash/marker as well as colour; confirmed on pdftoppm -gray -r 80 render",
+      "input_paths": [
+        "valve1/fixed_threshold/predictions.csv",
+        "valve1/fixed_threshold/policy_actions.csv",
+        "valve1/fixed_threshold/evaluation/labels.json",
+        "valve2/fixed_threshold/predictions.csv",
+        "valve2/fixed_threshold/policy_actions.csv",
+        "valve2/fixed_threshold/evaluation/labels.json",
+        "valve1/rolling_threshold/predictions.csv",
+        "valve1/rolling_threshold/policy_actions.csv",
+        "valve1/rolling_threshold/evaluation/labels.json",
+        "valve2/rolling_threshold/predictions.csv",
+        "valve2/rolling_threshold/policy_actions.csv",
+        "valve2/rolling_threshold/evaluation/labels.json",
+        "valve1/rolling_threshold_all/predictions.csv",
+        "valve1/rolling_threshold_all/policy_actions.csv",
+        "valve1/rolling_threshold_all/evaluation/labels.json",
+        "valve2/rolling_threshold_all/predictions.csv",
+        "valve2/rolling_threshold_all/policy_actions.csv",
+        "valve2/rolling_threshold_all/evaluation/labels.json"
+      ],
+      "input_sha256": {
+        "valve1/fixed_threshold/evaluation/labels.json": "2ee83cbe8bb22d1aa2617f3a56fd6bd033418b5f9340b5e67dd7276793392805",
+        "valve1/fixed_threshold/policy_actions.csv": "10f0bc737f27988fb25f29288f9edb19585ab307d67ff73b10d368a415043327",
+        "valve1/fixed_threshold/predictions.csv": "499a523ece13cf653953f1a7a0c87c0b02faceb4f66883c95eb8bf71f0b3fdbd",
+        "valve1/rolling_threshold/evaluation/labels.json": "2ee83cbe8bb22d1aa2617f3a56fd6bd033418b5f9340b5e67dd7276793392805",
+        "valve1/rolling_threshold/policy_actions.csv": "32d94e4c6146d87d881dd7d1450401326fa47cc9c1af78aa2a63a0a3751d5f1a",
+        "valve1/rolling_threshold/predictions.csv": "f4052b545f00a593b6a387278d5946edadb88d64980f98d9cf120757dabee028",
+        "valve1/rolling_threshold_all/evaluation/labels.json": "2ee83cbe8bb22d1aa2617f3a56fd6bd033418b5f9340b5e67dd7276793392805",
+        "valve1/rolling_threshold_all/policy_actions.csv": "5df645ff7cd2168ac9fdaade316c413a04af274760369ee2b64435d7d7658488",
+        "valve1/rolling_threshold_all/predictions.csv": "27f11a2ca20749e9f46edc5ed261743a3ab5be7f721766576f4e1ad852dcd461",
+        "valve2/fixed_threshold/evaluation/labels.json": "90096cde7a8f937cd010ecce5c1b0ef13bea7eebdb2f1cbdc2ab4a33df8556a4",
+        "valve2/fixed_threshold/policy_actions.csv": "ca7d3c49f2dea1f00d3f8de996592ab3091c3dd8cf76e1500c2af7a25f702266",
+        "valve2/fixed_threshold/predictions.csv": "c568e2234b4345c70e435a1c0f7db89e256a652871b0231eab46ceb66f39ea18",
+        "valve2/rolling_threshold/evaluation/labels.json": "90096cde7a8f937cd010ecce5c1b0ef13bea7eebdb2f1cbdc2ab4a33df8556a4",
+        "valve2/rolling_threshold/policy_actions.csv": "3d382e867566f7be5d2eed894e55d5e9b79c704879d50d919e766197392e68dc",
+        "valve2/rolling_threshold/predictions.csv": "e311ec4625e4433747c571f60dcc91a5eb3b6c8a0c9a664a1feeb62a3595eefa",
+        "valve2/rolling_threshold_all/evaluation/labels.json": "90096cde7a8f937cd010ecce5c1b0ef13bea7eebdb2f1cbdc2ab4a33df8556a4",
+        "valve2/rolling_threshold_all/policy_actions.csv": "4ff5d67a9e6dc760e31130c535bd1663bb864a2b3f2aec7204a8797e93c5e351",
+        "valve2/rolling_threshold_all/predictions.csv": "94450496d1f9c19352acd3b298428dc7947d7c32a9889ca3e64af3766263d62f"
+      },
+      "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e). SKAB source-data licence as recorded in report-work/visuals/asset-ledger.md (GPL-3.0 applicability conditional; origin not independently verified).",
+      "output_file": "fig-ratchet.tex",
+      "output_sha256": "508c2ca382e40f41a33c9390f59a86a3f86894c390b9793e813654c1794b9c22",
+      "report_labels": [
+        "fig:skab-traces",
+        "fig:ratchet"
+      ]
+    },
+    "fig-scorer-limit": {
+      "caption": "Sorted within-set score profiles relative to the fixed anchor $\\theta_0$ (the tick marked 1 ($\\theta_0$)) for valve1 and valve2: in-event windows (red solid) and out-of-event windows (blue dotted), with $\\theta_0$ shown as a black densely-dotted reference at ratio $=1$. Only 6/100 (valve1) and 13/98 (valve2) in-event windows exceed $\\theta_0$ and the longest exceedance run is 2 windows, so persistence rules (k-consecutive, m-of-n) miss the events and no threshold policy can add separation the scorer does not provide (E3). The y axis is clipped at 3$\\cdot\\theta_0$; 2 (valve1) and 3 (valve2) windows exceed that clip. Sample-index units.",
+      "generator_command": "python3 research/report/submission/generate/make_figures.py /Users/pratyushchaudhary/Documents/learning/university_nsut/7th Semester/research/results/20260929-policy-study-v2",
+      "grayscale_check": "distinguishable by dash/marker as well as colour; confirmed on pdftoppm -gray -r 80 render",
+      "input_paths": [
+        "valve1/fixed_threshold/predictions.csv",
+        "valve1/fixed_threshold/policy_actions.csv",
+        "valve1/fixed_threshold/evaluation/labels.json",
+        "valve2/fixed_threshold/predictions.csv",
+        "valve2/fixed_threshold/policy_actions.csv",
+        "valve2/fixed_threshold/evaluation/labels.json"
+      ],
+      "input_sha256": {
+        "valve1/fixed_threshold/evaluation/labels.json": "2ee83cbe8bb22d1aa2617f3a56fd6bd033418b5f9340b5e67dd7276793392805",
+        "valve1/fixed_threshold/policy_actions.csv": "10f0bc737f27988fb25f29288f9edb19585ab307d67ff73b10d368a415043327",
+        "valve1/fixed_threshold/predictions.csv": "499a523ece13cf653953f1a7a0c87c0b02faceb4f66883c95eb8bf71f0b3fdbd",
+        "valve2/fixed_threshold/evaluation/labels.json": "90096cde7a8f937cd010ecce5c1b0ef13bea7eebdb2f1cbdc2ab4a33df8556a4",
+        "valve2/fixed_threshold/policy_actions.csv": "ca7d3c49f2dea1f00d3f8de996592ab3091c3dd8cf76e1500c2af7a25f702266",
+        "valve2/fixed_threshold/predictions.csv": "c568e2234b4345c70e435a1c0f7db89e256a652871b0231eab46ceb66f39ea18"
+      },
+      "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e). SKAB source-data licence as recorded in report-work/visuals/asset-ledger.md (GPL-3.0 applicability conditional; origin not independently verified).",
+      "output_file": "fig-scorer-limit.tex",
+      "output_sha256": "b04f6401da5ffcd6f3d9b50863756c94b8fd0075eacb68bcd49b5af8e473fa81",
+      "report_labels": []
+    },
+    "fig-synthetic-map": {
+      "caption": "Deterministic synthetic stress family Y1--Y7 (small multiples): replay score (grey), fixed $\\theta_0$ (black), admit-all rolling threshold (blue dotted) and the anchored controller threshold (green, densely dashed), with defer windows (red ticks) and recalibration events (green dots) from the controller action log and labelled fault spans shaded. Y1 adapts; Y2 recalibrates during the ramp then emits periodic single-window alerts (lock-in); Y3 and Y7 still alert the post-shift fault; Y4 is absorbed after onset (declared limit); Y5 defers before escalating; Y6 exceeds the cap, defers, then escalates. Sample-index units.",
+      "generator_command": "python3 research/report/submission/generate/make_figures.py /Users/pratyushchaudhary/Documents/learning/university_nsut/7th Semester/research/results/20260929-policy-study-v2",
+      "grayscale_check": "distinguishable by dash/marker as well as colour; confirmed on pdftoppm -gray -r 80 render",
+      "input_paths": [
+        "Y1/fixed_threshold/predictions.csv",
+        "Y1/fixed_threshold/policy_actions.csv",
+        "Y1/fixed_threshold/evaluation/labels.json",
+        "Y1/rolling_threshold_all/predictions.csv",
+        "Y1/rolling_threshold_all/policy_actions.csv",
+        "Y1/rolling_threshold_all/evaluation/labels.json",
+        "Y1/anchored_recalibration/predictions.csv",
+        "Y1/anchored_recalibration/policy_actions.csv",
+        "Y1/anchored_recalibration/evaluation/labels.json",
+        "Y2/fixed_threshold/predictions.csv",
+        "Y2/fixed_threshold/policy_actions.csv",
+        "Y2/fixed_threshold/evaluation/labels.json",
+        "Y2/rolling_threshold_all/predictions.csv",
+        "Y2/rolling_threshold_all/policy_actions.csv",
+        "Y2/rolling_threshold_all/evaluation/labels.json",
+        "Y2/anchored_recalibration/predictions.csv",
+        "Y2/anchored_recalibration/policy_actions.csv",
+        "Y2/anchored_recalibration/evaluation/labels.json",
+        "Y3/fixed_threshold/predictions.csv",
+        "Y3/fixed_threshold/policy_actions.csv",
+        "Y3/fixed_threshold/evaluation/labels.json",
+        "Y3/rolling_threshold_all/predictions.csv",
+        "Y3/rolling_threshold_all/policy_actions.csv",
+        "Y3/rolling_threshold_all/evaluation/labels.json",
+        "Y3/anchored_recalibration/predictions.csv",
+        "Y3/anchored_recalibration/policy_actions.csv",
+        "Y3/anchored_recalibration/evaluation/labels.json",
+        "Y4/fixed_threshold/predictions.csv",
+        "Y4/fixed_threshold/policy_actions.csv",
+        "Y4/fixed_threshold/evaluation/labels.json",
+        "Y4/rolling_threshold_all/predictions.csv",
+        "Y4/rolling_threshold_all/policy_actions.csv",
+        "Y4/rolling_threshold_all/evaluation/labels.json",
+        "Y4/anchored_recalibration/predictions.csv",
+        "Y4/anchored_recalibration/policy_actions.csv",
+        "Y4/anchored_recalibration/evaluation/labels.json",
+        "Y5/fixed_threshold/predictions.csv",
+        "Y5/fixed_threshold/policy_actions.csv",
+        "Y5/fixed_threshold/evaluation/labels.json",
+        "Y5/rolling_threshold_all/predictions.csv",
+        "Y5/rolling_threshold_all/policy_actions.csv",
+        "Y5/rolling_threshold_all/evaluation/labels.json",
+        "Y5/anchored_recalibration/predictions.csv",
+        "Y5/anchored_recalibration/policy_actions.csv",
+        "Y5/anchored_recalibration/evaluation/labels.json",
+        "Y6/fixed_threshold/predictions.csv",
+        "Y6/fixed_threshold/policy_actions.csv",
+        "Y6/fixed_threshold/evaluation/labels.json",
+        "Y6/rolling_threshold_all/predictions.csv",
+        "Y6/rolling_threshold_all/policy_actions.csv",
+        "Y6/rolling_threshold_all/evaluation/labels.json",
+        "Y6/anchored_recalibration/predictions.csv",
+        "Y6/anchored_recalibration/policy_actions.csv",
+        "Y6/anchored_recalibration/evaluation/labels.json",
+        "Y7/fixed_threshold/predictions.csv",
+        "Y7/fixed_threshold/policy_actions.csv",
+        "Y7/fixed_threshold/evaluation/labels.json",
+        "Y7/rolling_threshold_all/predictions.csv",
+        "Y7/rolling_threshold_all/policy_actions.csv",
+        "Y7/rolling_threshold_all/evaluation/labels.json",
+        "Y7/anchored_recalibration/predictions.csv",
+        "Y7/anchored_recalibration/policy_actions.csv",
+        "Y7/anchored_recalibration/evaluation/labels.json"
+      ],
+      "input_sha256": {
+        "Y1/anchored_recalibration/evaluation/labels.json": "263357d1f0677648312b3ec959da08e790f2e5f4844728745e8caea61c0b42ea",
+        "Y1/anchored_recalibration/policy_actions.csv": "6ed71b76205a52318b8164002deb55881781427c5b1f67a7c9d4113bc43ea510",
+        "Y1/anchored_recalibration/predictions.csv": "a7954105960022bb584cd8e8cd1317a8ae6cd5c8c09a24f30ce52fe69ba73533",
+        "Y1/fixed_threshold/evaluation/labels.json": "263357d1f0677648312b3ec959da08e790f2e5f4844728745e8caea61c0b42ea",
+        "Y1/fixed_threshold/policy_actions.csv": "23f3b1e42a6a5651d91b835b339bd0a1a9ac25faffe30ae620dc8c9b0a2159a3",
+        "Y1/fixed_threshold/predictions.csv": "a7d2c114a88a20107a1e67795596f01748c6f077ba3d1e9d8fcb14e5611e0929",
+        "Y1/rolling_threshold_all/evaluation/labels.json": "263357d1f0677648312b3ec959da08e790f2e5f4844728745e8caea61c0b42ea",
+        "Y1/rolling_threshold_all/policy_actions.csv": "927f267c3dce0ce17227fa2346d1ada8bd5ae3b054c3e6dcb45622f04501a767",
+        "Y1/rolling_threshold_all/predictions.csv": "48a219135899dbe08cfa2d9f31e4d63ab6989e23d695f7d445ed60a3cf2c63e6",
+        "Y2/anchored_recalibration/evaluation/labels.json": "263357d1f0677648312b3ec959da08e790f2e5f4844728745e8caea61c0b42ea",
+        "Y2/anchored_recalibration/policy_actions.csv": "60a852478d28647950e411f371d94a6304aea9da37988e78ffa9c3f6f645d74e",
+        "Y2/anchored_recalibration/predictions.csv": "d5063e5b3ebe9af88ac46438b209be69cc4511e2ed8ed07402fa03aa2f88d782",
+        "Y2/fixed_threshold/evaluation/labels.json": "263357d1f0677648312b3ec959da08e790f2e5f4844728745e8caea61c0b42ea",
+        "Y2/fixed_threshold/policy_actions.csv": "717faf3627be3f7eb0311a828a584be23fddaef113186a46e7f07c571d124c96",
+        "Y2/fixed_threshold/predictions.csv": "2ebd04b66273bca6d9160f8c47229c0d62d478c79e0703ae7186e353df1fa437",
+        "Y2/rolling_threshold_all/evaluation/labels.json": "263357d1f0677648312b3ec959da08e790f2e5f4844728745e8caea61c0b42ea",
+        "Y2/rolling_threshold_all/policy_actions.csv": "65a11cd7788d574f2a3772c3e10602c8d1e6e936a20fc474490dffb53ae0eff3",
+        "Y2/rolling_threshold_all/predictions.csv": "bed701eee4bde88355f15a6e174cb323857942e1cf20fd23979edc8ea72542c4",
+        "Y3/anchored_recalibration/evaluation/labels.json": "2947a050b08ecdf3a9ef209f3a2e002a1fa808780f98c5202e9ac9303f8e19df",
+        "Y3/anchored_recalibration/policy_actions.csv": "2ffad732244d3ea40a35f1a33be8334cc1a5fae8e1b973ed353edbef5302015c",
+        "Y3/anchored_recalibration/predictions.csv": "49ed049a0f50075284c3ccfe303df676695c08bea6ac535b307a30b4de9d39fb",
+        "Y3/fixed_threshold/evaluation/labels.json": "2947a050b08ecdf3a9ef209f3a2e002a1fa808780f98c5202e9ac9303f8e19df",
+        "Y3/fixed_threshold/policy_actions.csv": "e7800b84d85c8f8ce8c75ba7471bd9307b323bf47dc03df1c020b1fdefacbb89",
+        "Y3/fixed_threshold/predictions.csv": "48e2468971aa67017368142b73a2e8b794d32014b10e12f8626a92025ea14541",
+        "Y3/rolling_threshold_all/evaluation/labels.json": "2947a050b08ecdf3a9ef209f3a2e002a1fa808780f98c5202e9ac9303f8e19df",
+        "Y3/rolling_threshold_all/policy_actions.csv": "2bdc36e8bb26f29e8bfc049634bc3c484fc13233717988e192b5d6669ee87c14",
+        "Y3/rolling_threshold_all/predictions.csv": "c767a656d51db97816f56103bd4f9a7692fa200f2b300e8e96e2210ed6a3e90a",
+        "Y4/anchored_recalibration/evaluation/labels.json": "f72326da26c4f98f2a0c6bbace120355071500614ef822e13a77842933257d30",
+        "Y4/anchored_recalibration/policy_actions.csv": "6ed71b76205a52318b8164002deb55881781427c5b1f67a7c9d4113bc43ea510",
+        "Y4/anchored_recalibration/predictions.csv": "73c03db35195fdf5e371ef4b91047890223485852d8c09de8a24fbb34bf62e8a",
+        "Y4/fixed_threshold/evaluation/labels.json": "f72326da26c4f98f2a0c6bbace120355071500614ef822e13a77842933257d30",
+        "Y4/fixed_threshold/policy_actions.csv": "23f3b1e42a6a5651d91b835b339bd0a1a9ac25faffe30ae620dc8c9b0a2159a3",
+        "Y4/fixed_threshold/predictions.csv": "903fdcd0f7c9d75790910e110a7ce61b3b256f50b055a346a0ee532183c18d9d",
+        "Y4/rolling_threshold_all/evaluation/labels.json": "f72326da26c4f98f2a0c6bbace120355071500614ef822e13a77842933257d30",
+        "Y4/rolling_threshold_all/policy_actions.csv": "927f267c3dce0ce17227fa2346d1ada8bd5ae3b054c3e6dcb45622f04501a767",
+        "Y4/rolling_threshold_all/predictions.csv": "ba584e3590d2429d66a15ed2a639a108de7f6000afcbcc8092ca0df382df2fa2",
+        "Y5/anchored_recalibration/evaluation/labels.json": "13e2d9cf8d803e5c3a3a3339a81f70527a60bc4cb05cee05d68501f2052bc1c8",
+        "Y5/anchored_recalibration/policy_actions.csv": "17093bc8ccf6319b5405b6ea2c84e809ce5879b0a4f7db571449f61b79856488",
+        "Y5/anchored_recalibration/predictions.csv": "4a83ab656954bfbcad9b515cf439e8fc236837708577a5961680f3067af574f5",
+        "Y5/fixed_threshold/evaluation/labels.json": "13e2d9cf8d803e5c3a3a3339a81f70527a60bc4cb05cee05d68501f2052bc1c8",
+        "Y5/fixed_threshold/policy_actions.csv": "cff0419cf3e3b38678834449a0804a7cae13002fc55dd7f5352a52446c0e2b6f",
+        "Y5/fixed_threshold/predictions.csv": "6fa8b66cc0117b9a9f56e206b24cf97da7e5e57aff921091ecfccb1cd8682061",
+        "Y5/rolling_threshold_all/evaluation/labels.json": "13e2d9cf8d803e5c3a3a3339a81f70527a60bc4cb05cee05d68501f2052bc1c8",
+        "Y5/rolling_threshold_all/policy_actions.csv": "2ea37567d960249725faceb5e34301f4ca3b65e0832f7f50ed0728d272d3cece",
+        "Y5/rolling_threshold_all/predictions.csv": "98d4c00f6832cd4ef20986ddbe7c5c6a08df30deda8225f9ae1915b6f5699c9b",
+        "Y6/anchored_recalibration/evaluation/labels.json": "263357d1f0677648312b3ec959da08e790f2e5f4844728745e8caea61c0b42ea",
+        "Y6/anchored_recalibration/policy_actions.csv": "bbe7c1b176cf4b59caa090acff967b10997983660a2af28dc0bdef5f20bbb45a",
+        "Y6/anchored_recalibration/predictions.csv": "6cce19b0ab027b547121161628eb087207de5ea1c1776e5bf4d9497fece7dce6",
+        "Y6/fixed_threshold/evaluation/labels.json": "263357d1f0677648312b3ec959da08e790f2e5f4844728745e8caea61c0b42ea",
+        "Y6/fixed_threshold/policy_actions.csv": "5e08568cb82186eed4333c59919d1a1274050c681a2ec9057e2c5af04c86f254",
+        "Y6/fixed_threshold/predictions.csv": "4a93705c1b1fe20da471798127883951095c7d10b76117f4432e6e2b5932ee34",
+        "Y6/rolling_threshold_all/evaluation/labels.json": "263357d1f0677648312b3ec959da08e790f2e5f4844728745e8caea61c0b42ea",
+        "Y6/rolling_threshold_all/policy_actions.csv": "1ac6756da282fd04bbedbdd70a92c9b984a27dd2221a24bd34c79bf052aac7d7",
+        "Y6/rolling_threshold_all/predictions.csv": "2e69c4aeeefc9f36f6b8c843c5409b459e93f4165be9cbb9175e6fc2a0ed7457",
+        "Y7/anchored_recalibration/evaluation/labels.json": "2bd600a406698cbe67df3ea5b5cc33b254b307b190e93dffd9df7a63fd083fd8",
+        "Y7/anchored_recalibration/policy_actions.csv": "d77f464f0641471510fb2441282153f61af581e84a17b2aed8defbdc78a9a98c",
+        "Y7/anchored_recalibration/predictions.csv": "b0d0336992893d2d6f877228dd04788b3dfd829a072741df7462247e325d7ff7",
+        "Y7/fixed_threshold/evaluation/labels.json": "2bd600a406698cbe67df3ea5b5cc33b254b307b190e93dffd9df7a63fd083fd8",
+        "Y7/fixed_threshold/policy_actions.csv": "23f50f20b54453725282d2715227652e2a3b5997681014648d4372c6f1d49118",
+        "Y7/fixed_threshold/predictions.csv": "30eaf2c35caae915672841d534325391f058b64fe51a7ba59f180cd617be8f04",
+        "Y7/rolling_threshold_all/evaluation/labels.json": "2bd600a406698cbe67df3ea5b5cc33b254b307b190e93dffd9df7a63fd083fd8",
+        "Y7/rolling_threshold_all/policy_actions.csv": "eaf9896bf8ecdb098d8e13142f94be643f4cd3e51944181f1e3fba40b6747ede",
+        "Y7/rolling_threshold_all/predictions.csv": "ae196228f2f0efe20c26347ddcf85f3614f0b8f3c51d8aec2d3710a827ad0066"
+      },
+      "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e). SKAB source-data licence as recorded in report-work/visuals/asset-ledger.md (GPL-3.0 applicability conditional; origin not independently verified).",
+      "output_file": "fig-synthetic-map.tex",
+      "output_sha256": "ae70e562d99992bcf454935bda55ea65328804a379fc43d042b96144bf7bf6c6",
+      "report_labels": [
+        "fig:synthetic-map"
+      ]
+    },
+    "fig-tradeoff": {
+      "caption": "Per-arm trade-off as a 2$\\times$2 grid: decision coverage (x) against non-event alert duration in samples (y), linear axes with a per-panel y range, one marker per arm (numbered by the shared key at right; coincident arms share one grouped label). On the two SKAB streams (valve1, valve2) most arms coincide at full coverage $=1.00$, so the informative contrast is the vertical spread of workload; the Sun arm reaches low workload only by abstaining (coverage 54/143 and 57/140). The benign synthetic cases Y1 (step) and Y2 (ramp) carry the direction's core trade-off: on Y1 the anchored controller holds non-event alert duration to 16 at full coverage 260/260, against fixed 597 and admit-all rolling 12; on Y2 it holds 204 at coverage 257/260, against fixed 577; the Sun arm's low workload comes only from abstaining (coverage 22/260 and 23/260). On valve1 and valve2, event recall is $1/1$ for every arm that alerts; Y1 and Y2 contain no fault event. Sample-index units.",
+      "generator_command": "python3 research/report/submission/generate/make_figures.py /Users/pratyushchaudhary/Documents/learning/university_nsut/7th Semester/research/results/20260929-policy-study-v2",
+      "grayscale_check": "distinguishable by dash/marker as well as colour; confirmed on pdftoppm -gray -r 80 render",
+      "input_paths": [
+        "summary.json"
+      ],
+      "input_sha256": {
+        "summary.json": "0de6e0f8deb82dbb5c60fb38e2e1579cd9cf2938720b640244aae971ee14ac76"
+      },
+      "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e). SKAB source-data licence as recorded in report-work/visuals/asset-ledger.md (GPL-3.0 applicability conditional; origin not independently verified).",
+      "output_file": "fig-tradeoff.tex",
+      "output_sha256": "fd0c12d21e73fb8154e0fb34fee70a2cad5894131e860fe158d4b801aa56d807",
+      "report_labels": [
+        "fig:tradeoff"
+      ]
+    }
+  },
+  "generator": "research/report/submission/generate/make_figures.py",
+  "number_source": "summary.json, cross-checked against report-work/evidence/recompute-output-policy-study.json (99 runs, 0 mismatches)",
+  "regenerate_command": "python3 research/report/submission/generate/make_figures.py /Users/pratyushchaudhary/Documents/learning/university_nsut/7th Semester/research/results/20260929-policy-study-v2",
+  "report_label_map": {
+    "fig-ratchet": [
+      "fig:skab-traces",
+      "fig:ratchet"
+    ],
+    "fig-scorer-limit": [],
+    "fig-synthetic-map": [
+      "fig:synthetic-map"
+    ],
+    "fig-tradeoff": [
+      "fig:tradeoff"
+    ]
+  },
+  "reused_figures": {
+    "fig-concept": "reused, owned by report-draft (P7a); labelled schematic, not data",
+    "fig-controller": "reused, owned by report-draft (P7a); state machine",
+    "fig-flow": "reused, owned by report-draft (P7a); chronological data flow"
+  },
+  "study_root": "results/20260929-policy-study-v2",
+  "tradeoff_streams_justification": "The trade-off figure uses a 2x2 grid of valve1, valve2, Y1 and Y2. On the two SKAB streams almost every arm sits at full decision coverage (1.00), so the SKAB panels alone cannot show the direction's core trade-off -- they only show workload spread at fixed coverage. Y1 (benign step) and Y2 (benign ramp) are the benign regime-change cases the whole direction is about: on Y1 the anchored controller holds non-event alert duration to 16 at 260/260 coverage vs fixed 597 and admit-all rolling 12; on Y2 it holds 204 at 257/260 vs fixed 577; and the Sun arm reaches low workload on both only by abstaining (coverage 22/260 and 23/260). Including Y1/Y2 makes the coverage-vs-workload trade the figure's subject rather than a near-degenerate SKAB-only view.",
+  "verified_values": {
+    "in_event_exceedance": {
+      "valve1": {
+        "exceed": 6,
+        "in_event": 100,
+        "max_run": 2
+      },
+      "valve2": {
+        "exceed": 13,
+        "in_event": 98,
+        "max_run": 2
+      }
+    },
+    "ratchet_end": {
+      "valve1": 0.2581,
+      "valve2": 0.406
+    },
+    "ratchet_increases": {
+      "valve1": 0,
+      "valve2": 0
+    },
+    "scorer_limit_clipped_windows": {
+      "valve1": 2,
+      "valve2": 3
+    }
+  }
+}

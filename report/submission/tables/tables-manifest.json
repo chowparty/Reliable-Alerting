@@ -1,0 +1,55 @@
+{
+  "footnote": "`--' marks a value that is undefined for that row: mean delay is undefined when the arm raises no in-event alert (recall $0/d$); recall $n/d$ is shown as `--' only where the scenario has no labelled event ($d=0$). All durations and delays are in sample-index units.",
+  "generator": "research/report/submission/generate/make_tables.py",
+  "input_paths": [
+    "results/20260929-policy-study-v2/summary.json",
+    "../report-work/evidence/recompute-output-policy-study.json"
+  ],
+  "input_sha256": {
+    "../report-work/evidence/recompute-output-policy-study.json": "e9a93eec6991875523b9f8fe95562c6ea1f048fc4642a741a4b3609963beb689",
+    "results/20260929-policy-study-v2/summary.json": "0de6e0f8deb82dbb5c60fb38e2e1579cd9cf2938720b640244aae971ee14ac76"
+  },
+  "number_source": "summary.json; cross-checked against the review recompute file report-work/evidence/recompute-output-policy-study.json (99 runs, 0 mismatches) when that review pack is present",
+  "regenerate_command": "python3 research/report/submission/generate/make_tables.py /Users/pratyushchaudhary/Documents/learning/university_nsut/7th Semester/research/results/20260929-policy-study-v2",
+  "table_label_map": {
+    "tab-ablation": [],
+    "tab-skab": [
+      "tab:baseline"
+    ],
+    "tab-synthetic": [],
+    "tab-synthetic-compact": []
+  },
+  "tables": {
+    "tab-ablation": {
+      "caption": "Ablation map: measured change in each synthetic outcome when a single guard component (cap $\\kappa$, stability $\\rho$, deferral $D$) is removed from the anchored controller, relative to the full controller on the same trace. Only rows with a non-zero measured change are shown. Sample-index units.",
+      "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e); SKAB data licence per report-work/visuals/asset-ledger.md.",
+      "output_file": "tab-ablation.tex",
+      "output_sha256": "62d48e46afa553e10dc5cf3f4e4197d0b0fc5d76bbe10dd909ccc5bb46f53169",
+      "report_labels": []
+    },
+    "tab-skab": {
+      "caption": "SKAB development streams (valve1, valve2) $\\times$ 11 arms on the shared score trace: alert windows, alert episodes, event recall $n/d$, false episodes, mean delay, non-event alert duration, in-event alerted fraction, decision coverage $n/d$, deferrals and recalibrations. Every arm keeps event recall $1/1$ where it alerts; the rolling (normal-only) arm carries many times the alert windows of fixed at the same recall, and the Sun arm trades coverage for abstention. Sample-index units; `--' as in the footnote.",
+      "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e); SKAB data licence per report-work/visuals/asset-ledger.md.",
+      "output_file": "tab-skab.tex",
+      "output_sha256": "7676a6c097a2fabb9c55f522db6bcc3d963e623f0275191fae1a95289c240d0d",
+      "report_labels": [
+        "tab:baseline"
+      ]
+    },
+    "tab-synthetic": {
+      "caption": "Synthetic stress family Y1--Y7 $\\times$ 8 arms, purpose columns only: non-event alert duration, in-event alerted fraction, event recall $n/d$, decision coverage $n/d$, and deferrals/recalibrations. These are deterministic engineering checks, not evidence of real-world benefit. Sample-index units; `--' as in the footnote.",
+      "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e); SKAB data licence per report-work/visuals/asset-ledger.md.",
+      "output_file": "tab-synthetic.tex",
+      "output_sha256": "f27290d7068e1e705688dd3d00bd56b4a3fa4b78dedad9b9197b7241c5c78b08",
+      "report_labels": []
+    },
+    "tab-synthetic-compact": {
+      "caption": "Synthetic stress family Y1--Y7, compact 5-arm view (fixed, rolling all, anchored, no-cap, Sun) for the page budget: non-event alert duration, in-event alerted fraction, event recall $n/d$, decision coverage $n/d$, and deferrals/recalibrations. Same values and same summary-equals check as the full 8-arm table. Deterministic engineering checks, not evidence of real-world benefit. Sample-index units; `--' as in the footnote.",
+      "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e); SKAB data licence per report-work/visuals/asset-ledger.md.",
+      "output_file": "tab-synthetic-compact.tex",
+      "output_sha256": "aa94d0bbe5c6752113028718ad1e4c69f09a64b4371a62f52fc04758399fb567",
+      "report_labels": []
+    }
+  },
+  "undefined_marker": "--"
+}
