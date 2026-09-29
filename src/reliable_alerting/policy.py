@@ -192,3 +192,248 @@ class MOfNPolicy:
 
     def reset(self) -> None:
         self._history = []
+
+
+def _check_positive_ratio_or_inf(value, name):
+    """Accept a finite positive float OR math.inf (for ablations)."""
+    if value is None or isinstance(value, bool):
+        raise TypeError(f"{name} must be a number")
+    if not isinstance(value, (int, float)):
+        raise TypeError(f"{name} must be a number")
+    f = float(value)
+    if math.isnan(f):
+        raise ValueError(f"{name} must not be NaN")
+    if f <= 0:
+        raise ValueError(f"{name} must be > 0")
+    return f  # may be math.inf
+
+
+def _nearest_rank_quantile(sorted_vals, q):
+    """Nearest-rank quantile: ceil(q * n)-th smallest (1-indexed), clamped."""
+    n = len(sorted_vals)
+    rank = math.ceil(q * n)
+    if rank < 1:
+        rank = 1
+    if rank > n:
+        rank = n
+    return sorted_vals[rank - 1]
+
+
+def _ordinary_median(vals):
+    """Ordinary median; mean of the two middle values for even length."""
+    s = sorted(vals)
+    n = len(s)
+    mid = n // 2
+    if n % 2 == 1:
+        return float(s[mid])
+    return float((s[mid - 1] + s[mid]) / 2)
+
+
+class AnchoredRecalibrationPolicy:
+    """Admission-separated, anchored recalibration controller (protocol section 4).
+
+    The buffer R holds the last L scores of EVERY window (admission does not
+    depend on any decision). At each window end the controller may hold, alert,
+    defer, or recalibrate the threshold upward/toward the anchor, under a cap
+    (kappa) and a stability guard (rho), with explicit deferral (up to D times).
+
+    Invariants: theta0 <= theta <= kappa*theta0 always; recalibration never
+    happens before the buffer is full; at most D consecutive defers before an
+    alert-capable decision; no label input; the score input is identical to
+    every other arm.
+    """
+
+    __slots__ = ("_theta0", "_theta", "_mode", "_c", "_R", "_L", "_q",
+                 "_kappa", "_rho", "_D", "_last_action")
+
+    def __init__(self, theta0, block_length=10, quantile=0.95, cap=4.0,
+                 stability=2.0, defer_limit=10):
+        self._theta0 = _check_threshold(theta0)
+        if self._theta0 <= 0:
+            raise ValueError("theta0 must be > 0")
+        if not isinstance(block_length, int) or isinstance(block_length, bool) \
+                or block_length < 1:
+            raise ValueError("block_length must be a positive integer")
+        self._L = block_length
+        q = _check_threshold(quantile)
+        if not 0 < q <= 1:
+            raise ValueError("quantile must satisfy 0 < q <= 1")
+        self._q = q
+        self._kappa = _check_positive_ratio_or_inf(cap, "cap")
+        self._rho = _check_positive_ratio_or_inf(stability, "stability")
+        if not isinstance(defer_limit, int) or isinstance(defer_limit, bool) \
+                or defer_limit < 0:
+            raise ValueError("defer_limit must be a non-negative integer")
+        self._D = defer_limit
+        self._theta = self._theta0
+        self._mode = "normal"
+        self._c = 0
+        self._R = []
+        self._last_action = "hold"
+
+    @property
+    def threshold(self) -> float:
+        return self._theta
+
+    @property
+    def mode(self) -> str:
+        return self._mode
+
+    @property
+    def last_action(self) -> str:
+        return self._last_action
+
+    def decide(self, score) -> str:
+        s = _check_score(score)
+        # append s to R (drop oldest beyond L). Admission is unconditional.
+        self._R.append(s)
+        if len(self._R) > self._L:
+            self._R.pop(0)
+        full = len(self._R) == self._L
+        median = _ordinary_median(self._R) if self._R else 0.0
+        elevated = full and median > self._theta
+
+        if self._mode == "escalated":
+            if elevated:
+                # stay escalated, no recalibration
+                if s > self._theta:
+                    self._last_action = "alert"
+                    return "alert"
+                self._last_action = "hold"
+                return "normal"
+            # elevation over; leave escalation and fall through
+            self._mode = "normal"
+
+        if elevated:
+            sorted_R = sorted(self._R)
+            cand = _nearest_rank_quantile(sorted_R, self._q)
+            stable = max(self._R) <= self._rho * median
+            if stable and cand <= self._kappa * self._theta0:
+                self._theta = max(self._theta0, cand)
+                self._mode = "normal"
+                self._c = 0
+                self._last_action = "recalibrate"
+                return "alert" if s > self._theta else "normal"
+            if self._c < self._D:
+                self._c += 1
+                self._mode = "suspect"
+                self._last_action = "defer"
+                return "defer"
+            self._mode = "escalated"
+            self._c = 0
+            if s > self._theta:
+                self._last_action = "alert"
+                return "alert"
+            self._last_action = "hold"
+            return "normal"
+
+        # not elevated
+        if self._mode == "suspect":
+            self._mode = "normal"
+            self._c = 0
+        if full and self._theta > self._theta0:
+            sorted_R = sorted(self._R)
+            cand = _nearest_rank_quantile(sorted_R, self._q)
+            if cand < self._theta:
+                self._theta = max(self._theta0, cand)
+                self._last_action = "recalibrate"
+                return "alert" if s > self._theta else "normal"
+        if s > self._theta:
+            self._last_action = "alert"
+            return "alert"
+        self._last_action = "hold"
+        return "normal"
+
+    def reset(self) -> None:
+        self._theta = self._theta0
+        self._mode = "normal"
+        self._c = 0
+        self._R = []
+        self._last_action = "hold"
+
+
+class SunConfidenceSequencePolicy:
+    """Re-implementation of Sun et al. (ICML 2024) Algorithm 1 with eq. (1);
+    not the authors' code.
+
+    This is the closest-literature abstention baseline (frozen protocol
+    section 5). It maintains a running history of scores (the calibration
+    scores plus every replay score seen so far -- admit-all, the
+    single-offline-dataset matched branch of the paper's Algorithm 4) and, at
+    each window, builds a confidence set for the p-quantile:
+
+        u_n(alpha) = 0.85 * sqrt((log log(e*n) + 0.8*log(1612/alpha)) / n)
+        Qhat(p; y_1..n) = (y_(floor(p*n)) + y_(ceil(p*n))) / 2   (1-indexed
+                          order statistics, with y_(0) := y_(1))
+        C = [ Qhat(max(p - 2*u_n, 0)), Qhat(min(p + 2*u_n, 1)) ]
+
+    Decision on the current score S:
+        S > max(C) -> alert ; S in C -> defer ; else normal.
+
+    The paper's change-point Algorithms 2-3 and its match test are NOT
+    implemented here; only Algorithm 1 with the eq. (1) confidence set. p and
+    alpha default to the frozen values (p=0.95, alpha=0.05).
+    """
+
+    __slots__ = ("_p", "_alpha", "_history")
+
+    def __init__(self, calibration_scores=(), p=0.95, alpha=0.05):
+        p_f = _check_threshold(p)
+        if not 0 < p_f < 1:
+            raise ValueError("p must satisfy 0 < p < 1")
+        a_f = _check_threshold(alpha)
+        if not 0 < a_f < 1:
+            raise ValueError("alpha must satisfy 0 < alpha < 1")
+        self._p = p_f
+        self._alpha = a_f
+        hist = []
+        for v in calibration_scores:
+            hist.append(_check_score(v))
+        self._history = hist
+
+    @property
+    def history(self):
+        return list(self._history)
+
+    def u_n(self, n) -> float:
+        if not isinstance(n, int) or isinstance(n, bool) or n < 1:
+            raise ValueError("n must be a positive integer")
+        return 0.85 * math.sqrt(
+            (math.log(math.log(math.e * n)) + 0.8 * math.log(1612.0 / self._alpha)) / n)
+
+    def q_hat(self, values, p) -> float:
+        """Interpolated quantile Qhat(p; values) with y_(0) := y_(1)."""
+        s = sorted(_check_score(v) for v in values)
+        n = len(s)
+        if n == 0:
+            raise ValueError("q_hat needs at least one value")
+
+        def order(k):
+            if k <= 0:
+                k = 1
+            if k > n:
+                k = n
+            return s[k - 1]
+
+        lo = math.floor(p * n)
+        hi = math.ceil(p * n)
+        return (order(lo) + order(hi)) / 2.0
+
+    def decide(self, score) -> str:
+        s = _check_score(score)
+        # history = calibration scores UNION replay scores so far, including s.
+        self._history.append(s)
+        n = len(self._history)
+        u = self.u_n(n)
+        lo_p = max(self._p - 2.0 * u, 0.0)
+        hi_p = min(self._p + 2.0 * u, 1.0)
+        c_lo = self.q_hat(self._history, lo_p)
+        c_hi = self.q_hat(self._history, hi_p)
+        if s > c_hi:
+            return "alert"
+        if s >= c_lo:
+            return "defer"
+        return "normal"
+
+    def reset(self, calibration_scores=()) -> None:
+        self._history = [_check_score(v) for v in calibration_scores]
