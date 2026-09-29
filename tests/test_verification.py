@@ -25,8 +25,12 @@ import verification as v  # noqa: E402
 
 _MANIFEST = _REPO_ROOT / "manifest.md"
 _VALVE1 = _REPO_ROOT / "SKAB" / "valve1" / "0.csv"
-# Recorded in data/manifest.md on 2026-09-27 (working-tree bytes, CRLF checkout).
-_VALVE1_SHA256 = "90f70a75cf359e5e7b0fffa0644fdbac6733a71510e7891b6d0427effd750cb6"
+# Two recorded digests for the same data. The raw-byte checksum depends on how
+# git materialized the working tree: CRLF checkout -> 90f70a75..., LF checkout
+# -> 14ea55a5.... The LF-normalized digest is checkout-independent and equals
+# the LF digest. Both are recorded in manifest.md.
+_VALVE1_SHA256_LF = "14ea55a5987f2074f3c9851f3963e3308c8668eeeca2249fc3de6491cb7e1b74"
+_VALVE1_SHA256_CRLF = "90f70a75cf359e5e7b0fffa0644fdbac6733a71510e7891b6d0427effd750cb6"
 
 _HEADER = "datetime;Current;anomaly"
 
@@ -133,8 +137,17 @@ class Valve1VerifiedFactsTest(unittest.TestCase):
         cls.rows = v.read_rows(_VALVE1)
 
     def test_checksum_matches_manifest(self):
-        self.assertEqual(v.file_sha256(_VALVE1), _VALVE1_SHA256)
-        self.assertIn(_VALVE1_SHA256, _MANIFEST.read_text(encoding="utf-8-sig"))
+        # Line-ending robust: normalize CRLF -> LF before hashing so the check
+        # holds whether git checked the file out with CRLF or LF. The
+        # normalized digest equals the recorded LF digest.
+        self.assertEqual(v.file_sha256_lf(_VALVE1), _VALVE1_SHA256_LF)
+        # The raw-byte checksum on this checkout must be one of the two
+        # recorded digests (LF or CRLF), never a third value.
+        self.assertIn(v.file_sha256(_VALVE1), (_VALVE1_SHA256_LF, _VALVE1_SHA256_CRLF))
+        # Both recorded digests appear in the manifest.
+        manifest_text = _MANIFEST.read_text(encoding="utf-8-sig")
+        self.assertIn(_VALVE1_SHA256_LF, manifest_text)
+        self.assertIn(_VALVE1_SHA256_CRLF, manifest_text)
 
     def test_row_count(self):
         self.assertEqual(len(self.rows), 1148)

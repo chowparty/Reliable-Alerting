@@ -59,6 +59,22 @@ def file_sha256(path):
     return h.hexdigest()
 
 
+def file_sha256_lf(path):
+    """SHA-256 of the file bytes with CRLF line endings normalized to LF.
+
+    Git may check the same file out with CRLF on one machine and LF on
+    another, which changes the raw byte checksum without changing any data.
+    Normalizing ``\r\n`` to ``\n`` before hashing gives a checkout-independent
+    digest, so a checksum check stays meaningful regardless of how the working
+    tree was materialized.
+    """
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        data = fh.read()
+    h.update(data.replace(b"\r\n", b"\n"))
+    return h.hexdigest()
+
+
 def read_rows(path, delimiter=";"):
     """Read a delimited file into a list of dicts (header row gives keys)."""
     with open(path, encoding="utf-8", newline="") as fh:
