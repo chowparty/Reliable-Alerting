@@ -1,17 +1,21 @@
 #!/bin/sh
 # Build report.tex into build/ with pdflatex -> bibtex -> pdflatex x2.
-# TeX Live 2026 basic must be on PATH: export PATH=/Library/TeX/texbin:$PATH
+# Needs pdflatex and bibtex on PATH (macOS MacTeX/BasicTeX installs them under
+# /Library/TeX/texbin, which is added below; on Linux they are already on PATH).
 #
 # The NSUT logo is NOT committed (reuse rights unresolved; the repo is public).
-# This script copies it in from the report-work visuals pack WHEN that pack is
-# present beside the checkout, so the final PDF carries the logo. report.tex uses
-# \IfFileExists, so the source still compiles (with a plain text cover mark)
-# without it. build/ is git-ignored; generated files are never hand-edited.
+# To build the printed copy with the logo, save the logo as nsut-logo.png in this
+# folder (git-ignored). When the report-work visuals pack sits beside the checkout,
+# the logo is copied in from there automatically. report.tex uses \IfFileExists, so
+# the source still compiles (with a plain text cover mark) without it.
+# build/ is git-ignored; generated files are never hand-edited.
 set -eu
 
 sub_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd "$sub_dir"
 export PATH=/Library/TeX/texbin:$PATH
+# A fixed timestamp makes the PDF byte-identical when nothing changed.
+export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1790706600}"   # 2026-09-30 00:00 IST
 mkdir -p build
 
 # Bring the cover logo in from the review pack if it is available; harmless if not.
