@@ -1,0 +1,64 @@
+% beamer-preamble.tex -- the deck's visual theme (beamer PDF only).
+% Loaded by build.sh through pandoc -H. Design rules: one navy structure colour, one
+% warm accent for the few numbers that matter, white background, left-aligned titles
+% that state the slide's takeaway, and a quiet footer.
+% Font: beamer's default Latin Modern Sans (Helvetica metrics are not in TeX Live basic).
+\usepackage{etoolbox}
+
+\definecolor{navy}{HTML}{17365D}
+\definecolor{accent}{HTML}{B8561B}
+\definecolor{softgray}{HTML}{6B7280}
+\definecolor{panel}{HTML}{F3F5F8}
+
+\setbeamercolor{structure}{fg=navy}
+\setbeamercolor{normal text}{fg=black!88}
+\setbeamercolor{alerted text}{fg=accent}
+\setbeamercolor{frametitle}{fg=navy,bg=white}
+\setbeamercolor{title}{fg=navy}
+\setbeamercolor{subtitle}{fg=softgray}
+\setbeamercolor{caption name}{fg=navy}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamerfont{caption}{size=\footnotesize}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[square]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+\setbeamersize{text margin left=9mm, text margin right=9mm}
+
+% Title: bold navy text, then a short accent rule. No filled bar.
+\setbeamertemplate{frametitle}{%
+  \vskip5pt\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}%
+  \insertframetitle\par\vskip1pt
+  {\color{accent}\rule{14mm}{1.1pt}}\par\vskip1pt}
+
+% Footer: short title on the left, slide number on the right, both in grey.
+\setbeamertemplate{footline}{%
+  \ifnum\insertframenumber=1 \vskip4mm\else
+  \leavevmode\hbox to\paperwidth{\hskip9mm{\color{softgray}\tiny
+    When Should an Alert Threshold Learn?}\hfill
+    {\color{softgray}\tiny\insertframenumber\,/\,\inserttotalframenumber}\hskip9mm}%
+  \vskip4mm\fi}
+
+% Title page: logo, title, subtitle, a rule, then team and supervisor.
+\setbeamertemplate{title page}{%
+  \vskip4mm
+  {\usebeamercolor[fg]{titlegraphic}\inserttitlegraphic\par}\vskip4mm
+  {\usebeamerfont{title}\usebeamercolor[fg]{title}\LARGE\bfseries\inserttitle\par}
+  \vskip3mm
+  {\usebeamercolor[fg]{subtitle}\large\insertsubtitle\par}
+  \vskip3mm{\color{accent}\rule{24mm}{1.5pt}}\par\vskip4mm
+  {\small\insertauthor\par}\vskip2mm
+  {\footnotesize\color{softgray}\insertinstitute\par}\vskip1mm
+  {\footnotesize\color{softgray}\insertdate\par}}
+
+% Evidence tags, the same four labels as the report.
+\newcommand{\evtag}[1]{{\setlength{\fboxsep}{1.5pt}\colorbox{navy!12}{%
+  \textcolor{navy}{\scriptsize\bfseries\strut #1}}}}
+
+% Tables: slightly smaller type and more row height, so they read at a distance.
+\AtBeginEnvironment{longtable}{\small\renewcommand{\arraystretch}{1.25}}
+\setlength{\LTpre}{4pt}\setlength{\LTpost}{2pt}
+
+% Paragraph and list spacing for the 16:9 frame.
+\setlength{\parskip}{3pt}
+\setbeamertemplate{itemize/enumerate body begin}{\setlength{\itemsep}{3pt}}
