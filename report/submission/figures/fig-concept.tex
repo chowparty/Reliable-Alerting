@@ -12,19 +12,21 @@
   \draw[gray!55, dashed] (0,12) -- (84,12) node[right, black] {\scriptsize $\theta_0$ (anchor)};
   \draw[gray!55, dashed] (0,34) -- (84,34) node[right, black] {\scriptsize $\kappa\theta_0$ (cap)};
 
-  % onset of a sustained shift/fault marker
-  \draw[gray!45] (34,0) -- (34,40);
-  \node[gray!60, rotate=90, anchor=south, font=\scriptsize] at (33,20) {sustained shift onset};
+  % onset of a sustained shift/fault marker; its label sits in the empty strip
+  % above the x axis so it crosses no curve
+  \draw[gray!45] (34,0) -- (34,35);
+  \node[gray!60, anchor=south west, font=\scriptsize] at (35,0.6) {sustained shift starts};
 
   % (1) self-referential: monotone non-increasing -- ratchets DOWN
   \draw[thick]
     (0,12) -- (14,10.5) -- (28,9) -- (40,7) -- (54,5.2) -- (68,4) -- (84,3.1);
   \node[anchor=west, font=\scriptsize] at (52,6.6) {self-referential (ratchets down)};
 
-  % (2) unconditional: tracks whatever arrives -- absorbs the fault upward, unbounded past cap
+  % (2) unconditional: tracks whatever arrives -- absorbs the fault upward, past the cap;
+  % the label continues the curve's end so the line never strikes through it
   \draw[thick, densely dashed]
-    (0,12) -- (30,12.5) -- (36,20) -- (44,29) -- (54,36) -- (68,40) -- (80,41.5);
-  \node[anchor=west, font=\scriptsize] at (46,40.5) {unconditional (absorbs fault)};
+    (0,12) -- (30,12.5) -- (36,20) -- (44,29) -- (54,36) -- (62,39.5) -- (70,41);
+  \node[anchor=west, font=\scriptsize] at (70.5,41) {unconditional (absorbs fault)};
 
   % (3) anchored / separated: stays within [theta0, kappa*theta0]
   \draw[very thick]
@@ -32,10 +34,10 @@
   \node[anchor=west, font=\scriptsize] at (58,26.5) {anchored/separated};
   % small "defer" bracket during the unstable transition
   \draw[gray!60] (35,13) -- (40,25);
-  \node[gray!70, font=\scriptsize, anchor=south] at (37,15) {defer};
+  \node[gray!70, font=\scriptsize, anchor=west] at (40.5,16) {defer};
 
-  % schematic banner
+  % schematic banner, top left, where no curve runs
   \node[draw, rounded corners, fill=gray!10, font=\scriptsize\bfseries,
-        anchor=north east] at (84,42) {SCHEMATIC --- not data};
+        anchor=north west] at (3,41.5) {SCHEMATIC --- not data};
 
 \end{tikzpicture}

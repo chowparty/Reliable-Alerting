@@ -8,15 +8,17 @@ add no other words.
 Axes: x axis labelled "window index (time)", y axis labelled "threshold θ". Two
 horizontal dashed grey reference lines: a lower one labelled "θ0 (anchor)" at about 30%
 of the height, an upper one labelled "κθ0 (cap)" at about 80% of the height. A thin
-vertical grey line at 40% of the width, labelled vertically "sustained shift onset".
+vertical grey line at 40% of the width, labelled horizontally "sustained shift starts"
+just above the x axis, to the right of the line.
 Three curves all start at the left on the "θ0 (anchor)" line:
 1. Thin solid black curve that only ever goes DOWN, falling steadily from the anchor
    line to near the x axis at the right; label it "self-referential (ratchets down)".
 2. Dashed black curve that stays flat until the onset line, then climbs steeply and
-   keeps rising ABOVE the cap line by the right edge; label it
-   "unconditional (absorbs fault)".
+   keeps rising ABOVE the cap line; label it "unconditional (absorbs fault)" at the
+   curve's upper end, so no line crosses the label.
 3. Thick solid black curve that stays flat on the anchor line until just after the
    onset, rises to a level just below the cap line, then stays flat to the right edge,
    never crossing the cap; label it "anchored/separated". Mark the short rising part
    with a small grey bracket labelled "defer".
-Top right corner: a small rounded grey badge reading "SCHEMATIC - not data".
+Top left corner, above the cap line: a small rounded grey badge reading
+"SCHEMATIC - not data". No label may overlap a curve, a line or another label.
