@@ -1,0 +1,27 @@
+Create a clean, flat vector-style SCHEMATIC LINE CHART for a lecture slide, for an
+audience new to the topic. It is a conceptual illustration, not data: no numbers on the
+axes, no grid, no data points. Canvas: landscape, aspect ratio 5:2, white background,
+3000 px wide, legible on a projector. One sans-serif font; navy (#17365D) and one orange
+accent (#B8561B); no 3D, no shadows, no gradients, no icons, no watermark. Render every
+label EXACTLY as written below and add no other words.
+
+Axes: x axis labelled "time", y axis labelled "threshold θ". Two horizontal dashed grey
+lines: a lower one at about 30% of the height, labelled on the right
+"θ0, the starting threshold", and an upper one at about 75%, labelled on the right
+"upper limit, 4θ0". The strip between them is filled very light orange and carries,
+inside its top-left corner, the small orange text "band where ours may recalibrate".
+A thin vertical grey line at 40% of the width, with the small grey text
+"normal shifts up here" just above the x axis, to the right of the line.
+Three curves all start at the left on the lower dashed line:
+1. Solid navy line that only ever goes DOWN, falling steadily below the band to near
+   the x axis; at its right end, the two-line navy label
+   "only "normal" windows: / it can only fall".
+2. Dashed navy line that stays flat until the vertical line, then climbs steeply,
+   crosses the upper limit and keeps rising; at its upper end the navy label
+   "every window: a long fault becomes normal".
+3. Thick solid orange line that stays flat on the lower line a little past the vertical
+   line (with the small orange word "waits" beside that flat end), then rises and
+   levels off inside the band, just below the upper limit, flat to the right edge;
+   under its flat part the bold orange label "ours: guarded, stays in the band".
+Top left corner, above the band: a small rounded grey badge reading
+"SCHEMATIC - not data". No label may overlap a curve, a line or another label.

@@ -1,0 +1,41 @@
+% fig-dilemma -- SCHEMATIC (not data) for the deck's second foundation slide:
+% after normal shifts up, three ways a threshold can learn. The same three regimes
+% as the report's fig-concept, drawn at slide size with plain-language labels.
+% Slide-only; fixed millimetre grid; no axis numbers and no measured values.
+\providecolor{navy}{HTML}{17365D}
+\providecolor{accent}{HTML}{B8561B}
+\begin{tikzpicture}[x=1mm, y=1mm, font=\footnotesize]
+
+% allowed band for our controller, between the starting threshold and its upper limit
+\fill[accent!9] (0,12) rectangle (100,34);
+\draw[gray!70, dashed] (0,12) -- (100,12);
+\draw[gray!70, dashed] (0,34) -- (100,34);
+\node[anchor=west, text=black!75] at (101,12) {$\theta_0$, the starting threshold};
+\node[anchor=west, text=black!75] at (101,34) {upper limit, $4\theta_0$};
+\node[anchor=north west, text=accent, font=\scriptsize] at (1.5,33.5) {band where ours may recalibrate};
+
+% the moment normal shifts up
+\draw[gray!55] (40,0) -- (40,37);
+\node[anchor=south west, text=black!60, font=\scriptsize] at (41,0.5) {normal shifts up here};
+
+% (1) learns only from windows it called normal: can only fall
+\draw[navy, thick] (0,12) -- (20,10.6) -- (40,9) -- (60,6.8) -- (80,5.2) -- (100,4.2);
+\node[anchor=west, text=navy, align=left] at (101,6.4) {only ``normal'' windows:\\it can only fall};
+
+% (2) learns from every window: follows a long fault up, past any limit
+\draw[navy, thick, densely dashed]
+  (0,12.4) -- (36,12.7) -- (44,21) -- (54,31) -- (63,38) -- (72,42);
+\node[anchor=west, text=navy] at (72.5,42) {every window: a long fault becomes normal};
+
+% (3) ours: waits while the rise is unconfirmed, then recalibrates inside the band
+\draw[accent, line width=1.6pt] (0,12) -- (40,12) -- (44,12) -- (49,26) -- (57,29) -- (100,29);
+\node[anchor=west, text=accent, font=\footnotesize\bfseries] at (62,25.6) {ours: guarded, stays in the band};
+\node[anchor=east, text=accent, font=\scriptsize] at (44.8,17.5) {waits};
+
+% axes and banner
+\draw[-{Latex[length=1.6mm]}] (0,0) -- (103,0) node[right, font=\scriptsize] {time};
+\draw[-{Latex[length=1.6mm]}] (0,0) -- (0,46) node[above, font=\scriptsize] {threshold $\theta$};
+\node[draw, rounded corners, fill=gray!10, font=\scriptsize\bfseries, anchor=north west]
+  at (3,45.5) {SCHEMATIC --- not data};
+
+\end{tikzpicture}

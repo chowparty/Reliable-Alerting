@@ -21,20 +21,25 @@ OUT="$SLIDES/figures"
 WORK="$SLIDES/.work/figbuild"
 PATH="/Library/TeX/texbin:$PATH"; export PATH
 
-# diagrams + data figures named by the spec
-FIGS=(fig-flow fig-concept fig-ratchet fig-scorer-limit fig-synthetic-map fig-tradeoff)
+# The report's diagrams and data figures, plus the slide-only diagrams in diagrams/.
+# Each entry is "<source folder>:<figure name>".
+DIAGRAMS="$SLIDES/diagrams"
+FIGS=("$FIGSRC:fig-flow" "$FIGSRC:fig-concept" "$FIGSRC:fig-ratchet"
+      "$FIGSRC:fig-scorer-limit" "$FIGSRC:fig-synthetic-map" "$FIGSRC:fig-tradeoff"
+      "$DIAGRAMS:fig-basics" "$DIAGRAMS:fig-dilemma")
 
 guard() { perl -e 'alarm shift; exec @ARGV' 180 "$@"; }
 
 rm -rf "$WORK"; mkdir -p "$WORK" "$OUT"
 
-for fig in "${FIGS[@]}"; do
+for entry in "${FIGS[@]}"; do
+  dir="${entry%:*}"; fig="${entry##*:}"
   # A reviewed AI image for a schematic (see ../submission/figures/ai/README.md)
   # replaces the TikZ render, exactly as it does in the report.
-  if [ -f "$FIGSRC/ai/$fig.png" ]; then
-    cp "$FIGSRC/ai/$fig.png" "$OUT/$fig.png"; echo ">> $fig: using AI image"; continue
+  if [ -f "$dir/ai/$fig.png" ]; then
+    cp "$dir/ai/$fig.png" "$OUT/$fig.png"; echo ">> $fig: using AI image"; continue
   fi
-  src="$FIGSRC/$fig.tex"
+  src="$dir/$fig.tex"
   [ -f "$src" ] || { echo "MISSING: $src" >&2; exit 1; }
   wrap="$WORK/$fig.tex"
 

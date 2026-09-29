@@ -1,0 +1,29 @@
+Create a clean, flat vector-style SCHEMATIC for a lecture slide that explains, to an
+audience new to the topic, how an alerting system works. It is a conceptual
+illustration, not data: no numbers anywhere. Canvas: landscape, aspect ratio 5:2, white
+background, 3000 px wide, legible on a projector. One sans-serif font; navy (#17365D)
+for structure, one orange accent (#B8561B), light grey fills; no 3D, no shadows, no
+gradients, no clip-art people, no watermark. Render every label EXACTLY as written
+below and add no other words.
+
+Top row, left to right, four rounded boxes joined by navy arrows:
+1. "1 Sensor signal" with the smaller line "motor current, cut into short windows".
+2. "2 Scorer (fixed)" with "one anomaly score per window; higher means more unusual".
+3. "3 Policy" with "alert if the score is above the threshold θ". This box alone has a
+   thick orange border and a light orange fill, and above it sits the orange bold
+   caption "our research".
+4. "4 Operator" with "checks every alert it receives".
+
+Below the row, a bar chart with about 30 thin vertical bars, one per window. The y axis
+is labelled "anomaly score" (rotated), and under the x axis, on the left, the text
+"time → (one bar = one window)". A dashed orange horizontal line crosses the chart at
+about 55% of its height, labelled "threshold θ" at its left end, above the line.
+Most bars are grey-blue and well below the line. A light grey shaded band covers bars
+16 to 25, with the caption above it "labelled fault (an "event"), known only
+afterwards". Inside the band three bars rise above the line and are orange; an arrow
+from the text "alerts inside the event: fault caught", placed to the right of the band,
+points at one of them. Early on, before the band, exactly one orange bar rises above
+the line, with the text beside it "false alert: nothing is wrong, but an operator's
+time is spent". Bottom right corner, under the x axis: a small rounded grey badge
+reading "SCHEMATIC - made-up scores, not data". No label may overlap a bar, a line or
+another label.

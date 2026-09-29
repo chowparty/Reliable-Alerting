@@ -6,12 +6,52 @@ institute: Supervisor Dr. Vijay Kumar Bohat, Assistant Professor, Department of 
 date: B.Tech Project-I (Phase-I) mid-semester evaluation · 30 September 2026
 ---
 
+# How alerting works: a score per window, a threshold, an operator
+
+**Our data:** SKAB, a public benchmark recorded on a laboratory water-circulation rig. We
+use one sensor, the current drawn by its electric motor. **Two ways to fail:** miss a
+real fault, or raise false alerts. Each false alert costs an operator's time; too many,
+and people stop trusting the alerts.
+
+![](figures/fig-basics.png){width=100%}
+
+::: notes
+First, the setting, in half a minute. A machine carries sensors. We use one: the
+current drawn by the electric motor of a water-circulation rig, from SKAB, a public
+laboratory benchmark. The signal
+is cut into short windows. A fixed scorer, which is not our contribution, gives each
+window an anomaly score: higher means more unusual. A policy turns each score into a
+decision; the simplest one alerts when the score is above a threshold. An operator then
+checks every alert. So the system can fail in two ways: it can miss a real fault, or it
+can raise false alerts, and each false alert spends someone's time. Our research is
+about the policy, box three.
+:::
+
+# Normal drifts, so thresholds learn, but from which windows?
+
+When normal **shifts up** (a repair, a new load), a fixed threshold floods the operator
+with false alerts, so systems **recalibrate**: they re-set the threshold from recent
+scores. **Which windows should it learn from?** The two obvious answers both fail.
+
+![](figures/fig-dilemma.png){width=100%}
+
+::: notes
+The threshold starts at theta-zero, set once on early data. But normal drifts. After
+a repair or under a new load the whole signal can sit higher, and a fixed threshold
+then alerts all the time. So real systems let the threshold learn from recent scores;
+this is called recalibration. The question is what it should learn from. If it learns
+only from windows it already called normal, it can only move down: the solid blue
+line. If it learns from every window, a long fault pulls it up until the fault looks
+normal: the dashed line. Ours is the orange line: it waits while a rise is
+unconfirmed, then learns only as a guarded decision and stays inside the shaded band.
+The next slide shows the first failure with six numbers.
+:::
+
 # A threshold that learns only from "normal" windows can only fall
 
 A threshold keeps its last 3 admitted scores, sets itself to their maximum, and admits a
 new score **only if it judged that score normal**. Score 9 is normal at step 1 and an
-alert at step 6: the alerts come from the threshold, not the signal. Admitting *every*
-score fails the other way, because a sustained fault becomes the new normal.
+alert at step 6: the alerts come from the threshold, not the signal.
 
 | Step | Score | Judged against | Decision | Threshold after |
 |:-:|:-:|:-:|:--|:-:|
@@ -23,18 +63,19 @@ score fails the other way, because a sustained fault becomes the new normal.
 | 6 | **9** | 8 | **alert**, rejected | 8 |
 
 ::: notes
-Our question is simple: when an alert threshold is allowed to learn from recent data,
-what should it learn from? Here is the common answer going wrong. This threshold only
-learns from scores it already called normal. Every score it admits is at or below it,
-so it can only stay or fall. Score 9 is normal at step one and an alert at step six,
-though nothing about the signal changed. The opposite fix, learning from everything,
-lets a long fault become the new normal. Our research sits between those two failures.
+Here is the first failure, worked by hand. This threshold learns only from scores it
+already called normal, and sets itself to the largest of its last three. Every score
+it admits is at or below it, so it can only stay the same or fall. Score 9 is normal at
+step one and an alert at step six, though nothing about the signal changed: the alert
+comes from the threshold. Run that for a long time and ordinary scores become alerts.
 :::
 
 # Our direction: recalibration as a guarded, auditable action
 
 Recalibrate only as a deliberate decision, from data chosen **neither by the threshold
-itself nor unconditionally**, and judge every option on **one common score trace**.
+itself nor unconditionally**, and judge every policy on **identical scores**.
+Tags: PROVED = theorem · MEASURED = saved, recomputed result · IMPLEMENTED = tested
+code · PROPOSED = not yet tested.
 
 | Evidence | What we claim |
 |:------|:-----------------------------|
@@ -48,11 +89,11 @@ itself nor unconditionally**, and judge every option on **one common score trace
 
 ::: notes
 This is our direction in one sentence: treat recalibration as a deliberate decision,
-learn from data the threshold did not choose for itself, and compare every option on
-exactly the same scores. The tags matter. Proved means a theorem. Measured means a
-saved, recomputed result. Implemented means tested code. Proposed means not yet
-tested. We have one proof, several measurements, a working controller, and an honest
-gap: we have not yet shown a benefit on real data.
+learn from data the threshold did not choose for itself, and compare every policy on
+exactly the same scores, so a difference can only come from the policy. Read the
+tags as a strength scale, from a theorem down to an untested proposal. We have one
+proof, several measurements, a working controller, and an honest gap: we have not yet
+shown a benefit on real data.
 :::
 
 # Isn't this just X? Each ingredient exists; the combination does not
@@ -85,8 +126,9 @@ policies compared on one fixed score trace. We say "not found", never "does not 
 ::: notes
 This is the pipeline, and it is mostly discipline. Each stream is cut in time into a
 fitting part, a calibration part and a replay part. The scorer is fit once and frozen.
-One score trace goes to every policy, so any difference we report comes from the policy,
-never from the scorer. Predictions are saved before labels are read. The reserved
+One score trace goes to every policy, like setting every student the same exam, so any
+difference we report comes from the policy, never from the scorer. Predictions are
+saved before labels are read, so no policy can peek at the answers. The reserved
 stream in the manifest was never opened.
 :::
 
@@ -111,9 +153,10 @@ score. That sinking line is why the rolling baseline alerts so often.
 
 [MEASURED]{.tag} 97 vs 6 (16.2×) and 70 vs 18 (3.9×) alert windows for the same event.
 Our controller: 0 deferrals, 0 recalibrations, **no harm and no evidence of benefit.**
-*False-alert time* = alerted samples outside the labelled event.
+*False-alert time* = alerted samples outside the event · *recall* = events caught ·
+*coverage* = windows decided rather than deferred.
 
-| Arm (valve1 / valve2) | Alert windows | False-alert time | Recall | Coverage |
+| Policy (valve1 / valve2) | Alert windows | False-alert time | Recall | Coverage |
 |:-----------|:-------:|:-------:|:----:|:-------:|
 | Fixed threshold | 6 / 18 | 0 / 20 | 1/1 | full |
 | Rolling, normal-only | **97 / 70** | 109 / 104 | 1/1 | full |
@@ -123,8 +166,8 @@ Our controller: 0 deferrals, 0 recalibrations, **no harm and no evidence of bene
 | Sun et al. | 3 / 2 | 0 / 4 | 1/1 | **54/143 · 57/140** |
 
 ::: notes
-The SKAB table, read narrowly. Every arm that alerts finds the one event per stream.
-What separates them is workload. The normal-only rolling arm needs 16 times the alert
+The SKAB table, read narrowly. Every policy that alerts finds the one event per stream.
+What separates them is workload. The normal-only rolling policy needs 16 times the alert
 windows on valve1 and nearly 4 times on valve2 for the same event: the ratchet's cost.
 Our controller is identical to fixed, because its guard never fires on this data. That
 is a no-harm check, not a win. Sun et al. look quiet only because they decide on about
@@ -242,44 +285,15 @@ On SKAB we are identical to fixed, so it proves nothing either way. We therefore
 a mechanism and a finding, not a winner.
 :::
 
-# What Phase-I shows, and what it does not
+# Not yet shown, and the experiment designed to kill the idea
 
-:::::: columns
-::: {.column width="50%"}
-**Shown**
+**Not shown:** any benefit on real benign regime changes; any held-out or
+generalisation result. **Limits:** one event per stream, one channel (`Current`),
+dataset licence not independently verified; `other/21.csv` reserved and never opened.
 
-- [PROVED]{.tag} the ratchet, for any score sequence
-- [MEASURED]{.tag} its cost on two SKAB streams
-- [MEASURED]{.tag} the scorer limit and recall saturation
-- [IMPLEMENTED]{.tag} a tested four-action controller
-- [MEASURED]{.tag} no harm on SKAB; a mapped failure set
-:::
-::: {.column width="50%"}
-**Not shown**
-
-- any benefit on real benign regime changes
-- any held-out or generalisation result
-- anything about `other/21.csv`: reserved, never opened
-
-**Limits:** one event per stream, one channel (`Current`),
-dataset licence not independently verified.
-:::
-::::::
-
-::: notes
-To separate cleanly what we know from what we do not. We have a proof, measured costs,
-a working controller and a no-harm result. We have not shown any real-world benefit or
-any held-out result, and we make no claim about the reserved stream. The data limits
-are real: one event per stream, one channel, and provenance we could not fully verify.
-:::
-
-# The next experiment is designed to be able to kill the idea
-
-[PROPOSED]{.tag} Replay all arms on common traces over every other SKAB `valve1` and
-`valve2` file, admitted by a label-independent rule, plus one public family with
-labelled **benign** regime changes.
-
-**The direction is refuted if any one holds:**
+[PROPOSED]{.tag} Replay all policies on common traces over every other SKAB `valve1`
+and `valve2` file, admitted by a label-independent rule, plus one public family with
+labelled **benign** regime changes. **The direction is refuted if any one holds:**
 
 1. Where the elevation test fires, it does **not** cut false-alert time versus fixed
    at equal recall.
@@ -289,9 +303,11 @@ labelled **benign** regime changes.
 A refutation becomes the reported result.
 
 ::: notes
-Finally, the experiment that settles it, committed in advance so we cannot move the
-goalposts. We replay every policy on the other SKAB valve files, chosen without looking
-at labels, plus a dataset with genuine benign shifts. Any one of three outcomes kills
-the direction, and then that becomes our result. Thank you; we are happy to take
-questions.
+To close, what we have not shown and how we will find out. We have no real-world
+benefit and no held-out result, the data has one event per stream on one channel, and
+we make no claim about the reserved stream. The next experiment is committed in
+advance, so we cannot move the goalposts: every policy is replayed on the other SKAB
+valve files, chosen without looking at labels, plus a dataset with genuine benign
+shifts. Any one of three outcomes kills the direction, and then that becomes our
+result. Thank you; we are happy to take questions.
 :::
