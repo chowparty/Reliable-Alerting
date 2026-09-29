@@ -37,3 +37,15 @@ dist/
 
 # macOS
 .DS_Store
+
+# Root-level test/stdout capture files (generated output, never committed).
+# run_tests.py writes test_results.log; the others are console redirects.
+/test_results.log
+/test_output.txt
+/test_output_utf8.txt
+/test_err.txt
+/test_err.json
+/out.txt
+/err.txt
+/err2.txt
+/full_test.txt
