@@ -54,5 +54,20 @@ Other sources are discovery/background only. Unverified information is not evide
 - Include a meaningful commit body describing what changed, why, and relevant verification or limitations.
 - Do not include AI attribution, AI references, or `Co-Author` / `Co-authored-by` trailers in commit messages.
 - Do not change Git identity/configuration without approval. Do not bypass hooks, force-push, amend published history, or commit unrelated files.
-- Stage only intended, reviewed files using explicit paths. Present staged changes, verification, the full commit message, and intended branch/remote/push command for approval.
-- Commit and push only after explicit approval of the reviewed staged changes. If staged contents change after approval, obtain approval again.
+- Stage only intended, reviewed files using explicit paths. Before committing and pushing, review the staged changes, verification, full commit message, and intended branch/remote/push command.
+
+### Standing authorization for the Phase-I report cycle (2026-09-29)
+
+The following hard constraints must be followed:
+
+- No AI attribution, AI references, or `Co-Author` / `Co-authored-by` trailers
+  anywhere in commit messages (this restates the rule above; it is not relaxed).
+- Every commit uses a Conventional Commit subject plus a body written in plain,
+  beginner-friendly language describing what changed and why.
+- Push only source code and files that genuinely belong in the repository. Do
+  NOT commit planning or scaffolding artifacts — `report-planning/`,
+  `report-work/`, intake notes, drafts, or any file living outside `research/`.
+  Continue to exclude datasets, large generated results, checkpoints, and caches.
+- All other durable rules above still apply: explicit-path staging, review of
+  file contents before staging, no force-push, no history rewrite, no Git
+  identity change, no hook bypass, no committing unrelated files.
