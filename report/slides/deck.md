@@ -81,7 +81,7 @@ code · PROPOSED = not yet tested.
 | [MEASURED]{.tag} | C2: on SKAB that costs 16.2× and 3.9× the alert windows |
 | [MEASURED]{.tag} | C3: the scorer, not the policy, limits detection |
 | [IMPLEMENTED]{.tag} | C4: a four-action controller, recalibration bounded to $[\theta_0, 4\theta_0]$ |
-| [MEASURED]{.tag} | C5: identical to fixed on SKAB, so no harm and no benefit |
+| [MEASURED]{.tag} | C5: identical to fixed on SKAB; no benefit observed |
 | [MEASURED]{.tag} | C6: a synthetic step cuts alerts and later faults remain visible; a ramp remains costly |
 | [PROPOSED]{.tag} | C7: a benefit on real regime changes, decided by a kill test |
 
@@ -233,15 +233,14 @@ declared assumptions. All were fixed before the policy study outcomes.
 ::::::
 
 ::: notes
-These engineered cases show the mechanism and its failures. On a clean benign step it
-adapts and cuts false-alert time from 597 to 16 while deciding on every window. After
-adapting it still catches later faults. Y5 is a spiky fault without a preceding step;
-it tests the cost of deferring at onset. Y6 is a benign step beyond the cap: keeping
-the cap produces 757 non-event samples, while removing it produces 16, but also lowers
-Y3 fault visibility from 0.29 to 0.16. On the Y2 ramp it recalibrates once, defers
-three times, then produces 204 non-event samples over 50 episodes, versus 577 with no
-deferral. A fault shaped exactly like a benign step is absorbed; we declared that limit
-in advance, because no label-free rule can tell the two apart.
+These seven engineered cases test the mechanism. Y1 is a benign step: non-event
+duration falls from 597 to 16 at full coverage. Y2 is a benign ramp: one recalibration,
+three deferrals, then 204 samples over 50 episodes; no deferral gives 577. Y3 adds a
+spiky fault during Y1's step. Y4 labels that step itself as a fault, which the
+controller absorbs as declared. Y5 is a spiky fault alone, testing onset deferral.
+Y6 is a step beyond the cap: 757 samples with it, 16 without it, while no-cap Y3 fault
+visibility falls from 0.29 to 0.16. Y7 ends the step before a later spiky fault,
+testing return to the anchor. These cases do not establish real-world benefit.
 :::
 
 # Quiet has two routes: adapt while deciding, or stop deciding
