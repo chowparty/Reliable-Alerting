@@ -6,11 +6,16 @@ never rise, and measured the cost on two SKAB streams: the same single event at
 $16.2\times$ and $3.9\times$ the fixed threshold's alert windows. We implemented
 recalibration as a guarded decision-time action and compared it with seven baselines
 and three ablations on identical score traces. On SKAB it behaves exactly like the fixed
-threshold, which passes the no-harm check and shows nothing more. Under synthetic stress
-it works where designed and fails where any label-free rule must. Whether it helps on
+threshold, which passes the no-harm check and shows nothing more. The predeclared H3
+criteria are met on the synthetic family: non-event alert duration falls versus fixed
+and normal-only rolling on Y1 and Y2, and later spiky faults are detected on Y3 and Y7.
+The ramp still carries high workload, and Y4 exposes the declared limit for a fault
+shaped like a benign step. These engineered cases establish neither policy superiority
+nor generalization. Whether the controller helps on
 \emph{real} benign regime changes is proposed, not claimed, and is settled by the
 following experiment.
 
+\pagebreak
 \paragraph{The falsifiable next experiment.}\Sproposed{}
 Replay all arms on common traces for the SKAB streams admitted by a label-independent
 rule (every \texttt{valve1/*.csv} and \texttt{valve2/*.csv} other than the two

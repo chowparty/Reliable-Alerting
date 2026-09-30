@@ -37,8 +37,9 @@ not separate.}
 Inside the labelled event only $6/100$ (valve1) and $13/98$ (valve2) replay windows
 exceed $\theta_0$, and the longest run above it is 2 windows on both streams
 (Figure~\ref{fig:scorer-limit}). Persistence rules therefore fall short of their own
-requirement: \texttt{k\_consecutive} ($k=3$) misses both events and \texttt{m\_of\_n}
-(3/5) misses valve1. Each event also covers about 70\% of the replay decisions, so a
+requirement: \texttt{k\_consecutive} ($k=3$) misses both events, while \texttt{m\_of\_n}
+(3/5) misses valve1 but catches valve2. Each event also covers about 70\% of the replay
+decisions, so a
 single alert anywhere inside it scores full recall. On SKAB, recall of $1/1$ carries
 little information; workload, false episodes and the in-event alerted fraction carry it.
 
@@ -120,6 +121,8 @@ Table~\ref{tab:ablation} removes one guard component at a time, on the same trac
 cap $\kappa$ matters most on Y6, a step larger than the cap: the full controller cannot
 follow it, so it defers 10 times, escalates, and keeps alerting (non-event alert
 duration $757$); without the cap it follows the step and the duration falls to $16$.
+Removing the cap also lowers Y3's in-event alerted fraction from $0.29$ to $0.16$;
+the lower Y6 workload therefore does not establish that removing it is better.
 Removing deferral costs most on the Y2 ramp, where non-event alert duration rises by
 $373$. These are measured effects of fixed components, not tuning.
 

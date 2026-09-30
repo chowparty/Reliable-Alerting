@@ -8,17 +8,15 @@ date: B.Tech Project-I (Phase-I) mid-semester evaluation · 30 September 2026
 
 # How alerting works: a score per window, a threshold, an operator
 
-**Our data:** SKAB, a public benchmark recorded on a laboratory water-circulation rig. We
-use one sensor, the current drawn by its electric motor. **Two ways to fail:** miss a
-real fault, or raise false alerts. Each false alert costs an operator's time; too many,
+**Our data:** two SKAB development streams, scored on the `Current` channel.
+**Two ways to fail:** miss a real fault, or raise false alerts. Each false alert costs an operator's time; too many,
 and people stop trusting the alerts.
 
 ![](figures/fig-basics.png){width=100%}
 
 ::: notes
-First, the setting, in half a minute. A machine carries sensors. We use one: the
-current drawn by the electric motor of a water-circulation rig, from SKAB, a public
-laboratory benchmark. The signal
+First, the setting, in half a minute. A machine carries sensors. We use the `Current`
+channel in two SKAB development streams. The signal
 is cut into short windows. A fixed scorer, which is not our contribution, gives each
 window an anomaly score: higher means more unusual. A policy turns each score into a
 decision; the simplest one alerts when the score is above a threshold. An operator then
@@ -84,7 +82,7 @@ code · PROPOSED = not yet tested.
 | [MEASURED]{.tag} | C3: the scorer, not the policy, limits detection |
 | [IMPLEMENTED]{.tag} | C4: a four-action controller, recalibration bounded to $[\theta_0, 4\theta_0]$ |
 | [MEASURED]{.tag} | C5: identical to fixed on SKAB, so no harm and no benefit |
-| [MEASURED]{.tag} | C6: under stress it works on a step and fails on a ramp |
+| [MEASURED]{.tag} | C6: a synthetic step cuts alerts and later faults remain visible; a ramp remains costly |
 | [PROPOSED]{.tag} | C7: a benefit on real regime changes, decided by a kill test |
 
 ::: notes
@@ -166,7 +164,7 @@ Our controller: 0 deferrals, 0 recalibrations, **no harm and no evidence of bene
 | Sun et al. | 3 / 2 | 0 / 4 | 1/1 | **54/143 · 57/140** |
 
 ::: notes
-The SKAB table, read narrowly. Every policy that alerts finds the one event per stream.
+The SKAB table, read narrowly. The alerting policies shown find the one event per stream.
 What separates them is workload. The normal-only rolling policy needs 16 times the alert
 windows on valve1 and nearly 4 times on valve2 for the same event: the ratchet's cost.
 Our controller is identical to fixed, because its guard never fires on this data. That
@@ -177,26 +175,28 @@ is a no-harm check, not a win. Sun et al. look quiet only because they decide on
 # The scorer, not the policy, limits detection on SKAB
 
 [MEASURED]{.tag} Only **6/100** (valve1) and **13/98** (valve2) in-event windows exceed
-$\theta_0$, never more than **2** in a row, so rules needing 3 miss the events. Each
-event spans about **70%** of replay, so recall 1/1 says little. **A policy can move
+$\theta_0$, never more than **2** in a row. A 3-consecutive rule misses both; a 3-of-5
+rule misses valve1 but catches valve2. Each event spans about **70%** of replay, so
+recall 1/1 says little. **A policy can move
 alerts in time; it cannot create separation the scorer lacks.**
 
 ![](figures/fig-scorer-limit.png){width=86%}
 
 ::: notes
-Why do the persistence rules miss the events? Because of the scorer. Inside the event
+Why does the 3-consecutive rule miss both events? Because of the scorer. Inside the event
 only 6 of 100 windows on valve1 and 13 of 98 on valve2 even cross the threshold, and
-never more than two in a row. A rule that waits for three in a row has nothing to fire
-on. And since each event covers most of the replay, one alert anywhere scores full
-recall, so on SKAB we read workload and false episodes, not recall.
+never more than two in a row. The 3-of-5 rule can use non-consecutive crossings: it
+misses valve1 but catches valve2. Since each event covers most of the replay, one alert
+anywhere scores full recall, so on SKAB we read workload and false episodes, not recall.
 :::
 
-# The controller: four actions, recalibration only inside a bounded band
+# Four actions keep recalibration inside a bounded band
 
 [IMPLEMENTED]{.tag} `AnchoredRecalibrationPolicy`. Its buffer holds the last 10 scores
-of **every** window, so what it learns from never depends on its own decisions. Nothing
-was tuned: 10 and 0.95 are the rolling baseline's values; the cap 4 and the stability
-bound 2 are declared operating assumptions.
+of **every** window, so what it learns from never depends on its own decisions. All
+parameters were fixed before the policy study: 10 and 0.95 came from the rolling
+baseline, the defer limit equals 10, and cap 4 and stability bound 2 are declared
+operating assumptions.
 
 | At a window end | Action |
 |:--------------------|:----------------|
@@ -211,11 +211,12 @@ The controller in one table. With no sustained rise it behaves like a fixed thre
 When the recent median rises and the rise is stable and inside four times the
 calibration threshold, it recalibrates. If the rise is unstable it defers, up to ten
 times, then escalates and keeps alerting without learning. When the rise ends it
-returns toward the anchor. The parameters come from the existing baseline or are
-declared assumptions; none was chosen by looking at results.
+returns toward the anchor. The buffer length and quantile came from the existing
+baseline; the defer limit equals the buffer length. The cap and stability bound are
+declared assumptions. All were fixed before the policy study outcomes.
 :::
 
-# Under stress: adapts to a step, fails on a ramp and a step-shaped fault
+# Under stress: step adaptation, costly ramp, and an indistinguishable fault
 
 :::::: columns
 ::: {.column width="63%"}
@@ -226,7 +227,7 @@ declared assumptions; none was chosen by looking at results.
 
 - **Works, Y1 step:** false-alert time **16** vs fixed 597, coverage 260/260
 - **Still detects, Y3 and Y7:** later faults caught, recall 1/1
-- **Fails, Y2 ramp:** locks into alerts, **204** over 50 episodes
+- **Costly, Y2 ramp:** **204** non-event samples over 50 episodes, 3 deferrals
 - **Fails as declared, Y4:** a fault shaped like a step is absorbed, 0.020 vs fixed 0.746
 :::
 ::::::
@@ -234,9 +235,13 @@ declared assumptions; none was chosen by looking at results.
 ::: notes
 These engineered cases show the mechanism and its failures. On a clean benign step it
 adapts and cuts false-alert time from 597 to 16 while deciding on every window. After
-adapting it still catches later faults. On a slow ramp it locks into repeated alerts, a
-real failure we report. And a fault shaped exactly like a benign step is absorbed; we
-declared that limit in advance, because no label-free rule can tell the two apart.
+adapting it still catches later faults. Y5 is a spiky fault without a preceding step;
+it tests the cost of deferring at onset. Y6 is a benign step beyond the cap: keeping
+the cap produces 757 non-event samples, while removing it produces 16, but also lowers
+Y3 fault visibility from 0.29 to 0.16. On the Y2 ramp it recalibrates once, defers
+three times, then produces 204 non-event samples over 50 episodes, versus 577 with no
+deferral. A fault shaped exactly like a benign step is absorbed; we declared that limit
+in advance, because no label-free rule can tell the two apart.
 :::
 
 # Quiet has two routes: adapt while deciding, or stop deciding
@@ -265,13 +270,13 @@ are quiet by abstaining. That is why we always report coverage beside workload.
 
 # The strongest case against us: a simpler rule is quieter
 
-**These results do not establish a useful controller.**
+**Real-world benefit and policy superiority remain unproven.**
 
 - **Admit-all is quieter on benign shifts:** false-alert time 12 vs our 16 on Y1, and
   28 vs our **204** on Y2.
 - **Our only edge is keeping faults visible:** on Y3 it alerts 0.29 of the fault
   against admit-all's 0.04, both at recall 1/1.
-- **SKAB gives no evidence either way:** our rows are identical to fixed.
+- **SKAB gives no evidence of benefit:** our rows are identical to fixed.
 - **Abstention buys quiet with coverage:** Sun et al. decide on 54/143 and 57/140 windows.
 
 **What we claim instead:** a proved mechanism, an honest negative-to-inconclusive
@@ -280,9 +285,11 @@ development finding, and a test that can refute the direction.
 ::: notes
 This is the slide we most want to be honest on. On the benign cases the simplest rule,
 learning from every window, is quieter than ours: 12 against 16, and 28 against 204.
-Our only argument is that we keep faults visible: 0.29 of the Y3 fault against 0.04.
-On SKAB we are identical to fixed, so it proves nothing either way. We therefore claim
-a mechanism and a finding, not a winner.
+Our fault-retention evidence is 0.29 of the Y3 fault against 0.04. H3's predeclared
+criteria are met on engineered cases, including reduced workload against fixed on the
+ramp, but admit-all is quieter there. On SKAB we are identical to fixed, so it gives no
+evidence of real-world benefit. We therefore claim a mechanism and a bounded finding,
+not a winner.
 :::
 
 # Not yet shown, and the experiment designed to kill the idea
@@ -306,8 +313,9 @@ A refutation becomes the reported result.
 To close, what we have not shown and how we will find out. We have no real-world
 benefit and no held-out result, the data has one event per stream on one channel, and
 we make no claim about the reserved stream. The next experiment is committed in
-advance, so we cannot move the goalposts: every policy is replayed on the other SKAB
-valve files, chosen without looking at labels, plus a dataset with genuine benign
-shifts. Any one of three outcomes kills the direction, and then that becomes our
-result. Thank you; we are happy to take questions.
+advance: every policy is replayed on the other SKAB valve files, admitted by file name
+without looking at outcomes; the calibration boundary uses source labels as declared
+in the protocol. We also need one public family with labelled benign shifts and a
+licence suitable for the study. Any one of three outcomes kills the direction and
+becomes our result. Thank you; we are happy to take questions.
 :::

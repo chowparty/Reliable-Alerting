@@ -74,12 +74,13 @@ return ALERT if s > theta else HOLD
   \end{tabular}
 \end{table}
 
-\paragraph{Parameters were fixed before any outcome was seen.}
+\paragraph{Parameters were fixed before the policy study outcomes.}
 $L=10$ and $q=0.95$ are the existing rolling baseline's values, and the defer limit is
 $D=L=10$. The cap $\kappa=4$ declares the largest benign rise an operator accepts (four
 times $\theta_0$), and the stability bound $\rho=2$ declares that no window in a buffer
-may exceed twice its median. Both are operating assumptions, not estimates; on the SKAB
-streams the guard is never reached, so no SKAB outcome could have informed them.
+may exceed twice its median. The cap and stability bound are declared operating
+assumptions, not estimates from the study; on the SKAB streams the guard is never
+reached, so those outcomes cannot test their benefit.
 Figure~\ref{fig:concept} contrasts the three admission rules schematically.
 
 \begin{figure}[H]
