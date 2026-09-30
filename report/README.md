@@ -45,6 +45,7 @@ The scripts work with the bash 3.2 that ships with macOS and with newer versions
 | Add or fix a reference | `submission/references.bib`, then `\citep{key}` in the text | Primary citations only from the seven platforms in [`../AGENTS.md`](../AGENTS.md); record the paper in `literature/ledger.csv` |
 | Change a number, a table or a data figure | Never the `.tex` fragment: change the study or `submission/generate/*.py`, then rebuild with `--regenerate` | The fragments are generated from `results/` and tested cell by cell |
 | Redraw a diagram | `submission/figures/fig-flow.tex` or `fig-concept.tex` (report and slides), or `slides/diagrams/*.tex` (slides only) | Hand-drawn TikZ on a millimetre grid; see the comment at the top of each file |
+| Change the Figure 4–5 colours | `submission/figures/f_replay_pallte.tex`, then rebuild with `--regenerate` | The generator embeds this palette in the report figures and slide PNGs |
 | Use an AI-generated image for a diagram | Save the reviewed PNG as `ai/<name>.png` beside the diagram's source | Prompts: [`submission/figures/ai/`](submission/figures/ai/README.md) and `slides/diagrams/ai/`. Data figures are never replaced |
 | Edit a slide or its speaker notes | `slides/deck.md` | Rules below |
 | Change the look of the slides | `slides/beamer-preamble.tex` (PDF) and `slides/reference.pptx` (PowerPoint) | Keep the two palettes matched |
@@ -86,13 +87,11 @@ before committing. They are one PNG per page in `submission/build/preview/` and
 reproduces the committed files byte for byte, and `git status` shows exactly which
 deliverables your change touched.
 
-### The printed copy, with the logo
+### The NSUT logo
 
-The logo's reuse rights are unresolved, so it is not committed and `deliverables/`
-holds logo-free copies. For the printed copy, save the logo as
-`submission/nsut-logo.png` (git-ignored) and run
-`NO_LOGO=0 bash scripts/build_deliverables.sh --check`. The with-logo files are then
-`submission/build/report.pdf` and `slides/deck.pdf`.
+The team-approved logo is stored at `submission/nsut-logo.png`. The standard build
+includes it on the report cover and the PDF and PowerPoint title slides. Set
+`NO_LOGO=1` only when a logo-free local render is needed.
 
 ## Worked example: fix a sentence on a slide and publish it
 

@@ -74,7 +74,7 @@
       },
       "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e). SKAB source-data licence as recorded in report-work/visuals/asset-ledger.md (GPL-3.0 applicability conditional; origin not independently verified).",
       "output_file": "fig-scorer-limit.tex",
-      "output_sha256": "b04f6401da5ffcd6f3d9b50863756c94b8fd0075eacb68bcd49b5af8e473fa81",
+      "output_sha256": "e4fdc57ad2c914f440171e6704f9ad2266ac3eb1c44683c6c5315f96aa65be28",
       "report_labels": []
     },
     "fig-synthetic-map": {
@@ -213,7 +213,7 @@
       },
       "licence": "Generated from our own saved study outputs (research repo, branch phase1-policy-study, commit f88679e). SKAB source-data licence as recorded in report-work/visuals/asset-ledger.md (GPL-3.0 applicability conditional; origin not independently verified).",
       "output_file": "fig-synthetic-map.tex",
-      "output_sha256": "ae70e562d99992bcf454935bda55ea65328804a379fc43d042b96144bf7bf6c6",
+      "output_sha256": "7c4c86cdf6a5aeec7817973440c35777720cec9e5bb073cd912617c28ccbad9e",
       "report_labels": [
         "fig:synthetic-map"
       ]

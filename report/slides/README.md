@@ -15,7 +15,7 @@ writing rules for `deck.md` and the one command that builds and checks everythin
 ```sh
 bash build.sh            # renders figures, then deck.pdf and deck.pptx
 python3 check_numbers.py # every number on a slide must appear in the report
-NO_LOGO=1 bash build.sh  # title slide without the NSUT logo (public copy)
+NO_LOGO=1 bash build.sh  # optional title slide without the NSUT logo
 ```
 
 Needs pandoc 3, pdflatex, Ghostscript and poppler (`pdftoppm`). `build.sh` calls
@@ -25,6 +25,7 @@ from `diagrams/`. A reviewed AI image saved as `ai/<name>.png` beside a diagram'
 source replaces its TikZ render, in the slides as in the report. The PDF is built in
 `.work/`, and `.work/deck.log` keeps the LaTeX log: an `Overfull` line there means
 something runs off a slide.
+The title slide includes the tracked NSUT logo in both the PDF and PowerPoint builds.
 
 ## Files
 

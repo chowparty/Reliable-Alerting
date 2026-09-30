@@ -1,0 +1,16 @@
+% Colour palette for generated Figures 4 and 5.
+%
+% The generator includes these definitions before the TikZ code, so rebuilding
+% keeps the same colours without changing data points or coordinates.
+%
+% Used by generate/make_figures.py for the report and slide renders.
+%
+% Okabe-Ito based (colour-blind safe). Dashed / dotted line styles are kept from the
+% original, so policies remain distinguishable in grayscale print.
+
+\definecolor{scblack}{RGB}{ 25, 32, 56}   % fixed threshold theta_0 : deep navy (frame, axes, text-safe)
+\definecolor{scblue}{RGB}{  0,114,178}    % rolling (all)           : blue, dotted
+\definecolor{scred}{RGB}{ 213, 94,  0}    % rolling (normal-only)   : vermilion, dashed
+\definecolor{scgreen}{RGB}{  0,158,115}   % anchored controller    : green
+\definecolor{scgray}{RGB}{ 88,108,140}    % replay score            : slate blue-grey
+\definecolor{scevent}{RGB}{230,159,  0}   % labelled event span     : amber

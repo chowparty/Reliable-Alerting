@@ -1,76 +1,92 @@
-% F-flow -- chronological split + causal data flow (report Figure 1).
-% Laid out on an explicit millimetre grid (no relative placement), so boxes,
-% arrows and labels cannot drift into each other. Authored at its natural
-% width of 140 mm: \input it directly, do not \resizebox it (fonts stay legible).
-% Grayscale-safe (only black/white/gray fills). No invented numbers.
-% \input from report.tex; not a standalone document (standalone.sty absent).
+% F-flow (colour version) -- chronological split + causal data flow (report Figure 1).
+% Same millimetre grid and geometry as the grayscale original; only styling changed.
+% \input it directly at its natural width of 140 mm (do not \resizebox).
+% Palette is colour-blind friendly (Okabe-Ito based) and every fill is light enough
+% that the figure still reads acceptably when printed in grayscale.
+% \input from report.tex; needs only tikz (arrows.meta) -- add to the preamble:
+%   \usepackage{tikz}\usetikzlibrary{arrows.meta,calc}   (calc not required, harmless)
+
+\definecolor{cSrc}{HTML}{0072B2}   % blue    : source data
+\definecolor{cCal}{HTML}{009E73}   % green   : calibration
+\definecolor{cRep}{HTML}{E69F00}   % orange  : replay
+\definecolor{cScr}{HTML}{7B4EA3}   % purple  : frozen scorer
+\definecolor{cArm}{HTML}{4A6A8A}   % slate   : policy arms
+\definecolor{cPro}{HTML}{D55E00}   % vermil. : proposed controller
+\definecolor{cSav}{HTML}{2E8B57}   % sea     : saved outputs
+\definecolor{cLab}{HTML}{CC9A06}   % amber   : labels
+\definecolor{cRes}{HTML}{B22222}   % red     : reserved / locked
+\definecolor{cInk}{HTML}{2B2B2B}   % near-black text and neutral arrows
+
 \begin{tikzpicture}[
     x=1mm, y=1mm,
     font=\footnotesize,
-    box/.style={draw, rounded corners=1.5pt, align=center, inner sep=2pt,
-                fill=gray!5, minimum height=8.5mm},
-    arm/.style={box, fill=gray!12, minimum width=33mm, minimum height=12mm},
-    flow/.style={-{Latex[length=1.8mm]}, thick},
-    feed/.style={-{Latex[length=1.6mm]}, gray!70!black},
-    note/.style={gray!70!black, font=\scriptsize, align=left},
+    every node/.append style={text=cInk},
+    box/.style={draw=cInk!60, rounded corners=2pt, align=center, inner sep=2pt,
+                fill=white, minimum height=8.5mm, line width=0.6pt},
+    tint/.style={draw=#1!85!black, fill=#1!14},          % coloured box: tint=cSrc
+    arm/.style={box, tint=cArm, minimum width=33mm, minimum height=12mm},
+    flow/.style={-{Latex[length=1.8mm]}, thick, draw=cInk!75},
+    feed/.style={-{Latex[length=1.6mm]}, draw=cArm!80!black, line width=0.7pt},
+    note/.style={text=cInk!70, font=\scriptsize, align=left},
 ]
 
 % --- Row A: one source stream, split in chronological order -------------------
-\draw[-{Latex[length=1.6mm]}, gray!60] (-19,7) -- (119,7)
+\draw[-{Latex[length=1.6mm]}, cInk!45, line width=0.8pt] (-19,7) -- (119,7)
     node[midway, above=-0.5mm, note] {chronological order (time)};
-\node[box, minimum width=38mm] (src) at (0,0)
-    {Source-fit segment\\\scriptsize samples $[0,400)$};
-\node[box, minimum width=38mm] (cal) at (50,0)
-    {Calibration segment\\\scriptsize source-normal prefix};
-\node[box, minimum width=38mm] (rep) at (100,0)
-    {Replay segment\\\scriptsize chronological, causal};
+\node[box, tint=cSrc, minimum width=38mm] (src) at (0,0)
+    {\textbf{Source-fit segment}\\\scriptsize samples $[0,400)$};
+\node[box, tint=cCal, minimum width=38mm] (cal) at (50,0)
+    {\textbf{Calibration segment}\\\scriptsize source-normal prefix};
+\node[box, tint=cRep, minimum width=38mm] (rep) at (100,0)
+    {\textbf{Replay segment}\\\scriptsize chronological, causal};
 \draw[flow] (src) -- (cal);
 \draw[flow] (cal) -- (rep);
 
 % --- Row B: the scorer is fit once, on the source segment only -----------------
-\node[box, minimum width=88mm] (scorer) at (75,-14)
-    {Mean-distance scorer, \emph{frozen} after fitting\\
+\node[box, tint=cScr, minimum width=88mm] (scorer) at (75,-14)
+    {\textbf{Mean-distance scorer}, \emph{frozen} after fitting\\
      \scriptsize scores every later window with no refitting};
-\draw[flow] (src.south) -- (0,-14) -- (scorer.west)
+\draw[flow, draw=cSrc!85!black] (src.south) -- (0,-14) -- (scorer.west)
     node[pos=0.55, above=-0.3mm, note] {fit on source only};
-\draw[flow] (cal.south) -- (cal.south |- scorer.north);
-\draw[flow] (rep.south) -- (rep.south |- scorer.north);
+\draw[flow, draw=cCal!85!black] (cal.south) -- (cal.south |- scorer.north);
+\draw[flow, draw=cRep!85!black] (rep.south) -- (rep.south |- scorer.north);
 
 % --- Row C: calibration gives theta_0; replay gives the single score trace -----
-\node[box, minimum width=38mm] (thr) at (50,-28)
-    {Fixed threshold $\theta_0$\\\scriptsize 0.95 quantile, nearest rank};
-\node[box, minimum width=38mm] (trace) at (100,-28)
-    {One score trace $s_t$\\\scriptsize one score per replay window};
-\draw[flow] (thr.north |- scorer.south) -- (thr.north);
-\draw[flow] (trace.north |- scorer.south) -- (trace.north);
+\node[box, tint=cCal, minimum width=38mm] (thr) at (50,-28)
+    {\textbf{Fixed threshold} $\theta_0$\\\scriptsize 0.95 quantile, nearest rank};
+\node[box, tint=cRep, minimum width=38mm] (trace) at (100,-28)
+    {\textbf{One score trace} $s_t$\\\scriptsize one score per replay window};
+\draw[flow, draw=cScr!85!black] (thr.north |- scorer.south) -- (thr.north);
+\draw[flow, draw=cScr!85!black] (trace.north |- scorer.south) -- (trace.north);
 \node[note, anchor=west] at (-19,-28)
     {every policy arm receives the\\same $s_t$ and the same $\theta_0$};
 
 % --- Row D: the identical inputs fan out to every policy arm -------------------
-\draw[thick] (thr.south) -- (50,-36.5);
-\draw[thick] (trace.south) -- (100,-36.5);
-\draw[thick] (-4,-36.5) -- (104,-36.5);
-\fill (50,-36.5) circle (0.6) (100,-36.5) circle (0.6);
-\node[arm] (a1) at (-4,-45)  {Threshold arms\\\scriptsize fixed, rolling,\\\scriptsize rolling-all};
-\node[arm] (a2) at (32,-45)  {Persistence arms\\\scriptsize k-consecutive,\\\scriptsize m-of-n, hysteresis};
-\node[arm] (a3) at (68,-45)  {Proposed controller\\\scriptsize anchored recalibration\\\scriptsize + ablations};
-\node[arm] (a4) at (104,-45) {Literature baseline\\\scriptsize Sun et al.\\\scriptsize confidence sequence};
+\draw[thick, cInk!75] (thr.south) -- (50,-36.5);
+\draw[thick, cInk!75] (trace.south) -- (100,-36.5);
+\draw[thick, cInk!75] (-4,-36.5) -- (104,-36.5);
+\fill[cInk!75] (50,-36.5) circle (0.6) (100,-36.5) circle (0.6);
+\node[arm] (a1) at (-4,-45)  {\textbf{Threshold arms}\\\scriptsize fixed, rolling,\\\scriptsize rolling-all};
+\node[arm] (a2) at (32,-45)  {\textbf{Persistence arms}\\\scriptsize k-consecutive,\\\scriptsize m-of-n, hysteresis};
+\node[arm, tint=cPro, line width=1.1pt] (a3) at (68,-45)
+    {\textbf{Proposed controller}\\\scriptsize anchored recalibration\\\scriptsize + ablations};
+\node[arm] (a4) at (104,-45) {\textbf{Literature baseline}\\\scriptsize Sun et al.\\\scriptsize confidence sequence};
 \foreach \a in {a1,a2,a3,a4} \draw[feed] (\a.north |- 0,-36.5) -- (\a.north);
 
 % --- Row E: outputs saved before any label exists in the process ---------------
-\node[box, minimum width=140mm] (saved) at (50,-60)
+\node[box, tint=cSav, minimum width=140mm] (saved) at (50,-60)
     {\textbf{Saved before any label is read:} per-window predictions and the action log\\
      \scriptsize alert / hold / defer / recalibrate};
 \foreach \a in {a1,a2,a3,a4} \draw[feed] (\a.south) -- (\a.south |- saved.north);
 
 % --- Row F: labels are joined offline only; the reserved stream stays locked ---
-\node[box, minimum width=58mm] (eval) at (10,-75)
-    {Offline evaluation\\\scriptsize episodes formed from saved predictions};
-\node[box, minimum width=30mm, fill=gray!18] (labels) at (63,-75)
-    {Labels\\\scriptsize joined offline only};
-\draw[flow] (eval.north |- saved.south) -- (eval.north);
-\draw[flow, dashed] (labels.west) -- (eval.east);
-\node[box, minimum width=36mm, dashed, fill=gray!20] (reserved) at (102,-75)
+\node[box, tint=cSrc, minimum width=58mm] (eval) at (10,-75)
+    {\textbf{Offline evaluation}\\\scriptsize episodes formed from saved predictions};
+\node[box, tint=cLab, minimum width=30mm] (labels) at (63,-75)
+    {\textbf{Labels}\\\scriptsize joined offline only};
+\draw[flow, draw=cSav!85!black] (eval.north |- saved.south) -- (eval.north);
+\draw[flow, dashed, draw=cLab!85!black] (labels.west) -- (eval.east);
+\node[box, tint=cRes, minimum width=36mm, dashed, line width=0.9pt] (reserved) at (102,-75)
     {$\boxtimes$\ \textbf{Reserved stream}\\\scriptsize\texttt{other/21.csv}: never opened};
 
 \end{tikzpicture}

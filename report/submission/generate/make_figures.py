@@ -23,7 +23,9 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import sys
+from pathlib import Path
 
 import _studylib as L
 
@@ -34,17 +36,17 @@ OUT = L.FIGURES_OUT
 # ---------------------------------------------------------------------------
 # Grayscale-safe palette + per-arm style table.
 # Series are told apart by (colour, dash, mark) together, so a -gray render
-# still separates them.  Defined once here; emitted into every fragment.
+# still separates them. Figures 4 and 5 use the Overleaf palette; the other
+# figures retain their original palette.
 # ---------------------------------------------------------------------------
 
 COLOR_DEFS = [
-    # name, RGB (also legible as a gray value)
     ("scblack", "0,0,0"),
     ("scblue", "31,78,150"),
     ("scred", "170,40,30"),
     ("scgreen", "20,110,60"),
     ("scgray", "120,120,120"),
-    ("scevent", "60,60,60"),      # event span shading (light, via opacity)
+    ("scevent", "60,60,60"),
 ]
 
 # style: (color, dash option, mark macro or "")
@@ -56,15 +58,23 @@ STYLE = {
     "score":                  ("scgray", "solid", ""),
 }
 
-def color_preamble():
+def replay_color_preamble():
     # Colours must be defined BEFORE \begin{tikzpicture} so they are usable as
-    # bare draw options inside it.
+    # bare draw options inside it. Emit no inter-command spaces: the layout
+    # check measures each fragment inside an hbox.
+    palette = (Path(OUT) / "f_replay_pallte.tex").read_text()
+    defs = re.findall(r"\\definecolor\{(\w+)\}\{RGB\}\{([^}]+)\}", palette)
+    assert len(defs) == 6, "expected the six Overleaf plot colours"
     return "".join(
-        "\\providecolor{%s}{RGB}{%s}%%\n" % (n, rgb) for n, rgb in COLOR_DEFS
+        "\\definecolor{%s}{RGB}{%s}%%\n" % (name, rgb) for name, rgb in defs
     )
 
 
-TIKZ_HEADER = color_preamble() + \
+TIKZ_HEADER = "".join(
+    "\\providecolor{%s}{RGB}{%s}%%\n" % (name, rgb) for name, rgb in COLOR_DEFS
+) + \
+    "\\begin{tikzpicture}[>=stealth,line join=round,line cap=round]\n"
+REPLAY_TIKZ_HEADER = replay_color_preamble() + \
     "\\begin{tikzpicture}[>=stealth,line join=round,line cap=round]\n"
 TIKZ_FOOTER = "\\end{tikzpicture}%\n"
 
@@ -303,7 +313,7 @@ def fig_scorer_limit(root, summary):
                           xticks, yticks, title=title, ylabel_sep=1.25)
         panels.append((body, frame))
 
-    out = [TIKZ_HEADER]
+    out = [REPLAY_TIKZ_HEADER]
     step_x = PANEL_W + GUTTER
     for i, (body, frame) in enumerate(panels):
         out.append("  \\begin{scope}[xshift=%.2fcm]\n" % (i * step_x))
@@ -378,7 +388,7 @@ def fig_synthetic_map(root, summary):
     bottom_of_col = {}
     for idx in range(len(tiles)):
         bottom_of_col[idx % 3] = idx
-    out = [TIKZ_HEADER]
+    out = [REPLAY_TIKZ_HEADER]
     for i, (stream, ax, body, xticks, yticks) in enumerate(tiles):
         col, rowi = i % 3, i // 3
         frame = draw_frame(ax, "sample index", "score", xticks, yticks, title=stream,

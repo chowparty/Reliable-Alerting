@@ -10,8 +10,7 @@
 #                                                   run; see README "Reproduce everything")
 #
 # Any failed check stops the script with a FAIL line; nothing is copied after a failure.
-# The public copies are built without the NSUT logo (NO_LOGO=1, the default here); run
-# with NO_LOGO=0 to build a local, with-logo copy. Page previews for a visual check are
+# The copies include the NSUT logo by default. Page previews for a visual check are
 # written to report/submission/build/preview/ and report/slides/.work/preview/.
 #
 # Works with the bash 3.2 that ships with macOS and with newer bash on Linux.
@@ -22,7 +21,7 @@ cd "$repo"
 PATH="/Library/TeX/texbin:$PATH"; export PATH
 # Fixed timestamp: an unchanged source rebuilds to byte-identical files.
 export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1790706600}"   # 2026-09-30 00:00 IST
-export NO_LOGO="${NO_LOGO:-1}"
+export NO_LOGO="${NO_LOGO:-0}"
 
 mode=copy; regenerate=0
 for arg in "$@"; do
@@ -46,6 +45,10 @@ for tool in python3 perl pdflatex bibtex pandoc gs pdftoppm pdfinfo pdffonts pdf
 done
 [ -z "$missing" ] || fail "missing tools:$missing (see report/README.md, Setup)"
 ok "all found"
+
+if [ "$NO_LOGO" != 1 ]; then
+  [ -s report/submission/nsut-logo.png ] || fail "tracked NSUT logo is missing"
+fi
 
 study="results/20260929-policy-study-v2"
 if [ "$regenerate" = 1 ]; then
@@ -124,7 +127,6 @@ if [ "$mode" = check ]; then
 fi
 
 step "Refresh deliverables/"
-[ "$NO_LOGO" = 1 ] || fail "deliverables/ holds only logo-free copies; rerun without NO_LOGO=0"
 cp "$pdf" deliverables/Phase-I-Report.pdf
 cp "$sl/deck.pdf" deliverables/Phase-I-Slides.pdf
 cp "$sl/deck.pptx" deliverables/Phase-I-Slides.pptx

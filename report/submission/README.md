@@ -27,6 +27,7 @@ implemented / proposed are tagged and kept distinct.
     kept as the diagram source for a future, larger layout.
   - `fig-ratchet.tex`, `fig-scorer-limit.tex`, `fig-synthetic-map.tex`, `fig-tradeoff.tex` —
     **generated** data figures (Figures 3–6; see `generate/`); never hand-edit.
+  - `f_replay_pallte.tex` — source palette embedded in generated Figures 4 and 5.
   - `figures-manifest.json` — provenance (inputs + SHA-256, caption, labels) for the generated figures.
   - `ai/` — prompts for optional AI-generated versions of the two schematics (see
     [`figures/ai/README.md`](figures/ai/README.md)). Data figures are never replaced.
@@ -41,13 +42,13 @@ implemented / proposed are tagged and kept distinct.
   SKAB is a dataset; Hu is in press.
 - `build.sh` — pdflatex → bibtex → pdflatex ×2 into `build/`.
 - `generate/` — reproducible generators (see below).
-- `.gitignore` — excludes `build/` and `nsut-logo.png`.
+- `.gitignore` — excludes generated build output.
 
 ## Build
 
 ```sh
 sh build.sh                              # -> build/report.pdf
-NO_LOGO=1 sh build.sh                    # cover without the logo (public copy)
+NO_LOGO=1 sh build.sh                    # optional cover without the logo
 AI_PLACEHOLDERS=1 sh build.sh            # draft: prints each schematic's image prompt
 ```
 
@@ -57,7 +58,7 @@ run every check and refresh `../../deliverables/`, use
 `bash scripts/build_deliverables.sh` from the repository root (see
 [`../README.md`](../README.md)).
 
-The reviewed, logo-free build is committed as `../../deliverables/Phase-I-Report.pdf`.
+The reviewed build with the logo is committed as `../../deliverables/Phase-I-Report.pdf`.
 
 The report and slides build on BasicTeX (TeX Live's small scheme, which includes the
 LaTeX-recommended collection) plus `enumitem`; that is the installation they were
@@ -66,12 +67,9 @@ standalone, pgfplots, tcolorbox or libertine.
 
 ### The NSUT logo
 
-The logo's reuse rights are unresolved and this repo is public, so the logo is **not
-committed** (`.gitignore` excludes `nsut-logo.png`). To build the printed copy with the
-logo, save it as `nsut-logo.png` in this folder. `build.sh` also copies it in from
-`report-work/visuals/nsut-page1-000.png` when that pack sits beside the checkout.
-`report.tex` uses `\IfFileExists`, so the source still compiles without it (the cover
-then shows a plain text "NSUT logo" mark). The final submitted PDF includes the logo.
+The team-approved `nsut-logo.png` is stored in this folder and included by default.
+`report.tex` uses `\IfFileExists`, so a source-only copy still compiles without it
+(the cover then shows a plain text "NSUT logo" mark).
 
 ## Reproducing the numbers from the repo alone
 

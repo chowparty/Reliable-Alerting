@@ -8,9 +8,8 @@
   {\small Department of Computer Science and Engineering\par}
   {\small Main Campus, New Delhi\par}
   \vspace{9mm}
-  % The NSUT logo reuse rights are unresolved; the logo is NOT committed. build.sh
-  % copies it in when present, and this guard lets the source compile without it.
-  % NO_LOGO=1 sh build.sh defines \ReportNoLogo for the public repository copy.
+  % The logo is kept with the report source. The guard also lets a source-only
+  % copy compile with a text mark if the image is missing.
   \newcommand{\logomark}{\fbox{\parbox[c][22mm][c]{32mm}{\centering\footnotesize
     NSUT\\[1pt]logo}}\par}
   \ifdefined\ReportNoLogo \logomark \else

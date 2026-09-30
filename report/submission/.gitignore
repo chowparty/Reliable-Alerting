@@ -1,7 +1,3 @@
-# NSUT logo reuse rights are unresolved and this repo is public: never commit it.
-# build.sh copies it in from report-work/visuals/nsut-page1-000.png at build time.
-nsut-logo.png
-
 # All generated build output; never committed, never hand-edited.
 build/
 

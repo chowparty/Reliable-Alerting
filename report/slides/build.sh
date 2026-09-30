@@ -5,7 +5,7 @@
 #               (text off the slide) warnings can be checked
 #   deck.pptx : pandoc -t pptx   (editable; colours and fonts from reference.pptx)
 # Figures are rendered first from the TikZ sources (make_figure_pngs.sh).
-# NO_LOGO=1 leaves the NSUT logo off the title slide (public repository copy).
+# NO_LOGO=1 leaves the NSUT logo off the title slide.
 #
 # Hang guard: macOS has no `timeout`; every render runs under a perl alarm.
 # Works with the bash 3.2 that ships with macOS as well as newer versions.
@@ -46,5 +46,9 @@ guard pandoc deck.md \
   --reference-doc=reference.pptx \
   --lua-filter=tags.lua \
   -o deck.pptx
+
+if [ -f figures/nsut-logo.png ]; then
+  guard python3 add_title_logo.py deck.pptx figures/nsut-logo.png
+fi
 
 echo "built: deck.pdf deck.pptx (LaTeX log: .work/deck.log)"
